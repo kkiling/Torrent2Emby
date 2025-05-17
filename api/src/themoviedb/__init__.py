@@ -1,3 +1,4 @@
-from src.themoviedb.search_movie import SearchQuery, Language, TheMovieDBAPI
+from src.themoviedb.api import TheMovieDBAPI
+from src.themoviedb.model import Language, SearchQuery
 
-__all__ = ['SearchQuery', 'Language', 'TheMovieDBAPI']
+__all__ = ['TheMovieDBAPI', 'Language', 'SearchQuery']

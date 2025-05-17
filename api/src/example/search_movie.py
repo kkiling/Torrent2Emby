@@ -10,18 +10,19 @@ def main():
         query="Однажды",
         language=Language.RU,
         page=1,
-        per_page=10
+        per_page=3
     )
 
     try:
         results = api.search_movie(search_params)
         print(f"page: {results.page}: total_results {results.total_results}")
         for movie in results.results:
-            print(f"Title: {movie.title}")
-            print(f"ReleaseDate: {movie.release_date}")
-            print(f"Popularity: {movie.popularity}")
-            print(f"Vote: {movie.vote_average}")
+            print(movie)
             print("---")
+
+        print("First movie info")
+        movie_info = api.get_movie_info(results.results[0].id, Language.RU)
+        print(movie_info)
     except ValueError as e:
         print(f"Error: {e}")
 

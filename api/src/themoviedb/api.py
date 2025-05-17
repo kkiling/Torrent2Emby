@@ -1,89 +1,33 @@
-from dataclasses import dataclass
-from enum import Enum
 from typing import List, Optional
 import requests
 import math
-
-
-class Language(Enum):
-    RU = "ru"
-    EN = "en"
-
-    def to_api_format(self) -> str:
-        return f"{self.value}-{self.value.upper()}"
-
-
-@dataclass
-class SearchQuery:
-    query: str
-    language: Language
-    page: int
-    per_page: int
-
-    def __post_init__(self):
-        if len(self.query) < 3:
-            raise ValueError("Query must be at least 3 characters long")
-        if self.page < 1:
-            raise ValueError("Page must be greater than or equal to 1")
-        if not (1 <= self.per_page <= 20):
-            raise ValueError("PerPage must be between 1 and 20")
-
-
-@dataclass
-class Movie:
-    adult: bool
-    backdrop_path: Optional[str]
-    genre_ids: List[int]
-    id: int
-    original_language: str
-    original_title: str
-    overview: str
-    popularity: float
-    poster_path: Optional[str]
-    release_date: str
-    title: str
-    video: bool
-    vote_average: float
-    vote_count: int
-
-@dataclass
-class TVShow:
-    adult: bool
-    backdrop_path: Optional[str]
-    genre_ids: List[int]
-    id: int
-    origin_country: List[str]
-    original_language: str
-    original_name: str
-    overview: str
-    popularity: float
-    poster_path: Optional[str]
-    first_air_date: str
-    name: str
-    vote_average: float
-    vote_count: int
-
-@dataclass
-class MovieSearchResponse:
-    page: int
-    total_pages: int
-    total_results: int
-    results: List[Movie]
-
-@dataclass
-class TVShowSearchResponse:
-    page: int
-    total_pages: int
-    total_results: int
-    results: List[TVShow]
-
+from src.themoviedb.model import (SearchQuery, MovieShort, TVShowShort,
+                                  MovieSearchResponse, TVShowSearchResponse,
+                                  Movie, Language, Image)
 
 
 class TheMovieDBAPI:
-    def __init__(self, api_key: str, base_url: str = "https://api.themoviedb.org/3", max_pages: int = 5):
+    def __init__(self, api_key: str,
+                 base_api_url: str = "https://api.themoviedb.org/3",
+                 base_img_url: str = "https://image.tmdb.org/t/p",
+                 max_pages: int = 5):
         self.api_key = api_key
-        self.base_url = base_url
+        self.base_api_url = base_api_url
+        self.base_img_url = base_img_url
         self.max_pages = max_pages
+
+    def __get_image(self, url: str) -> Optional[Image]:
+        if url == "":
+            return None
+        return Image(
+            w92=f"{self.base_img_url}/w92{url}",
+            w154=f"{self.base_img_url}/w154{url}",
+            w185=f"{self.base_img_url}/w185{url}",
+            w342=f"{self.base_img_url}/w342{url}",
+            w500=f"{self.base_img_url}/w500{url}",
+            w780=f"{self.base_img_url}/w780{url}",
+            original=f"{self.base_img_url}/original{url}"
+        )
 
     def __search_movie_unsorted(self, params: SearchQuery) -> MovieSearchResponse:
         """
@@ -99,7 +43,7 @@ class TheMovieDBAPI:
             ValueError: If the API request fails
             requests.RequestException: If there's a network error
         """
-        url = f"{self.base_url}/search/movie"
+        url = f"{self.base_api_url}/search/movie"
 
         api_params = {
             "api_key": self.api_key,
@@ -115,21 +59,16 @@ class TheMovieDBAPI:
 
             # Преобразуем результаты в типизированные объекты
             movies = [
-                Movie(
-                    adult=item["adult"],
-                    backdrop_path=item.get("backdrop_path"),
-                    genre_ids=item.get("genre_ids", []),
+                MovieShort(
                     id=item["id"],
-                    original_language=item["original_language"],
                     original_title=item["original_title"],
                     overview=item["overview"],
-                    popularity=item.get("popularity", 0),
-                    poster_path=item.get("poster_path"),
+                    poster_path=self.__get_image(item.get("poster_path", "")),
                     release_date=item.get("release_date", ""),
                     title=item["title"],
-                    video=item.get("video", False),
                     vote_average=item.get("vote_average", 0.0),
-                    vote_count=item.get("vote_count", 0.0),
+                    vote_count=item.get("vote_count", 0),
+                    popularity=item.get("popularity", 0),
                 )
                 for item in data["results"]
             ]
@@ -173,7 +112,7 @@ class TheMovieDBAPI:
         )
 
         # Собираем все фильмы
-        all_movies: List[Movie] = initial_response.results
+        all_movies: List[MovieShort] = initial_response.results
 
         # Получаем остальные страницы
         for page in range(2, pages_to_fetch + 1):
@@ -218,7 +157,7 @@ class TheMovieDBAPI:
             ValueError: If the API request fails
             requests.RequestException: If there's a network error
         """
-        url = f"{self.base_url}/search/tv"
+        url = f"{self.base_api_url}/search/tv"
 
         api_params = {
             "api_key": self.api_key,
@@ -234,21 +173,16 @@ class TheMovieDBAPI:
 
             # Преобразуем результаты в типизированные объекты
             tv_shows = [
-                TVShow(
-                    adult=item.get("adult", False),
-                    backdrop_path=item.get("backdrop_path"),
-                    genre_ids=item.get("genre_ids", []),
+                TVShowShort(
                     id=item["id"],
-                    origin_country=item.get("origin_country", []),
-                    original_language=item["original_language"],
                     original_name=item["original_name"],
                     overview=item["overview"],
-                    popularity=item.get("popularity", 0),
-                    poster_path=item.get("poster_path"),
+                    poster_path=self.__get_image(item.get("poster_path", "")),
                     first_air_date=item.get("first_air_date", ""),
                     name=item["name"],
                     vote_average=item.get("vote_average", 0.0),
                     vote_count=item.get("vote_count", 0),
+                    popularity=item.get("popularity", 0),
                 )
                 for item in data["results"]
             ]
@@ -292,7 +226,7 @@ class TheMovieDBAPI:
         )
 
         # Собираем все сериалы
-        all_shows: List[TVShow] = initial_response.results
+        all_shows: List[TVShowShort] = initial_response.results
 
         # Получаем остальные страницы
         for page in range(2, pages_to_fetch + 1):
@@ -322,3 +256,58 @@ class TheMovieDBAPI:
             total_results=total_results,
             results=paginated_shows
         )
+
+    def get_movie_info(self, movie_id: int, language: Language) -> Movie:
+        """
+        Get detailed information about a movie by its ID.
+
+        Args:
+            movie_id: The ID of the movie
+            language: Language code in format 'iso-639-1-ISO-3166-1' (default: "ru-RU")
+
+        Returns:
+            Movie object containing detailed movie information
+
+        Raises:
+            ValueError: If the API request fails
+            requests.RequestException: If there's a network error
+        """
+        url = f"{self.base_api_url}/movie/{movie_id}"
+
+        api_params = {
+            "api_key": self.api_key,
+            "language": language
+        }
+
+        try:
+            response = requests.get(url, params=api_params)
+            response.raise_for_status()
+            data = response.json()
+
+            # Преобразуем жанры в объекты Genre
+            genres = [g["name"] for g in data["genres"]]
+
+            return Movie(
+                backdrop_path=self.__get_image(data.get("backdrop_path", "")),
+                budget=data["budget"],
+                genres=genres,
+                id=data["id"],
+                imdb_id=data["imdb_id"],
+                origin_country=data.get("origin_country", []),
+                original_language=data["original_language"],
+                original_title=data["original_title"],
+                overview=data["overview"],
+                popularity=data["popularity"],
+                poster_path=self.__get_image(data.get("poster_path", "")),
+                release_date=data["release_date"],
+                revenue=data["revenue"],
+                runtime=data["runtime"],
+                status=data["status"],
+                tagline=data["tagline"],
+                title=data["title"],
+                vote_average=data["vote_average"],
+                vote_count=data["vote_count"]
+            )
+
+        except requests.RequestException as e:
+            raise ValueError(f"Failed to get movie details: {str(e)}")

@@ -9,18 +9,16 @@ def main():
         query="Атака",
         language=Language.RU,
         page=1,
-        per_page=10
+        per_page=3
     )
 
     try:
         results = api.search_tv(search_params)
         print(f"page: {results.page}: total_results {results.total_results}")
-        for movie in results.results:
-            print(f"Name: {movie.name}")
-            print(f"FirstAirDate: {movie.first_air_date}")
-            print(f"Popularity: {movie.popularity}")
-            print(f"Vote: {movie.vote_average}")
+        for tv in results.results:
+            print(tv)
             print("---")
+
     except ValueError as e:
         print(f"Error: {e}")
 
