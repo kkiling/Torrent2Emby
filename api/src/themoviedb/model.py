@@ -1,7 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
 from typing import List, Optional
-from src.utils import print_class
 
 class Language(Enum):
     RU = "ru"
@@ -18,8 +17,6 @@ class Image:
     w500: str
     w780: str
     original: str
-    def __str__(self):
-        return print_class(self)
 
 @dataclass
 class MovieShort:
@@ -32,8 +29,6 @@ class MovieShort:
     vote_average: float
     vote_count: int
     popularity: int
-    def __str__(self):
-        return print_class(self)
 
 @dataclass
 class Movie:
@@ -57,8 +52,6 @@ class Movie:
     vote_average: float
     vote_count: int
 
-    def __str__(self):
-        return print_class(self)
 
 @dataclass
 class TVShowShort:
@@ -72,8 +65,52 @@ class TVShowShort:
     vote_count: int
     popularity: int
 
-    def __str__(self):
-        return print_class(self)
+@dataclass
+class Season:
+    air_date: str
+    episode_count: int
+    id: int
+    name: str
+    overview: str
+    poster_path: Optional[str]
+    season_number: int
+    vote_average: float
+
+@dataclass
+class TVShow:
+    backdrop_path: Optional[str]
+    first_air_date: str
+    genres: List[str]
+    id: int
+    last_air_date: str
+    name: str
+    next_episode_to_air: Optional[dict]
+    number_of_episodes: int
+    number_of_seasons: int
+    origin_country: List[str]
+    original_name: str
+    overview: str
+    popularity: float
+    poster_path: Optional[str]
+    seasons: List[Season]
+    status: str
+    tagline: str
+    type: str
+    vote_average: float
+    vote_count: int
+
+@dataclass
+class Episode:
+    air_date: str
+    episode_number: int
+    episode_type: str
+    id: int
+    name: str
+    overview: str
+    runtime: int
+    still_path: Optional[Image]
+    vote_average: float
+    vote_count: int
 
 @dataclass
 class SearchQuery:

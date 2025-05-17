@@ -1,5 +1,7 @@
 from src.options import Options
 from src.themoviedb import SearchQuery, Language, TheMovieDBAPI
+from src.utils import pretty_print
+
 
 def main():
     opt = Options.from_env()
@@ -16,8 +18,16 @@ def main():
         results = api.search_tv(search_params)
         print(f"page: {results.page}: total_results {results.total_results}")
         for tv in results.results:
-            print(tv)
+            pretty_print(tv)
             print("---")
+
+        print("First TV info")
+        tv_info = api.get_tv_show(results.results[0].id, Language.RU)
+        #pretty_print(tv_info)
+
+        print("Episodes for season 1:")
+        episodes = api.get_season_episodes(tv_info.id, tv_info.seasons[1].season_number, Language.RU)
+        pretty_print(episodes)
 
     except ValueError as e:
         print(f"Error: {e}")

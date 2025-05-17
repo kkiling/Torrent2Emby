@@ -3,7 +3,7 @@ import requests
 import math
 from src.themoviedb.model import (SearchQuery, MovieShort, TVShowShort,
                                   MovieSearchResponse, TVShowSearchResponse,
-                                  Movie, Language, Image)
+                                  Movie, Language, Image, TVShow, Season, Episode)
 
 
 class TheMovieDBAPI:
@@ -311,3 +311,122 @@ class TheMovieDBAPI:
 
         except requests.RequestException as e:
             raise ValueError(f"Failed to get movie details: {str(e)}")
+
+
+    def get_tv_show(self, tv_id: int, language: Language) -> TVShow:
+        """
+        Get detailed information about a TV show by its ID.
+
+        Args:
+            tv_id: The ID of the TV show
+            language: Language object for the response
+
+        Returns:
+            TVShow object containing detailed TV show information
+
+        Raises:
+            ValueError: If the API request fails
+            requests.RequestException: If there's a network error
+        """
+        url = f"{self.base_api_url}/tv/{tv_id}"
+
+        api_params = {
+            "api_key": self.api_key,
+            "language": language.to_api_format()
+        }
+
+        try:
+            response = requests.get(url, params=api_params)
+            response.raise_for_status()
+            data = response.json()
+
+            # Преобразуем сезоны в объекты Season
+            seasons = [
+                Season(
+                    air_date=season.get("air_date", ""),
+                    episode_count=season["episode_count"],
+                    id=season["id"],
+                    name=season["name"],
+                    overview=season["overview"],
+                    poster_path=self.__get_image(season.get("poster_path", "")),
+                    season_number=season["season_number"],
+                    vote_average=season["vote_average"]
+                )
+                for season in data["seasons"]
+            ]
+
+            # Преобразуем жанры в список названий
+            genres = [g["name"] for g in data["genres"]]
+
+            return TVShow(
+                backdrop_path=self.__get_image(data.get("backdrop_path", "")),
+                first_air_date=data["first_air_date"],
+                genres=genres,
+                id=data["id"],
+                last_air_date=data["last_air_date"],
+                name=data["name"],
+                next_episode_to_air=data["next_episode_to_air"],
+                number_of_episodes=data["number_of_episodes"],
+                number_of_seasons=data["number_of_seasons"],
+                origin_country=data["origin_country"],
+                original_name=data["original_name"],
+                overview=data["overview"],
+                popularity=data["popularity"],
+                poster_path=self.__get_image(data.get("poster_path", "")),
+                seasons=seasons,
+                status=data["status"],
+                tagline=data["tagline"],
+                type=data["type"],
+                vote_average=data["vote_average"],
+                vote_count=data["vote_count"]
+            )
+
+        except requests.RequestException as e:
+            raise ValueError(f"Failed to get TV show details: {str(e)}")
+
+    def get_season_episodes(self, tv_id: int, season_number: int, language: Language) -> List[Episode]:
+        """
+        Get list of episodes for a specific season of a TV show.
+
+        Args:
+            tv_id: The ID of the TV show
+            season_number: The number of the season
+            language: Language object for the response
+
+        Returns:
+            List of Episode objects containing episode information
+
+        Raises:
+            ValueError: If the API request fails
+            requests.RequestException: If there's a network error
+        """
+        url = f"{self.base_api_url}/tv/{tv_id}/season/{season_number}"
+
+        api_params = {
+            "api_key": self.api_key,
+            "language": language.to_api_format()
+        }
+
+        try:
+            response = requests.get(url, params=api_params)
+            response.raise_for_status()
+            data = response.json()
+
+            return [
+                Episode(
+                    air_date=episode.get("air_date", ""),
+                    episode_number=episode["episode_number"],
+                    episode_type=episode["episode_type"],
+                    id=episode["id"],
+                    name=episode["name"],
+                    overview=episode["overview"],
+                    runtime=episode.get("runtime", 0),
+                    still_path=self.__get_image(episode.get("still_path", "")),
+                    vote_average=episode.get("vote_average", 0.0),
+                    vote_count=episode.get("vote_count", 0)
+                )
+                for episode in data["episodes"]
+            ]
+
+        except requests.RequestException as e:
+            raise ValueError(f"Failed to get season episodes: {str(e)}")

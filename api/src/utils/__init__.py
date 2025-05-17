@@ -1,3 +1,3 @@
-from src.utils.str import print_class
+from src.utils.str import pretty_print
 
-__all__ = ['print_class']
+__all__ = ['pretty_print']
