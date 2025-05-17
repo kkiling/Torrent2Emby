@@ -1,12 +1,9 @@
-import os
-from dotenv import load_dotenv
-from src.themoviedb.search_movie import SearchQuery, Language, TheMovieDBAPI
+from src.options import Options
+from src.themoviedb import SearchQuery, Language, TheMovieDBAPI
 
 def main():
-    load_dotenv()
-    api_key = os.getenv("THE_MOVIE_DB_API_KEY")
-
-    api = TheMovieDBAPI(api_key=api_key)
+    opt = Options.from_env()
+    api = TheMovieDBAPI(api_key=opt.the_movie_db_api_key)
 
     search_params = SearchQuery(
         query="Атака",
