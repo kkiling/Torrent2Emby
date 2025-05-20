@@ -29,7 +29,7 @@ func main() {
 	}
 
 	// Создаем сервис для работы с рутрекером
-	rutrackerApi, err := rutracker.NewRutrackerAPI(
+	rutrackerApi, err := rutracker.NewAPI(
 		logger,
 		cfg.Rutracker.Username,
 		cfg.Rutracker.Password,

@@ -27,7 +27,6 @@ type Torrent struct {
 
 type TorrentResponse struct {
 	Page         int
-	TotalPages   int
 	TotalResults int
 	Results      []Torrent
 }

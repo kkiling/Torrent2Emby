@@ -22,7 +22,7 @@ type API struct {
 	logger     log.Logger
 }
 
-func NewRutrackerAPI(logger log.Logger, username, password, cookiesDir string) (*API, error) {
+func NewAPI(logger log.Logger, username, password, cookiesDir string) (*API, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, fmt.Errorf("cookiejar.New: %w", err)

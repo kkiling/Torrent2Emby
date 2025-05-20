@@ -84,6 +84,5 @@ func (api *API) SearchTorrents(query string) (*TorrentResponse, error) {
 		Results:      results,
 		Page:         1,
 		TotalResults: len(results),
-		TotalPages:   1,
 	}, nil
 }
