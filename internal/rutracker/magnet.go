@@ -3,12 +3,13 @@ package rutracker
 import (
 	"errors"
 	"fmt"
+	"github.com/kkiling/torrent2emby/internal/apierr"
 	"net/http"
 	"regexp"
 	"strings"
 )
 
-func (api *API) GetMagnetLink(torrentUrl string) (*MagnetInfo, error) {
+func (api *Api) GetMagnetLink(torrentUrl string) (*MagnetInfo, error) {
 	if err := api.login(); err != nil {
 		return nil, fmt.Errorf("failed to login: %w", err)
 	}
@@ -21,12 +22,12 @@ func (api *API) GetMagnetLink(torrentUrl string) (*MagnetInfo, error) {
 
 	resp, err := api.httpClient.Get(torrentUrl)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get magnet link: %w", handleRequestError(api.logger, err))
+		return nil, fmt.Errorf("failed to get magnet link: %w", apierr.HandleRequestError(api.logger, err))
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, handleStatusCodeError(api.logger, resp)
+		return nil, apierr.HandleStatusCodeError(api.logger, resp)
 	}
 
 	doc, err := readerDocument(resp.Body)

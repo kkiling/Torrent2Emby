@@ -3,13 +3,14 @@ package rutracker
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/kkiling/torrent2emby/internal/apierr"
 	"net/http"
 	"net/url"
 	"sort"
 	"strings"
 )
 
-func (api *API) SearchTorrents(query string) (*TorrentResponse, error) {
+func (api *Api) SearchTorrents(query string) (*TorrentResponse, error) {
 	if err := api.login(); err != nil {
 		return nil, fmt.Errorf("failed to login: %w", err)
 	}
@@ -19,12 +20,12 @@ func (api *API) SearchTorrents(query string) (*TorrentResponse, error) {
 	searchURL := api.baseAPIUrl.String() + "tracker.php?nm=" + url.QueryEscape(query)
 	resp, err := api.httpClient.Get(searchURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to search torrents: %w", handleRequestError(api.logger, err))
+		return nil, fmt.Errorf("failed to search torrents: %w", apierr.HandleRequestError(api.logger, err))
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, handleStatusCodeError(api.logger, resp)
+		return nil, apierr.HandleStatusCodeError(api.logger, resp)
 	}
 
 	// Создаем reader с правильной кодировкой

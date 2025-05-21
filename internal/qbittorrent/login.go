@@ -1,4 +1,4 @@
-package rutracker
+package qbittorrent
 
 import (
 	"encoding/json"
@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 )
 
+// saveCookies сохраняет куки в файл
 func (api *Api) saveCookies() error {
 	api.logger.Debugf("Save cookies")
 
@@ -59,6 +60,28 @@ func (api *Api) loadCookies() (bool, error) {
 	return false, nil
 }
 
+func (api *Api) tryLogin() (bool, error) {
+	api.logger.Debugf("Try login")
+	form := url.Values{}
+	form.Set("username", api.username)
+	form.Set("password", api.password)
+
+	loginUrl := api.baseAPIUrl.String() + "/api/v2/auth/login"
+	resp, err := api.httpClient.PostForm(loginUrl, form)
+	if err != nil {
+		return false, fmt.Errorf("login request failed: %v", apierr.HandleRequestError(api.logger, err))
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		return true, nil
+	} else if resp.StatusCode != http.StatusOK {
+		return false, apierr.HandleStatusCodeError(api.logger, resp)
+	}
+
+	return false, nil
+}
+
 func (api *Api) removeCookies() error {
 	api.logger.Debugf("Remove cookies")
 	cookiesPath := filepath.Join(api.cookiesDir, cookeFile)
@@ -75,30 +98,6 @@ func (api *Api) removeCookies() error {
 
 	api.logger.Debugf("Successfully removed cookies file: %s", cookiesPath)
 	return nil
-}
-
-func (api *Api) tryLogin() (bool, error) {
-	api.logger.Debugf("Try login")
-	loginData := url.Values{
-		"login_username": {api.username},
-		"login_password": {api.password},
-		"login":          {"вход"},
-	}
-
-	loginUrl := api.baseAPIUrl.String() + "login.php"
-	resp, err := api.httpClient.PostForm(loginUrl, loginData)
-	if err != nil {
-		return false, fmt.Errorf("login request failed: %v", apierr.HandleRequestError(api.logger, err))
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusOK && resp.Request.URL.Path == "/forum/index.php" {
-		return true, nil
-	} else if resp.StatusCode != http.StatusOK {
-		return false, apierr.HandleStatusCodeError(api.logger, resp)
-	}
-
-	return false, nil
 }
 
 func (api *Api) login() error {

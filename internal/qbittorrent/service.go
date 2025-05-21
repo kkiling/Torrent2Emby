@@ -1,4 +1,4 @@
-package rutracker
+package qbittorrent
 
 import (
 	"fmt"
@@ -9,35 +9,35 @@ import (
 )
 
 const (
-	cookeFile = "rutracker_cookies.gob"
-	apiUrl    = "https://rutracker.org/forum/"
+	cookeFile = "qbittorrentr_cookies.gob"
 )
 
+// Api представляет клиент для работы с API qBittorrent
 type Api struct {
+	baseAPIUrl *url.URL
 	username   string
 	password   string
 	cookiesDir string
-	baseAPIUrl *url.URL
 	httpClient *http.Client
 	logger     log.Logger
 }
 
-func NewApi(logger log.Logger, username, password, cookiesDir string) (*Api, error) {
+func NewApi(logger log.Logger, baseURL, username, password, cookiesDir string) (*Api, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		return nil, fmt.Errorf("cookiejar.New: %w", err)
+		return nil, fmt.Errorf("failed to create cookie jar: %w", err)
 	}
-	baseAPIUrl, err := url.Parse(apiUrl)
+	baseAPIUrl, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("url.Parse: %w", err)
 	}
 
 	return &Api{
+		baseAPIUrl: baseAPIUrl,
 		username:   username,
 		password:   password,
 		cookiesDir: cookiesDir,
-		baseAPIUrl: baseAPIUrl,
 		httpClient: &http.Client{Jar: jar},
-		logger:     logger.Named("rutracker"),
+		logger:     logger.Named("qbittorrent"),
 	}, nil
 }
