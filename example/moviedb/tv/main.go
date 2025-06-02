@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/kkiling/torrent2emby/internal/apierr"
 	"github.com/kkiling/torrent2emby/internal/config"
 	"github.com/kkiling/torrent2emby/internal/log"
@@ -27,7 +28,7 @@ func main() {
 	// Поиск сериалов
 	response, err := api.SearchTV(themoviedb.SearchQuery{
 		Language: themoviedb.LanguageRU,
-		Query:    "атака ти",
+		Query:    "Сага о винланде",
 		Page:     1,
 		PerPage:  10,
 	})
@@ -40,29 +41,29 @@ func main() {
 		return
 	}
 
-	for _, torrent := range response.Results[:2] {
+	for _, tv := range response.Results[:1] {
 		logger.Infof("#%d - %s - %s (%f%d)(%f)",
-			torrent.ID,
-			torrent.Name,
-			torrent.FirstAirDate.Format(time.DateOnly),
-			torrent.VoteAverage,
-			torrent.VoteCount,
-			torrent.Popularity)
+			tv.ID,
+			tv.Name,
+			tv.FirstAirDate.Format(time.DateOnly),
+			tv.VoteAverage,
+			tv.VoteCount,
+			tv.Popularity)
 	}
 
 	// информация о сериале
 	tvId := response.Results[0].ID
-	tvOInfo, err := api.GetTV(tvId, themoviedb.LanguageRU)
+	tvOInfo, err := api.GetTV(tvId, themoviedb.LanguageEN)
 	if err != nil {
 		apierr.PrintError(logger, err)
 	}
-	logger.Info(tvOInfo)
+	logger.Info(tvOInfo.Seasons[2].Name)
 
-	episodes, err := api.GetSeasonEpisodes(tvId, 1, themoviedb.LanguageRU)
+	episodes, err := api.GetSeasonEpisodes(tvId, 2, themoviedb.LanguageEN)
 	if err != nil {
 		apierr.PrintError(logger, err)
 	}
 	for _, episode := range episodes {
-		logger.Infof("%s (%s)", episode.Name, episode.AirDate)
+		fmt.Printf("#%d %s\n", episode.EpisodeNumber, episode.Name)
 	}
 }

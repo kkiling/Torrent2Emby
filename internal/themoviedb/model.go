@@ -82,9 +82,9 @@ type TVShow struct {
 
 // Season contains TV show season information
 type Season struct {
+	ID           int
 	AirDate      string
 	EpisodeCount int
-	ID           int
 	Name         string
 	Overview     string
 	PosterPath   *Image
@@ -94,14 +94,23 @@ type Season struct {
 
 // Episode contains TV show episode information
 type Episode struct {
-	AirDate       time.Time
+	ID int
+	// Дата выхода
+	AirDate time.Time
+	// Номер эпизода в сезоне
 	EpisodeNumber int
-	EpisodeType   string
-	ID            int
-	Name          string
-	Overview      string
-	Runtime       int
-	StillPath     *Image
-	VoteAverage   float64
-	VoteCount     int
+	// Какой то тип сезона (standart)
+	EpisodeType string
+	// Наименование эпизода
+	Name string
+	// Описание эпизода
+	Overview string
+	// Продолжительность эпизода (секунды)
+	Runtime int
+	// Превью эпизода
+	StillPath *Image
+	// Средний рейтинг эпизода
+	VoteAverage float64
+	// Количество оценок
+	VoteCount int
 }

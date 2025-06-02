@@ -113,7 +113,7 @@ func NewEnvConfig(logger log.Logger) (*EnvConfig, error) {
 	// Загружаем .env файл
 	err := godotenv.Load()
 	if err != nil {
-		logger.Warn("Warning: Could not find .env file - using system environment variables")
+		logger.Warn("Warning: Could not find .env prepare - using system environment variables")
 	}
 
 	movieDbConfig, err := loadMovieDbConfig()

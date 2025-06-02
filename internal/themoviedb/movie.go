@@ -3,6 +3,7 @@ package themoviedb
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kkiling/torrent2emby/internal/apierr"
 	"io"
 	"net/http"
 	"net/url"
@@ -16,12 +17,12 @@ func (api *API) GetMovie(movieID uint64, language Language) (*Movie, error) {
 	getUrl := fmt.Sprintf("%s/movie/%d?%s", api.baseAPIUrl.String(), movieID, queryParams.Encode())
 	resp, err := api.httpClient.Get(getUrl)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get movie info: %w", handleRequestError(api.logger, err))
+		return nil, fmt.Errorf("failed to get movie info: %w", apierr.HandleRequestError(api.logger, err))
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, handleStatusCodeError(api.logger, resp)
+		return nil, apierr.HandleStatusCodeError(api.logger, resp)
 	}
 
 	body, err := io.ReadAll(resp.Body)

@@ -38,7 +38,7 @@ func main() {
 		return
 	}
 
-	for _, torrent := range response.Results[:5] {
+	for _, torrent := range response.Results[:3] {
 		logger.Infof("%s (%s)", torrent.Title, torrent.Size)
 	}
 

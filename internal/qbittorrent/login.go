@@ -17,7 +17,7 @@ func (api *Api) saveCookies() error {
 	cookiesPath := filepath.Join(api.cookiesDir, cookeFile)
 	file, err := os.Create(cookiesPath)
 	if err != nil {
-		return fmt.Errorf("failed to create cookies file: %v", err)
+		return fmt.Errorf("failed to create cookies prepare: %v", err)
 	}
 	defer file.Close()
 
@@ -29,7 +29,7 @@ func (api *Api) saveCookies() error {
 
 	// Записываем данные в файл
 	if _, err := file.Write(data); err != nil {
-		return fmt.Errorf("failed to write cookies to file: %w", err)
+		return fmt.Errorf("failed to write cookies to prepare: %w", err)
 	}
 
 	return nil
@@ -44,7 +44,7 @@ func (api *Api) loadCookies() (bool, error) {
 		if os.IsNotExist(err) {
 			return false, nil
 		}
-		return false, fmt.Errorf("failed to read cookies file: %w", err)
+		return false, fmt.Errorf("failed to read cookies prepare: %w", err)
 	}
 
 	var cookies []*http.Cookie
@@ -93,10 +93,10 @@ func (api *Api) removeCookies() error {
 	// Удаляем файл
 	err := os.Remove(cookiesPath)
 	if err != nil {
-		return fmt.Errorf("failed to remove cookies file: %w", err)
+		return fmt.Errorf("failed to remove cookies prepare: %w", err)
 	}
 
-	api.logger.Debugf("Successfully removed cookies file: %s", cookiesPath)
+	api.logger.Debugf("Successfully removed cookies prepare: %s", cookiesPath)
 	return nil
 }
 

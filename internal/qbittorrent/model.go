@@ -56,6 +56,8 @@ type TorrentInfo struct {
 	Category string
 	// Теги торрента, разделенные запятой
 	Tags string
+	// Путь сохранения торрента
+	SavePath string
 	// Абсолютный путь к содержимому торрента (корневой путь для торрентов с несколькими файлами,
 	// абсолютный путь к файлу для торрентов с одним файлом)
 	ContentPath string
@@ -89,6 +91,7 @@ type TorrentInfo struct {
 
 // TorrentFile содержит информацию о файле в торренте
 type TorrentFile struct {
+	Index int
 	// Имя файла с полным путем внутри торрента
 	Name string
 	// Прогресс загрузки файла (от 0 до 1)

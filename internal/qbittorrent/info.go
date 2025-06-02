@@ -15,6 +15,7 @@ type rawTorrentInfo struct {
 	Category     string  `json:"category"`
 	Completed    int64   `json:"completed"`
 	CompletionOn int64   `json:"completion_on"`
+	SavePath     string  `json:"save_path"`
 	ContentPath  string  `json:"content_path"`
 	DlSpeed      int64   `json:"dlspeed"`
 	Downloaded   int64   `json:"downloaded"`
@@ -64,6 +65,7 @@ func (api *Api) GetTorrentInfo(hash string) (*TorrentInfo, error) {
 		Name:         raw.Name,
 		Category:     raw.Category,
 		Tags:         raw.Tags,
+		SavePath:     raw.SavePath,
 		ContentPath:  raw.ContentPath,
 		State:        TorrentState(raw.State),
 		AddedOn:      time.Unix(raw.AddedOn, 0),

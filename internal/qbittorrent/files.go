@@ -9,6 +9,7 @@ import (
 )
 
 type rawTorrentFile struct {
+	Index    int     `json:"index"`
 	Name     string  `json:"name"`
 	Progress float64 `json:"progress"`
 	Size     int64   `json:"size"`
@@ -42,6 +43,7 @@ func (api *Api) GetTorrentFiles(hash string) ([]TorrentFile, error) {
 	files := make([]TorrentFile, len(rawFiles))
 	for i, raw := range rawFiles {
 		files[i] = TorrentFile{
+			Index:    raw.Index,
 			Name:     raw.Name,
 			Progress: raw.Progress,
 			Size:     raw.Size,

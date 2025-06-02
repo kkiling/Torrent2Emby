@@ -47,7 +47,7 @@ func NewLogger(level Level) Logger {
 			EncodeLevel:    zapcore.LowercaseLevelEncoder,
 			EncodeTime:     zapcore.RFC3339NanoTimeEncoder,
 			EncodeDuration: zapcore.SecondsDurationEncoder,
-			CallerKey:      "file",
+			CallerKey:      "prepare",
 			EncodeCaller:   zapcore.ShortCallerEncoder,
 			EncodeName:     zapcore.FullNameEncoder,
 		},
