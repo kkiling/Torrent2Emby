@@ -2,6 +2,7 @@ package tvshow
 
 import (
 	"fmt"
+	"github.com/kkiling/torrent2emby/internal/mkvmerge"
 	"path/filepath"
 	"strings"
 )
@@ -12,13 +13,18 @@ var (
 	subtitlesExtensions = []string{".ass"}
 )
 
-type Service struct {
-	// embyMediaPath каталог с которым работает emby сервер, куда нужно копировать файлы
-	embyMediaPath string
+type MediaInfo interface {
+	GetMediaInfo(filePath string) (*mkvmerge.MediaInfo, error)
 }
 
-func NewService() *Service {
-	return &Service{}
+type Service struct {
+	mediaInfo MediaInfo
+}
+
+func NewService(mediaInfo MediaInfo) *Service {
+	return &Service{
+		mediaInfo: mediaInfo,
+	}
 }
 
 // splitPath разбивает путь в Linux на отдельные компоненты.
@@ -59,10 +65,9 @@ func processFiles(
 
 	var result []TorrentFile
 	for _, file := range files {
-		ext := strings.ToLower(filepath.Ext(file.RelativePath))
 
 		// Проверяем расширение файла
-		if !extMap[ext] {
+		if !extMap[file.Extension] {
 			continue
 		}
 
@@ -93,13 +98,13 @@ func processVideoFiles(torrentFiles []TorrentFile) ([]TorrentFile, error) {
 	return result, nil
 }
 
-func processMetaFiles(torrentFiles []TorrentFile, extensions []string) (map[string][]TorrentFile, error) {
+func (s *Service) processMetaFiles(torrentFiles []TorrentFile, extensions []string) (map[string][]PrepareTrack, error) {
 	prepareVideoFiles, err := processFiles(torrentFiles, extensions)
 	if err != nil {
 		return nil, fmt.Errorf("processFiles: %w", err)
 	}
 	// Группируем по озвучке
-	result := make(map[string][]TorrentFile)
+	result := make(map[string][]PrepareTrack)
 	for _, file := range prepareVideoFiles {
 		// Исходим из того что озвучка/субтитры лежит в каком то каталоге
 		// Название этого каталога и берем за название озвучки/субтитры
@@ -107,9 +112,33 @@ func processMetaFiles(torrentFiles []TorrentFile, extensions []string) (map[stri
 		if len(splitRelativePath) < 2 {
 			continue
 		}
-		// Берем название
+
+		// Пробуем достать информацию из файла
+		info, err := s.mediaInfo.GetMediaInfo(file.FullPath)
+		if err != nil {
+			return nil, fmt.Errorf("mediaInfo.GetMediaInfo: %w", err)
+		}
+
+		// Берем название из каталога
 		name := splitRelativePath[len(splitRelativePath)-2]
-		result[name] = append(result[name], file)
+		language := ""
+		if len(info.AudioTracks) == 1 && info.AudioTracks[0].TrackName != "" {
+			// Пробуем достать из инфы аудиодорожки
+			name = info.AudioTracks[0].TrackName
+			language = info.AudioTracks[0].Language
+		}
+
+		if len(info.Subtitles) == 1 && info.Subtitles[0].TrackName != "" {
+			// Пробуем достать из инфы субтитров
+			name = info.Subtitles[0].TrackName
+			language = info.AudioTracks[0].Language
+		}
+
+		result[name] = append(result[name], PrepareTrack{
+			Name:     name,
+			Language: language,
+			File:     file,
+		})
 	}
 
 	return result, nil
@@ -125,19 +154,18 @@ func (s *Service) PrepareTvShowSeason(params *PrepareTvShowPrams) (*PrepareTVSho
 	}
 
 	// Получаем аудиодорожки
-	audioFilesMap, err := processMetaFiles(params.TorrentFiles, audioExtensions)
+	audioFilesMap, err := s.processMetaFiles(params.TorrentFiles, audioExtensions)
 	if err != nil {
 		return nil, fmt.Errorf("processFiles audio files: %w", err)
 	}
 
 	// Получаем субтитры
-	subtitlesFilesMap, err := processMetaFiles(params.TorrentFiles, subtitlesExtensions)
+	subtitlesFilesMap, err := s.processMetaFiles(params.TorrentFiles, subtitlesExtensions)
 	if err != nil {
 		return nil, fmt.Errorf("processFiles subtitles files: %w", err)
 	}
 
 	for index, episode := range params.Episodes {
-
 		prepareEpisode := PrepareEpisode{
 			Episode: episode,
 		}
@@ -149,22 +177,18 @@ func (s *Service) PrepareTvShowSeason(params *PrepareTvShowPrams) (*PrepareTVSho
 			}
 		}
 
-		for audioName, audioFiles := range audioFilesMap {
-			if index < len(audioFiles) {
-				prepareEpisode.AudioFiles = append(prepareEpisode.AudioFiles, PrepareAudio{
-					Name: audioName,
-					File: audioFiles[index],
-				})
+		for _, audioFiles := range audioFilesMap {
+			if index >= len(audioFiles) {
+				continue
 			}
+			prepareEpisode.AudioFiles = append(prepareEpisode.AudioFiles, audioFiles[index])
 		}
 
-		for subtitleName, subtitleFiles := range subtitlesFilesMap {
-			if index < len(subtitleFiles) {
-				prepareEpisode.Subtitles = append(prepareEpisode.Subtitles, PrepareSubtitles{
-					Name: subtitleName,
-					File: subtitleFiles[index],
-				})
+		for _, subtitleFiles := range subtitlesFilesMap {
+			if index >= len(subtitleFiles) {
+				continue
 			}
+			prepareEpisode.Subtitles = append(prepareEpisode.Subtitles, subtitleFiles[index])
 		}
 
 		result.Episodes = append(result.Episodes, prepareEpisode)

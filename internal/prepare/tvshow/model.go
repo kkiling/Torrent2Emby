@@ -3,25 +3,23 @@ package tvshow
 type Episode struct {
 	// Номер эпизода в сезоне
 	EpisodeNumber int
-	// Наименование эпизода
-	Name string
 }
 
 type TorrentFile struct {
 	// Путь до файла торрента (путь относительно ContentPath)
 	RelativePath string
+	//
+	FullPath string
 	// Размер файла в байтах
 	Size int64
+	// Расширение файла
+	Extension string
 }
 
-type PrepareAudio struct {
-	Name string
-	File TorrentFile
-}
-
-type PrepareSubtitles struct {
-	Name string
-	File TorrentFile
+type PrepareTrack struct {
+	Name     string
+	Language string
+	File     TorrentFile
 }
 
 type PrepareVideo struct {
@@ -31,8 +29,8 @@ type PrepareVideo struct {
 type PrepareEpisode struct {
 	Episode    Episode
 	VideoFile  *PrepareVideo
-	AudioFiles []PrepareAudio
-	Subtitles  []PrepareSubtitles
+	AudioFiles []PrepareTrack
+	Subtitles  []PrepareTrack
 }
 
 type PrepareTVShowSeason struct {
