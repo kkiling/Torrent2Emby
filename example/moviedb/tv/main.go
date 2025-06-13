@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/apierr"
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
+	themoviedb2 "github.com/kkiling/torrent2emby/internal/adapter/themoviedb"
 	"github.com/kkiling/torrent2emby/internal/config"
 	"github.com/kkiling/torrent2emby/internal/log"
-	"github.com/kkiling/torrent2emby/internal/themoviedb"
 	"time"
 )
 
@@ -17,7 +17,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	api, err := themoviedb.NewApi(
+	api, err := themoviedb2.NewApi(
 		logger,
 		cfg.MovieDb.ApiKey,
 	)
@@ -26,8 +26,8 @@ func main() {
 	}
 
 	// Поиск сериалов
-	response, err := api.SearchTV(themoviedb.SearchQuery{
-		Language: themoviedb.LanguageRU,
+	response, err := api.SearchTV(themoviedb2.SearchQuery{
+		Language: themoviedb2.LanguageRU,
 		Query:    "Сага о винланде",
 		Page:     1,
 		PerPage:  10,
@@ -53,13 +53,13 @@ func main() {
 
 	// информация о сериале
 	tvId := response.Results[0].ID
-	tvOInfo, err := api.GetTV(tvId, themoviedb.LanguageEN)
+	tvOInfo, err := api.GetTV(tvId, themoviedb2.LanguageEN)
 	if err != nil {
 		apierr.PrintError(logger, err)
 	}
 	logger.Info(tvOInfo.Seasons[2].Name)
 
-	episodes, err := api.GetSeasonEpisodes(tvId, 2, themoviedb.LanguageEN)
+	episodes, err := api.GetSeasonEpisodes(tvId, 2, themoviedb2.LanguageEN)
 	if err != nil {
 		apierr.PrintError(logger, err)
 	}
