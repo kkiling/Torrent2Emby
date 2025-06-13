@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/kkiling/torrent2emby/internal/apierr"
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
+	themoviedb2 "github.com/kkiling/torrent2emby/internal/adapter/themoviedb"
 	"github.com/kkiling/torrent2emby/internal/config"
 	"github.com/kkiling/torrent2emby/internal/log"
-	"github.com/kkiling/torrent2emby/internal/themoviedb"
 	"time"
 )
 
@@ -16,7 +16,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	api, err := themoviedb.NewApi(
+	api, err := themoviedb2.NewApi(
 		logger,
 		cfg.MovieDb.ApiKey,
 	)
@@ -25,8 +25,8 @@ func main() {
 	}
 
 	// Делаем запрос на поиск раздач по названию
-	response, err := api.SearchMovie(themoviedb.SearchQuery{
-		Language: themoviedb.LanguageRU,
+	response, err := api.SearchMovie(themoviedb2.SearchQuery{
+		Language: themoviedb2.LanguageRU,
 		Query:    "бойцовский клуб",
 		Page:     1,
 		PerPage:  10,
@@ -51,7 +51,7 @@ func main() {
 	}
 
 	movieId := response.Results[0].ID
-	movieInfo, err := api.GetMovie(movieId, themoviedb.LanguageRU)
+	movieInfo, err := api.GetMovie(movieId, themoviedb2.LanguageRU)
 	if err != nil {
 		apierr.PrintError(logger, err)
 	}
