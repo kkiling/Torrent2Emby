@@ -12,6 +12,11 @@ import (
 	"strings"
 )
 
+type PreparingFileMatchesParams struct {
+	Hash    string
+	MediaID MediaID
+}
+
 func mapFile(file tvshow.TorrentFile) FileInfo {
 	return FileInfo{
 		RelativePath: file.RelativePath,
@@ -37,11 +42,11 @@ func mapContentMatchesFromPrepareTVShowSeason(
 ) []ContentMatches {
 	result := make([]ContentMatches, len(prepareResult.Episodes))
 	for _, episode := range prepareResult.Episodes {
+		ep := episodes[episode.EpisodeNumber]
 
-		episodeInfo := episodes[episode.Episode.EpisodeNumber]
 		items := ContentMatches{
 			ContentInfo: ContentInfo{
-				Name: episodeInfo.Name,
+				Name: fmt.Sprintf("%d %s", ep.EpisodeNumber, ep.Name),
 			},
 			Video: VideoFile{
 				File: mapFile(episode.VideoFile.File),
@@ -160,12 +165,7 @@ func (s *Service) prepareFileMatches(ctx context.Context, params PreparingFileMa
 		return nil, fmt.Errorf("prepareTVShow.PrepareTvShowSeason: %w", err)
 	}
 
-	return mapContentMatchesFromPrepareTVShowSeason(prepareResult, episodes.Items), nil
-}
+	result := mapContentMatchesFromPrepareTVShowSeason(prepareResult, episodes.Items)
 
-// ChoseFileMatches подтверждение пользователем соответствия выбора файлов
-func (s *Service) ChoseFileMatches(ctx context.Context, params ChoseFileMatchesParams) error {
-	// TODO: Сохранение информации о соответствии файлов
-	// TODO: Переход на следующий шаг
-	panic("implement me")
+	return result, nil
 }

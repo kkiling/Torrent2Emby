@@ -27,10 +27,10 @@ type PrepareVideo struct {
 }
 
 type PrepareEpisode struct {
-	Episode    Episode
-	VideoFile  *PrepareVideo
-	AudioFiles []PrepareTrack
-	Subtitles  []PrepareTrack
+	EpisodeNumber int
+	VideoFile     *PrepareVideo
+	AudioFiles    []PrepareTrack
+	Subtitles     []PrepareTrack
 }
 
 type PrepareTVShowSeason struct {

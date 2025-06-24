@@ -2,6 +2,7 @@ package videocontent
 
 import (
 	"context"
+	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
 	"github.com/kkiling/torrent2emby/internal/adapter/prepare/tvshow"
 	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
 	"github.com/kkiling/torrent2emby/internal/adapter/rutracker"
@@ -33,4 +34,9 @@ type TorrentClient interface {
 
 type PrepareTVShow interface {
 	PrepareTvShowSeason(params *tvshow.PrepareTvShowPrams) (*tvshow.PrepareTVShowSeason, error)
+}
+
+type MkvMerge interface {
+	Merge(params mkvmerge.MergeParams) error
+	GetMediaInfo(filePath string) (*mkvmerge.MediaInfo, error)
 }

@@ -3,15 +3,18 @@ package videocontent
 import (
 	"context"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
-	"github.com/kkiling/torrent2emby/internal/usercase/err"
-	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
+	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 	"github.com/samber/lo"
 )
 
 type Config struct {
+	// BasePath Базовый путь от которого расположены все файлы торрента или медиа сервера
+	// Например скачанные сериалы лежат по пути BasePath + TVShowTorrentSavePath
+	BasePath string // "/nfs"
+	// TVShowTorrentSavePath путь сохранения сериалов относительно торрент клиента
 	TVShowTorrentSavePath string
-	BasePath              string // "/nfs"
+	// TvShowMediaSavePath путь сохранения сериалов относительно медиа сервера
+	TvShowMediaSavePath string
 }
 
 type Service struct {
@@ -21,6 +24,7 @@ type Service struct {
 	torrentSite   TorrentSite
 	torrentClient TorrentClient
 	prepareTVShow PrepareTVShow
+	mkvMerge      MkvMerge
 }
 
 func NewService(
@@ -30,18 +34,21 @@ func NewService(
 	torrentSite TorrentSite,
 	torrentClient TorrentClient,
 	prepareTVShow PrepareTVShow,
+	mkvMerge MkvMerge,
 ) *Service {
 	return &Service{
+		config:        config,
 		repository:    repository,
 		tvShowLibrary: tvShowLibrary,
 		torrentSite:   torrentSite,
 		torrentClient: torrentClient,
 		prepareTVShow: prepareTVShow,
+		mkvMerge:      mkvMerge,
 	}
 }
 
-// CreateNewVideoContent создание нового видео контента для сезона сериала / фильма из библиотеки
-func (s *Service) CreateNewVideoContent(ctx context.Context, params CreateNewVideoContentParams) (*VideoContent, error) {
+// Create создание нового видео контента для сезона сериала / фильма из библиотеки
+func (s *Service) Create(ctx context.Context, params CreateNewVideoContentParams) (*VideoContent, error) {
 	if params.MediaID.MovieID == nil && params.MediaID.TVShow == nil {
 		return nil, fmt.Errorf("movieID or TVShow is required: %w", ucerr.InvalidArgument)
 	}
@@ -59,7 +66,7 @@ func (s *Service) CreateNewVideoContent(ctx context.Context, params CreateNewVid
 	content := VideoContent{
 		ID:             0, // TODO: Генерация ID
 		MediaID:        params.MediaID,
-		DeliveryStatus: SearchTorrentsStatus, // Переходим на шаг поиска торрент раздачи
+		DeliveryStatus: GenerateSearchQuery,
 	}
 
 	// Сохранение content в базу
@@ -69,75 +76,150 @@ func (s *Service) CreateNewVideoContent(ctx context.Context, params CreateNewVid
 
 	return &content, nil
 }
+
+// Complete управление стейт машиной
 func (s *Service) Complete(ctx context.Context, content *VideoContent) error {
-	// TODO: крутим стейт машину
-	panic("implement me")
-}
-
-func (s *Service) getTVShowQuery(ctx context.Context, tvShowID uint64, seasonNumber int) (string, error) {
-	// Получаем инфу о сезоне сериала
-	tvShowInfo, err := s.tvShowLibrary.GetTVShowInfo(ctx, tvshowlibrary.GetTVShowParams{
-		TVShowID: tvShowID,
-	})
-	if err != nil {
-		return "", fmt.Errorf("tvShowLibrary.GetTVShowInfo: %w", err)
-	}
-	if tvShowInfo == nil {
-		return "", fmt.Errorf("tvShowInfo not found: %w", ucerr.NotFound)
-	}
-
-	season, find := lo.Find(tvShowInfo.Result.Seasons, func(item tvshowlibrary.Season) bool {
-		return item.SeasonNumber == seasonNumber
-	})
-	if !find {
-		return "", fmt.Errorf("season not found: %w", ucerr.NotFound)
-	}
-	// Формируем поисковый запрос на основе инфы  о сезоне сериала
-	searchQuery := fmt.Sprintf("%s сезон %d", tvShowInfo.Result.Name, season.SeasonNumber)
-
-	return searchQuery, nil
-}
-
-// generateSearchQuery Автоматическое формирование поискового запроса
-func (s *Service) generateSearchQuery(ctx context.Context, params GenerateSearchQueryParams) (string, error) {
-	searchQuery := ""
-	if params.MediaID.TVShow != nil {
-		var err error
-		searchQuery, err = s.getTVShowQuery(ctx, params.MediaID.TVShow.TVShowID, params.MediaID.TVShow.SeasonNumber)
-		if err != nil {
-			return "", fmt.Errorf("tvShowLibrary.GetTVShowInfo: %w", err)
-		}
-	}
-	if params.MediaID.MovieID != nil {
-		return "", fmt.Errorf("movie is not supported yet: %w", ucerr.InvalidArgument)
-	}
-
-	return searchQuery, nil
-}
-
-// searchTorrent поиск раздачи
-func (s *Service) searchTorrent(ctx context.Context, params SearchTorrentParams) (*TorrentSearchResult, error) {
-	// Делаем запрос к торрент сайту, получаем список раздач
-	searchResult, err := s.torrentSite.SearchTorrents(params.SearchQuery)
-	if err != nil {
-		return nil, fmt.Errorf("torrentSite.SearchTorrents: %w", err)
-	}
-
-	result := TorrentSearchResult{}
-	for _, item := range searchResult.Results {
-		result.Result = append(result.Result, TorrentSearch{
-			Title:     item.Title,
-			Href:      item.Href,
-			Size:      item.Size,
-			Seeds:     item.Seeds,
-			Leeches:   item.Leeches,
-			Downloads: item.Downloads,
-			AddedDate: item.AddedDate,
+	switch content.DeliveryStatus {
+	case GenerateSearchQuery:
+		// Генерация запроса
+		result, err := s.generateSearchQuery(ctx, GenerateSearchQueryParams{
+			MediaID: content.MediaID,
 		})
+		if err != nil {
+			return fmt.Errorf("generateSearchQuery: %w", err)
+		}
+		content.SearchQuery = &result
+		content.DeliveryStatus = SearchTorrents
+
+	case SearchTorrents:
+		// ищем раздачи сезона сериала / фильма
+		result, err := s.searchTorrent(ctx, SearchTorrentParams{
+			SearchQuery: *content.SearchQuery,
+		})
+		if err != nil {
+			return fmt.Errorf("searchTorrent: %w", err)
+		}
+		content.TorrentSearch = result
+		content.DeliveryStatus = WaitingUserChoseTorrent
+	case WaitingUserChoseTorrent:
+		// Ожидаем когда пользователь выберет раздачу
+		// Или ожидаем что клиент изменит поисковый запрос, тогда прыгаем на SearchTorrents
+		// TODO:
+		content.SelectTorrentHref = lo.ToPtr("TODO get href")
+		content.DeliveryStatus = GetMagnetLink
+	case GetMagnetLink:
+		// Получение магнет ссылки
+		result, err := s.getMagnetLink(ctx, GetMagnetLinkParams{
+			Href: *content.SelectTorrentHref,
+		})
+		if err != nil {
+			return fmt.Errorf("searchTorrent: %w", err)
+		}
+		content.MagnetInfo = result
+		content.DeliveryStatus = AddTorrentToTorrentClient
+	case AddTorrentToTorrentClient:
+		//  Добавление раздачи для скачивания торрент клиентом
+		err := s.addTorrentToTorrentClient(ctx, AddTorrentParams{
+			MediaID: content.MediaID,
+			Magnet:  content.MagnetInfo.Magnet,
+		})
+		if err != nil {
+			return fmt.Errorf("addTorrentToTorrentClient: %w", err)
+		}
+		content.DeliveryStatus = PrepareFileMatches
+	case PrepareFileMatches:
+		// Получение информации о файлах раздачи
+		result, err := s.prepareFileMatches(ctx, PreparingFileMatchesParams{
+			Hash:    content.MagnetInfo.Hash,
+			MediaID: content.MediaID,
+		})
+		if err != nil {
+			return fmt.Errorf("prepareFileMatches: %w", err)
+		}
+		if len(result) > 0 {
+			content.ContentMatches = result
+			content.DeliveryStatus = WaitingChoseFileMatches
+		}
+	case WaitingChoseFileMatches:
+		// ожидание подтверждения пользователем соответствий выбора файлов
+		// TODO:
+		content.DeliveryStatus = WaitingTorrentDownloadComplete
+	case WaitingTorrentDownloadComplete:
+		// Ожидание когда торрент докачается до конца
+		result, err := s.waitingTorrentDownloadComplete(ctx, WaitingTorrentDownloadCompleteParams{
+			Hash: content.MagnetInfo.Hash,
+		})
+		if err != nil {
+			return fmt.Errorf("waitingTorrentDownloadComplete: %w", err)
+		}
+		content.TorrentDownloadStatus = result
+		if result.IsComplete {
+			// Переход на следующий шаг
+			content.DeliveryStatus = CreateVideoContentCatalogs
+		}
+	case CreateVideoContentCatalogs:
+		// Формирование каталогов и иерархии файлов
+		result, err := s.createVideoContentCatalogs(ctx, CreateVideoContentCatalogsParams{
+			MediaID: content.MediaID,
+		})
+		if err != nil {
+			return fmt.Errorf("waitingTorrentDownloadComplete: %w", err)
+		}
+		content.CatalogsInfo = &result
+		content.DeliveryStatus = DeterminingNeedConvertFiles
+	case DeterminingNeedConvertFiles:
+		// Определение необходимости конвертации файлов
+		needToMerge := false
+		for _, m := range content.ContentMatches {
+			// Если есть субтитры или аудиодорожки то нужно мержить
+			if len(m.AudioFiles) > 0 || len(m.Subtitles) > 0 {
+				needToMerge = true
+				break
+			}
+		}
+		if needToMerge {
+			content.DeliveryStatus = MergeVideoFiles
+		} else {
+			content.DeliveryStatus = CopyVideoFiles
+		}
+	case CopyVideoFiles:
+		// Копирование файлов из раздачи в каталог медиасервера (точнее создание симлинков)
+		// TODO: CopyFiles
+	case MergeVideoFiles:
+		//  Конвертирование файлов - полученные файлы сразу сохраняются в каталог медиасервера
+		result, err := s.mergeVideoFiles(ctx, MergeVideoFilesParams{
+			Hash:           content.MagnetInfo.Hash,
+			ContentPath:    content.CatalogsInfo.CatalogPath,
+			ContentMatches: content.ContentMatches,
+			ProcessedFiles: func() int { // Стартуем с последнего
+				if content.MergeVideoStatus != nil {
+					return content.MergeVideoStatus.ProcessedFiles
+				}
+				return 0
+			}(),
+		})
+		if err != nil {
+			return fmt.Errorf("mergeVideoFiles: %w", err)
+		}
+
+		content.MergeVideoStatus = &result
+		if result.IsComplete {
+			// Переход на следующий шаг
+			content.DeliveryStatus = SetMediaMetaData
+		}
+	case SetMediaMetaData:
+		// установка методаных серий сезона сериала / фильма в медиасервере
+		// TODO:
+		content.DeliveryStatus = SendDeliveryNotification
+	case SendDeliveryNotification:
+		// TODO
+		// Completed
 	}
 
-	return &result, nil
+	return nil
 }
+
+// -- Реакция пользователя
 
 // ChangeSearchQuery пользователь меняет поисковый запрос
 func (s *Service) ChangeSearchQuery(ctx context.Context, params ChangeSearchQueryParams) error {
@@ -153,98 +235,9 @@ func (s *Service) ChoseTorrent(ctx context.Context, params *ChoseTorrentParams) 
 	panic("implement me")
 }
 
-// getMagnetLink получение магнет ссылки на основе выбора раздачи пользователем
-func (s *Service) getMagnetLink(ctx context.Context, params GetMagnetLinkParams) (*MagnetInfo, error) {
-	// Получение магнет ссылки
-	magnetInfo, err := s.torrentSite.GetMagnetLink(params.Href)
-	if err != nil {
-		return nil, fmt.Errorf("torrentSite.GetMagnetLink: %w", err)
-	}
-
-	return &MagnetInfo{
-		Magnet: magnetInfo.Magnet,
-		Hash:   magnetInfo.Hash,
-	}, nil
-}
-
-// CreateTorrent добавление торрент раздачи в торрент клиент
-func (s *Service) createTorrent(ctx context.Context, params *CreateTorrentParams) error {
-	if params.MediaID.MovieID != nil && params.MediaID.TVShow == nil {
-		return fmt.Errorf("movie is not supported yet: %w", ucerr.InvalidArgument)
-	}
-
-	// Создание раздачи в торрент клиенте, выставление его сразу в паузу
-	err := s.torrentClient.AddTorrent(qbittorrent.TorrentAddOptions{
-		Magnet:   params.Magnet,
-		SavePath: s.config.TVShowTorrentSavePath,
-		Category: "tvshow",
-		Tags: []string{
-			fmt.Sprintf("tvshowID:%d", params.MediaID.TVShow.TVShowID),
-			fmt.Sprintf("seasonNumber:%d", params.MediaID.TVShow.SeasonNumber),
-		},
-		Paused: false,
-	})
-	if err != nil {
-		return fmt.Errorf("torrentClient.AddTorrent: %w", err)
-	}
-
-	return nil
-}
-
-// WaitingTorrentDownloadComplete ожидание завершения окончания скачивания раздачи
-func (s *Service) waitingTorrentDownloadComplete(ctx context.Context, params WaitingTorrentDownloadCompleteParams) (*TorrentDownloadStatus, error) {
-	// Достаем инфу о торрент раздаче
-	torrentInfo, err := s.torrentClient.GetTorrentInfo(params.Hash)
-	if err != nil {
-		return nil, fmt.Errorf("torrentClient.GetTorrentInfo: %w", err)
-	}
-
-	if torrentInfo == nil {
-		return nil, fmt.Errorf("torrentInfo not found: %w", ucerr.NotFound)
-	}
-
-	switch torrentInfo.State {
-	case qbittorrent.TorrentStateUploading,
-		qbittorrent.TorrentStatePausedUP:
-		return &TorrentDownloadStatus{
-			Progress:   torrentInfo.Progress,
-			IsComplete: true,
-		}, nil
-	default:
-		return &TorrentDownloadStatus{
-			Progress:   torrentInfo.Progress,
-			IsComplete: false,
-		}, nil
-	}
-}
-
-// MergeVideoFiles запуск обработки видеофайлов
-func (s *Service) mergeVideoFiles(ctx context.Context, content *VideoContent) error {
-	// TODO: формирование каталогов сериала на медиасервер
-	// TODO: на основе FileMatches запуск mkvmerge сразу сохранением файлов в каталогах медиа сервера
-	// TODO: Переход на следующий шаг - установки методаных
-	panic("implement me")
-}
-
-// CopyFilesToMediaServer шаг копирования файлов на медиа сервер
-func (s *Service) copyFilesToMediaServer(ctx context.Context, content *VideoContent) error {
-	// TODO: формирование каталогов сериала на медиасервер
-	// TODO: создание симлинков видеофайлов с торрент раздачи в каталогах медиасервера
-	// TODO: Переход на следующий шаг - установки методаных
-	panic("implement me")
-}
-
-// SetMetadataInMediaServer установка методанных
-func (s *Service) setMetadataInMediaServer(ctx context.Context, content *VideoContent) error {
-	// TODO: на основании информации о фильме/сереале
-	// TODO: в emby устанавливаем методанные
+// ChoseFileMatches подтверждение пользователем соответствия выбора файлов
+func (s *Service) ChoseFileMatches(ctx context.Context, params ChoseFileMatchesParams) error {
+	// TODO: Сохранение информации о соответствии файлов
 	// TODO: Переход на следующий шаг
-	panic("implement me")
-}
-
-// SendNotificationSuccessDelivery уведомление о успешной доставке
-func (s *Service) sendNotificationSuccessDelivery(ctx context.Context, content *VideoContent) error {
-	// TODO: уведомление о успешной доставке
-	// TODO: Завершение доставки
 	panic("implement me")
 }

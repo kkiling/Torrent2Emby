@@ -17,7 +17,7 @@ type GetTVShowParams struct {
 }
 
 type GetTVShowResult struct {
-	Result TVShow
+	Result *TVShow
 }
 
 type GetSeasonEpisodesParams struct {

@@ -16,10 +16,6 @@ func NewService() *Service {
 	return &Service{}
 }
 
-// Функция для экранирования путей с пробелами и спецсимволами
-func escapePath(path string) string {
-	return path
-}
 func (s *Service) Merge(params MergeParams) error {
 	// Проверка существования основного видеофайла
 	if _, err := os.Stat(params.VideoInputFile); os.IsNotExist(err) {
