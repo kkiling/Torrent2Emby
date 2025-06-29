@@ -77,5 +77,5 @@ func (s *Service) mergeVideoFiles(_ context.Context, params MergeVideoFilesParam
 		}, nil
 	}
 
-	return MergeVideoStatus{}, fmt.Errorf("unknow merge state")
+	return MergeVideoStatus{}, fmt.Errorf("unknow merge statemachine")
 }

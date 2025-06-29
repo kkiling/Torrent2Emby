@@ -24,7 +24,7 @@ type rawTorrentInfo struct {
 	Name         string  `json:"name"`
 	Progress     float64 `json:"progress"`
 	Size         int64   `json:"size"`
-	State        string  `json:"state"`
+	State        string  `json:"statemachine"`
 	Tags         string  `json:"tags"`
 	TotalSize    int64   `json:"total_size"`
 	UpSpeed      int64   `json:"upspeed"`
