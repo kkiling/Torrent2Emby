@@ -3,14 +3,8 @@ package statemachine
 import "context"
 
 // Runner интерфейс раннера
-type Runner[DataT any, StatusT ~string, TypeT ~string, CreateOptionsT CreateOptions] interface {
-
-	//Complete(ctx context.Context,
-	//	state *State[DataT, StatusT, TypeT],
-	//	options ...CompleteOptions,
-	//) (*State[DataT, StatusT, TypeT], error)
-
-	Create(ctx context.Context, options CreateOptionsT) (CreateState[DataT], error)
+type Runner[DataT any, StepT ~string, TypeT ~string, CreateOptionsT CreateOptions] interface {
+	Create(ctx context.Context, options CreateOptionsT) (CreateState[DataT, StepT], error)
+	StepRegistration(params StepRegistrationParams) StepRegistration[DataT, StepT, TypeT]
 	Type() TypeT
-	StepRegistration(params StepRegistrationParams) StepRegistration[DataT, StatusT, TypeT]
 }

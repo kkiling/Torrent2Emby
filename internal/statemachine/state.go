@@ -2,7 +2,7 @@ package statemachine
 
 import (
 	"github.com/google/uuid"
-	"github.com/kkiling/torrent2emby/internal/statemachine/stepper"
+	"reflect"
 	"time"
 )
 
@@ -16,7 +16,7 @@ const (
 )
 
 // State состояние стейт машины
-type State[DataT any, StatusT ~string, TypeT ~string] struct {
+type State[DataT any, StepT ~string, TypeT ~string] struct {
 	// ID идентификаторе текущего стейта
 	ID uuid.UUID
 	// IdempotencyKey Ключ идемпотентности стейта
@@ -28,7 +28,7 @@ type State[DataT any, StatusT ~string, TypeT ~string] struct {
 	// Status статус
 	Status Status
 	// Step текущий шаг
-	Step StatusT
+	Step StepT
 	// Type тип состояния
 	Type TypeT
 	// Data данные выпуска
@@ -36,45 +36,25 @@ type State[DataT any, StatusT ~string, TypeT ~string] struct {
 }
 
 // CreateState структура инициализации выпуска
-type CreateState[DataT any] struct {
+type CreateState[DataT any, StepT ~string] struct {
+	// FirstStep первый тип шага с которого начинать выполнение стейт машины
+	FirstStep StepT
 	// Data данные выпуска
 	Data DataT
-}
-
-// UpdateState структура для обновление состояния стейт машины
-type UpdateState[DataT any, StatusT ~string] struct {
-	// UpdatedAt дата обновления Status или Step
-	UpdatedAt time.Time
-	// Status статус
-	Status Status
-	// Step текущий шаг
-	Step StatusT
-	// Data данные выпуска
-	Data DataT
-}
-
-// StepExecuteInfo Информация о выполнении шагов стейт машины
-type StepExecuteInfo[StatusT ~string] struct {
-	StateID            uuid.UUID
-	StartExecutedAt    time.Time
-	CompleteExecutedAt time.Time
-	Error              *string
-	PreviewStep        StatusT
-	NextStep           *StatusT
-	NextStatus         Status
 }
 
 type CreateOptions interface {
 	GetIdempotencyKey() uuid.UUID
 }
 
-type Step[DataT any, StatusT ~string, TypeT ~string] struct {
-	OnStep stepper.StepFunc[DataT, StatusT, TypeT]
+type Step[DataT any, StepT ~string, TypeT ~string] struct {
+	OptionsType reflect.Type
+	OnStep      StepFunc[DataT, StepT, TypeT]
 }
 
 type StepRegistrationParams struct {
 }
 
-type StepRegistration[DataT any, StatusT ~string, TypeT ~string] struct {
-	Steps map[StatusT]Step[DataT, StatusT, TypeT]
+type StepRegistration[DataT any, StepT ~string, TypeT ~string] struct {
+	Steps map[StepT]Step[DataT, StepT, TypeT]
 }
