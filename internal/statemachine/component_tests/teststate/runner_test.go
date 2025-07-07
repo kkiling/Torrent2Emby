@@ -48,6 +48,8 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 				Title:   createOpts.Title,
 				Amount:  createOpts.Amount,
 			}),
+			FailData: []byte{},
+			MetaData: []byte{},
 		}
 	}
 

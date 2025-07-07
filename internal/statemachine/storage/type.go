@@ -29,6 +29,10 @@ type State struct {
 	Type string
 	// Data данные выпуска
 	Data []byte
+	// FailData Данные фейла стейта
+	FailData []byte
+	// MetaDataT методаные стейта
+	MetaData []byte
 }
 
 // UpdateState структура для обновление состояния стейт машины
@@ -41,6 +45,10 @@ type UpdateState struct {
 	Step string
 	// Data данные выпуска
 	Data []byte
+	// FailData Данные фейла стейта
+	FailData []byte
+	// MetaDataT методаные стейта
+	MetaDataT []byte
 }
 
 // StepExecuteInfo Информация о выполнении шагов стейт машины

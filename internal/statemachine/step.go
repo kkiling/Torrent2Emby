@@ -23,14 +23,14 @@ const (
 )
 
 // StepContext входные данные функции шага
-type StepContext[DataT any, StepT ~string, TypeT ~string] struct {
+type StepContext[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string] struct {
 	Data                DataT
-	State               State[DataT, StepT, TypeT]
+	State               State[DataT, FailDataT, MetaDataT, StepT, TypeT]
 	completeOptionsType reflect.Type
 	completeOptions     any
 }
 
-func (s *StepContext[DataT, StepT, TypeT]) GetOptions(v any) (bool, error) {
+func (s *StepContext[DataT, FailDataT, MetaDataT, StepT, TypeT]) GetOptions(v any) (bool, error) {
 	// Check if completeOptionsType is not set
 	if s.completeOptionsType == nil {
 		if s.completeOptions != nil {
@@ -73,7 +73,7 @@ func (s *StepContext[DataT, StepT, TypeT]) GetOptions(v any) (bool, error) {
 }
 
 // Next указываем что нужно перейти на новый статус
-func (s *StepContext[DataT, StepT, TypeT]) Next(status StepT) *StepResult[DataT, StepT] {
+func (s *StepContext[DataT, FailDataT, MetaDataT, StepT, TypeT]) Next(status StepT) *StepResult[DataT, StepT] {
 	return &StepResult[DataT, StepT]{
 		nextStatus: &status,
 		state:      nextStepState,
@@ -81,13 +81,13 @@ func (s *StepContext[DataT, StepT, TypeT]) Next(status StepT) *StepResult[DataT,
 }
 
 // Empty возвращает пустой результат работы шага (стейт машина дальше не продвинется, и шаг будет выполнен еще раз)
-func (s *StepContext[DataT, StepT, TypeT]) Empty() *StepResult[DataT, StepT] {
+func (s *StepContext[DataT, FailDataT, MetaDataT, StepT, TypeT]) Empty() *StepResult[DataT, StepT] {
 	return &StepResult[DataT, StepT]{
 		state: emptyStepState,
 	}
 }
 
-func (s *StepContext[DataT, StepT, TypeT]) Error(err error) *StepResult[DataT, StepT] {
+func (s *StepContext[DataT, FailDataT, MetaDataT, StepT, TypeT]) Error(err error) *StepResult[DataT, StepT] {
 	return &StepResult[DataT, StepT]{
 		state: errorStepState,
 		err:   err,
@@ -95,14 +95,14 @@ func (s *StepContext[DataT, StepT, TypeT]) Error(err error) *StepResult[DataT, S
 }
 
 // Fail переводит стейт в терминальное состояние фейла
-func (s *StepContext[DataT, StepT, TypeT]) Fail() *StepResult[DataT, StepT] {
+func (s *StepContext[DataT, FailDataT, MetaDataT, StepT, TypeT]) Fail() *StepResult[DataT, StepT] {
 	return &StepResult[DataT, StepT]{
 		state: failStepState,
 	}
 }
 
 // Complete переводит стейт в терминальное состояние успеха
-func (s *StepContext[DataT, StepT, TypeT]) Complete() *StepResult[DataT, StepT] {
+func (s *StepContext[DataT, FailDataT, MetaDataT, StepT, TypeT]) Complete() *StepResult[DataT, StepT] {
 	return &StepResult[DataT, StepT]{
 		state: completeStepState,
 	}
@@ -127,5 +127,5 @@ func (s *StepResult[DataT, StepT]) WithData(newData DataT) *StepResult[DataT, St
 
 // StepFunc функция выполняющая логику шага
 type StepFunc[
-	DataT any, StepT ~string, TypeT ~string,
-] func(context.Context, StepContext[DataT, StepT, TypeT]) *StepResult[DataT, StepT]
+	DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string,
+] func(context.Context, StepContext[DataT, FailDataT, MetaDataT, StepT, TypeT]) *StepResult[DataT, StepT]

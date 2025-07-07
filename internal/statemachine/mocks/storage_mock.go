@@ -96,17 +96,17 @@ func (mr *MockStorageMockRecorder) RunTransaction(ctx, txFunc interface{}) *gomo
 }
 
 // SaveStepExecuteInfo mocks base method.
-func (m *MockStorage) SaveStepExecuteInfo(ctx context.Context, info storage.StepExecuteInfo) error {
+func (m *MockStorage) SaveStepExecuteInfo(ctx context.Context, execute storage.StepExecuteInfo) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveStepExecuteInfo", ctx, info)
+	ret := m.ctrl.Call(m, "SaveStepExecuteInfo", ctx, execute)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveStepExecuteInfo indicates an expected call of SaveStepExecuteInfo.
-func (mr *MockStorageMockRecorder) SaveStepExecuteInfo(ctx, info interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) SaveStepExecuteInfo(ctx, execute interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveStepExecuteInfo", reflect.TypeOf((*MockStorage)(nil).SaveStepExecuteInfo), ctx, info)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveStepExecuteInfo", reflect.TypeOf((*MockStorage)(nil).SaveStepExecuteInfo), ctx, execute)
 }
 
 // UpdateState mocks base method.

@@ -11,21 +11,21 @@ import (
 type Config struct {
 }
 
-type StateMachine[DataT any, StepT ~string, TypeT ~string, CreateOptionsT CreateOptions] struct {
+type StateMachine[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string, CreateOptionsT CreateOptions] struct {
 	cfg           Config
-	runner        Runner[DataT, StepT, TypeT, CreateOptionsT]
+	runner        Runner[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]
 	storage       Storage
 	clock         Clock
 	uuidGenerator UUIDGenerator
 }
 
-func NewService[DataT any, StepT ~string, TypeT ~string, CreateOptionsT CreateOptions](
+func NewService[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string, CreateOptionsT CreateOptions](
 	cfg Config,
 	storage Storage,
-	runner Runner[DataT, StepT, TypeT, CreateOptionsT],
-) *StateMachine[DataT, StepT, TypeT, CreateOptionsT] {
+	runner Runner[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT],
+) *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT] {
 
-	sm := StateMachine[DataT, StepT, TypeT, CreateOptionsT]{
+	sm := StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]{
 		cfg:           cfg,
 		runner:        runner,
 		storage:       storage,
@@ -36,14 +36,14 @@ func NewService[DataT any, StepT ~string, TypeT ~string, CreateOptionsT CreateOp
 	return &sm
 }
 
-func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) getStateByIdempotencyKey(
+func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]) getStateByIdempotencyKey(
 	ctx context.Context,
 	idempotencyKey uuid.UUID,
-) (*State[DataT, StepT, TypeT], error) {
+) (*State[DataT, FailDataT, MetaDataT, StepT, TypeT], error) {
 	findState, err := i.storage.GetStateByIdempotencyKey(ctx, idempotencyKey)
 	switch {
 	case err == nil: // Выпуск найден
-		return mapStorageToState[DataT, StepT, TypeT](findState)
+		return mapStorageToState[DataT, FailDataT, MetaDataT, StepT, TypeT](findState)
 	case errors.Is(err, storage.ErrNotFound): // Выпуск не найден
 		return nil, nil
 	default:
@@ -51,23 +51,23 @@ func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) getStateByIdempotenc
 	}
 }
 
-func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) getStateByID(
+func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]) getStateByID(
 	ctx context.Context,
 	stateID uuid.UUID,
-) (*State[DataT, StepT, TypeT], error) {
+) (*State[DataT, FailDataT, MetaDataT, StepT, TypeT], error) {
 	findState, err := i.storage.GetStateByID(ctx, stateID)
 	if err != nil {
 		// TODO: вернуть бизнес ошибку notfound
 		return nil, fmt.Errorf("i.storage.GetState: %w", err)
 	}
-	return mapStorageToState[DataT, StepT, TypeT](findState)
+	return mapStorageToState[DataT, FailDataT, MetaDataT, StepT, TypeT](findState)
 }
 
 // Create создание стейт машины
-func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) Create(
+func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]) Create(
 	ctx context.Context,
 	options CreateOptionsT,
-) (*State[DataT, StepT, TypeT], error) {
+) (*State[DataT, FailDataT, MetaDataT, StepT, TypeT], error) {
 	// Проверяем выпуск на наличие ключа идемпотентности
 	if findState, err := i.getStateByIdempotencyKey(ctx, options.GetIdempotencyKey()); err != nil {
 		return nil, fmt.Errorf("getStateByIdempotencyKey: %w", err)
@@ -82,7 +82,7 @@ func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) Create(
 		return nil, fmt.Errorf("runner.Create: %w", err)
 	}
 
-	newIssue := State[DataT, StepT, TypeT]{
+	newIssue := State[DataT, FailDataT, MetaDataT, StepT, TypeT]{
 		ID:             i.uuidGenerator.New(),
 		IdempotencyKey: options.GetIdempotencyKey(),
 		CreatedAt:      now,
@@ -91,9 +91,10 @@ func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) Create(
 		Step:           create.FirstStep,
 		Type:           i.runner.Type(),
 		Data:           create.Data,
+		MetaData:       create.MetaData,
 	}
 
-	newStorageState, err := mapStateToStorage[DataT, StepT, TypeT](&newIssue)
+	newStorageState, err := mapStateToStorage[DataT, FailDataT, MetaDataT, StepT, TypeT](&newIssue)
 	if err != nil {
 		return nil, fmt.Errorf("mapStateT2: %w", err)
 	}
@@ -106,8 +107,8 @@ func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) Create(
 	return &newIssue, nil
 }
 
-func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) initStepper() *Stepper[DataT, StepT, TypeT] {
-	stepper := NewStepper[DataT, StepT, TypeT](i.storage, i.clock)
+func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]) initStepper() *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT] {
+	stepper := NewStepper[DataT, FailDataT, MetaDataT, StepT, TypeT](i.storage, i.clock)
 	stepsRegistration := i.runner.StepRegistration(StepRegistrationParams{})
 	for s, step := range stepsRegistration.Steps {
 		stepper.Add(s, step)
@@ -116,11 +117,11 @@ func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) initStepper() *Stepp
 }
 
 // Complete выполнение выпуска
-func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) Complete(
+func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]) Complete(
 	ctx context.Context,
 	stateID uuid.UUID,
 	options ...any,
-) (st *State[DataT, StepT, TypeT], executeErr error, err error) {
+) (st *State[DataT, FailDataT, MetaDataT, StepT, TypeT], executeErr error, err error) {
 	// Проверяем выпуск на наличие ключа идемпотентности
 	findState, err := i.getStateByID(ctx, stateID)
 	if err != nil {
@@ -137,11 +138,11 @@ func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) Complete(
 }
 
 // SetClock устанавливает кастомную реализацию часов
-func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) SetClock(clock Clock) {
+func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]) SetClock(clock Clock) {
 	i.clock = clock
 }
 
 // SetUUIDGenerator устанавливает кастомную реализацию uuid генератора
-func (i *StateMachine[DataT, StepT, TypeT, CreateOptionsT]) SetUUIDGenerator(generator UUIDGenerator) {
+func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]) SetUUIDGenerator(generator UUIDGenerator) {
 	i.uuidGenerator = generator
 }

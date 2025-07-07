@@ -9,25 +9,25 @@ import (
 )
 
 // Stepper выполняет шаги стейт машины
-type Stepper[DataT any, StepT ~string, TypeT ~string] struct {
+type Stepper[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string] struct {
 	storage Storage
 	clock   Clock
-	steps   map[StepT]Step[DataT, StepT, TypeT]
+	steps   map[StepT]Step[DataT, FailDataT, MetaDataT, StepT, TypeT]
 }
 
-func NewStepper[DataT any, StepT ~string, TypeT ~string](
+func NewStepper[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string](
 	storage Storage,
 	clock Clock,
-) *Stepper[DataT, StepT, TypeT] {
-	return &Stepper[DataT, StepT, TypeT]{
+) *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT] {
+	return &Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT]{
 		storage: storage,
 		clock:   clock,
-		steps:   make(map[StepT]Step[DataT, StepT, TypeT]),
+		steps:   make(map[StepT]Step[DataT, FailDataT, MetaDataT, StepT, TypeT]),
 	}
 }
 
 // Add добавляет новый шаг в степпер
-func (s *Stepper[DataT, StepT, TypeT]) Add(status StepT, step Step[DataT, StepT, TypeT]) {
+func (s *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT]) Add(status StepT, step Step[DataT, FailDataT, MetaDataT, StepT, TypeT]) {
 	_, ok := s.steps[status]
 	if ok {
 		panic(fmt.Sprintf("steps already contains step: %s", status))
@@ -37,11 +37,11 @@ func (s *Stepper[DataT, StepT, TypeT]) Add(status StepT, step Step[DataT, StepT,
 }
 
 // Compete выполняет стейт машину
-func (s *Stepper[DataT, StepT, TypeT]) Compete(
+func (s *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT]) Compete(
 	ctx context.Context,
-	inputState State[DataT, StepT, TypeT],
+	inputState State[DataT, FailDataT, MetaDataT, StepT, TypeT],
 	options ...any,
-) (st *State[DataT, StepT, TypeT], executeErr error, err error) {
+) (st *State[DataT, FailDataT, MetaDataT, StepT, TypeT], executeErr error, err error) {
 	if len(options) > 1 {
 		return nil, nil, fmt.Errorf("too many options")
 	}
@@ -68,7 +68,7 @@ func (s *Stepper[DataT, StepT, TypeT]) Compete(
 		}
 
 		// Выполнение шага
-		stepCtx := StepContext[DataT, StepT, TypeT]{
+		stepCtx := StepContext[DataT, FailDataT, MetaDataT, StepT, TypeT]{
 			Data:                currentState.Data,
 			State:               currentState,
 			completeOptionsType: stepInfo.OptionsType,

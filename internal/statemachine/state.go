@@ -16,7 +16,7 @@ const (
 )
 
 // State состояние стейт машины
-type State[DataT any, StepT ~string, TypeT ~string] struct {
+type State[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string] struct {
 	// ID идентификаторе текущего стейта
 	ID uuid.UUID
 	// IdempotencyKey Ключ идемпотентности стейта
@@ -33,28 +33,34 @@ type State[DataT any, StepT ~string, TypeT ~string] struct {
 	Type TypeT
 	// Data данные выпуска
 	Data DataT
+	// FailData Данные фейла стейта
+	FailData FailDataT
+	// MetaDataT методаные стейта
+	MetaData MetaDataT
 }
 
 // CreateState структура инициализации выпуска
-type CreateState[DataT any, StepT ~string] struct {
+type CreateState[DataT any, MetaDataT any, StepT ~string] struct {
 	// FirstStep первый тип шага с которого начинать выполнение стейт машины
 	FirstStep StepT
-	// Data данные выпуска
+	// Data данные стейта
 	Data DataT
+	// MetaDataT методаные стейта
+	MetaData MetaDataT
 }
 
 type CreateOptions interface {
 	GetIdempotencyKey() uuid.UUID
 }
 
-type Step[DataT any, StepT ~string, TypeT ~string] struct {
+type Step[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string] struct {
 	OptionsType reflect.Type
-	OnStep      StepFunc[DataT, StepT, TypeT]
+	OnStep      StepFunc[DataT, FailDataT, MetaDataT, StepT, TypeT]
 }
 
 type StepRegistrationParams struct {
 }
 
-type StepRegistration[DataT any, StepT ~string, TypeT ~string] struct {
-	Steps map[StepT]Step[DataT, StepT, TypeT]
+type StepRegistration[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string] struct {
+	Steps map[StepT]Step[DataT, FailDataT, MetaDataT, StepT, TypeT]
 }

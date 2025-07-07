@@ -23,7 +23,7 @@ func TestStepContext_GetOptions(t *testing.T) {
 			Amount: 234,
 		}
 
-		sc := StepContext[string, string, string]{
+		sc := StepContext[string, interface{}, interface{}, string, string]{
 			completeOptionsType: reflect.TypeOf(testOptions{}),
 			completeOptions:     completeOptions,
 		}
@@ -37,7 +37,7 @@ func TestStepContext_GetOptions(t *testing.T) {
 
 	// Опции ожидаются, но не установлены
 	t.Run("not set options", func(t *testing.T) {
-		sc := StepContext[string, string, string]{
+		sc := StepContext[string, interface{}, interface{}, string, string]{
 			completeOptionsType: reflect.TypeOf(testOptions{}),
 		}
 
@@ -49,7 +49,7 @@ func TestStepContext_GetOptions(t *testing.T) {
 
 	// Опции не установлены и тип не задан
 	t.Run("options type not set", func(t *testing.T) {
-		sc := StepContext[string, string, string]{}
+		sc := StepContext[string, interface{}, interface{}, string, string]{}
 
 		opts := testOptions{}
 		ok, err := sc.GetOptions(&opts)
@@ -59,7 +59,7 @@ func TestStepContext_GetOptions(t *testing.T) {
 
 	// Опции установлены, но тип не задан (ошибка)
 	t.Run("options set but type not set", func(t *testing.T) {
-		sc := StepContext[string, string, string]{
+		sc := StepContext[string, interface{}, interface{}, string, string]{
 			completeOptions: testOptions{Title: "test"},
 		}
 
@@ -72,7 +72,7 @@ func TestStepContext_GetOptions(t *testing.T) {
 
 	// Несоответствие типов опций
 	t.Run("type mismatch", func(t *testing.T) {
-		sc := StepContext[string, string, string]{
+		sc := StepContext[string, interface{}, interface{}, string, string]{
 			completeOptionsType: reflect.TypeOf(testOptions{}),
 			completeOptions:     wrongOptions{Name: "wrong"},
 		}
@@ -86,7 +86,7 @@ func TestStepContext_GetOptions(t *testing.T) {
 
 	// Неверный приемник (не указатель)
 	t.Run("invalid receiver (not pointer)", func(t *testing.T) {
-		sc := StepContext[string, string, string]{
+		sc := StepContext[string, interface{}, interface{}, string, string]{
 			completeOptionsType: reflect.TypeOf(testOptions{}),
 			completeOptions:     testOptions{Title: "test"},
 		}
@@ -100,7 +100,7 @@ func TestStepContext_GetOptions(t *testing.T) {
 
 	// Неверный приемник (nil указатель)
 	t.Run("invalid receiver (nil pointer)", func(t *testing.T) {
-		sc := StepContext[string, string, string]{
+		sc := StepContext[string, interface{}, interface{}, string, string]{
 			completeOptionsType: reflect.TypeOf(testOptions{}),
 			completeOptions:     testOptions{Title: "test"},
 		}
@@ -114,7 +114,7 @@ func TestStepContext_GetOptions(t *testing.T) {
 
 	// Несовместимые типы при присваивании
 	t.Run("incompatible types", func(t *testing.T) {
-		sc := StepContext[string, string, string]{
+		sc := StepContext[string, interface{}, interface{}, string, string]{
 			completeOptionsType: reflect.TypeOf(testOptions{}),
 			completeOptions:     testOptions{Title: "test"},
 		}
