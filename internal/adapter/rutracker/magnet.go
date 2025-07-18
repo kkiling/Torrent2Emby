@@ -3,10 +3,11 @@ package rutracker
 import (
 	"errors"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 )
 
 func (api *Api) GetMagnetLink(torrentUrl string) (*MagnetInfo, error) {

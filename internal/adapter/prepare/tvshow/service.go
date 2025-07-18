@@ -2,9 +2,10 @@ package tvshow
 
 import (
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
 	"path/filepath"
 	"strings"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
 )
 
 var (

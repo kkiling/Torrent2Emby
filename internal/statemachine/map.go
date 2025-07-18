@@ -3,6 +3,7 @@ package statemachine
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/kkiling/torrent2emby/internal/statemachine/storage"
 )
 

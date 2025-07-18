@@ -3,9 +3,10 @@ package qbittorrent
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"net/http"
 	"net/url"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 )
 
 type rawTorrentFile struct {

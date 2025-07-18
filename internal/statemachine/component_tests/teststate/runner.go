@@ -3,8 +3,9 @@ package teststate
 import (
 	"context"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/statemachine"
 	"reflect"
+
+	"github.com/kkiling/torrent2emby/internal/statemachine"
 )
 
 type Runner struct {

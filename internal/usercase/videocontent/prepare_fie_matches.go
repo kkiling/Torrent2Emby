@@ -3,13 +3,15 @@ package videocontent
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"strings"
+
+	"github.com/samber/lo"
+
 	"github.com/kkiling/torrent2emby/internal/adapter/prepare/tvshow"
 	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
-	"github.com/samber/lo"
-	"path/filepath"
-	"strings"
 )
 
 type PreparingFileMatchesParams struct {

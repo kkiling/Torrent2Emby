@@ -3,11 +3,12 @@ package rutracker
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 )
 
 func (api *Api) saveCookies() error {

@@ -3,9 +3,11 @@ package videocontent
 import (
 	"context"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
-	"github.com/samber/lo"
 	"path/filepath"
+
+	"github.com/samber/lo"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
 )
 
 type MergeVideoFilesParams struct {

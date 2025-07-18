@@ -3,14 +3,16 @@ package teststate
 import (
 	"context"
 	"encoding/json"
-	"github.com/golang/mock/gomock"
-	"github.com/google/uuid"
-	"github.com/kkiling/torrent2emby/internal/statemachine"
-	"github.com/kkiling/torrent2emby/internal/statemachine/storage"
-	"github.com/samber/lo"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
+	"github.com/samber/lo"
+	"github.com/stretchr/testify/require"
+
+	"github.com/kkiling/torrent2emby/internal/statemachine"
+	"github.com/kkiling/torrent2emby/internal/statemachine/storage"
 )
 
 func mustBeData(data Data) []byte {
@@ -21,7 +23,7 @@ func mustBeData(data Data) []byte {
 	return d
 }
 
-func TestTaskRunner_StepRegistration(t *testing.T) {
+func TestTaskRunner_MockDb(t *testing.T) {
 	t.Parallel()
 	var (
 		createdAt  = time.Now()
@@ -40,7 +42,7 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 			IdempotencyKey: createOpts.IdempotencyKey,
 			CreatedAt:      createdAt,
 			UpdatedAt:      createdAt,
-			Status:         uint8(statemachine.NewStatus),
+			Status:         statemachine.NewStatus,
 			Step:           string(FirstStep),
 			Type:           string(TestType),
 			Data: mustBeData(Data{
@@ -75,9 +77,9 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 		deps.uuidGenerator.EXPECT().New().Return(stateID)
 		deps.clock.EXPECT().Now().Return(createdAt)
 		// По IdempotencyKey ничего не нашли
-		deps.storage.EXPECT().GetStateByIdempotencyKey(gomock.Any(), createOpts.IdempotencyKey).Return(nil, storage.ErrNotFound)
+		deps.storageMock.EXPECT().GetStateByIdempotencyKey(gomock.Any(), createOpts.IdempotencyKey).Return(nil, storage.ErrNotFound)
 		// Создаем запись стейта в базе
-		deps.storage.EXPECT().CreateState(gomock.Any(), initStateDb()).Return(nil)
+		deps.storageMock.EXPECT().CreateState(gomock.Any(), initStateDb()).Return(nil)
 
 		newState, err := deps.service.Create(deps.ctx, &createOpts)
 		require.NoError(t, err)
@@ -87,19 +89,42 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 	// Попытка создания состояния, но получение уже сохраненного из базы по IdempotencyKey
 	t.Run("create return by idempotencyKey", func(t *testing.T) {
 		// По IdempotencyKey уже есть запись в базе
-		deps.storage.EXPECT().GetStateByIdempotencyKey(gomock.Any(), createOpts.IdempotencyKey).
+		deps.storageMock.EXPECT().GetStateByIdempotencyKey(gomock.Any(), createOpts.IdempotencyKey).
 			Return(initStateDb(), nil)
 
 		newState, err := deps.service.Create(deps.ctx, &createOpts)
-		require.NoError(t, err)
+		require.Error(t, err)
+		require.ErrorIs(t, err, statemachine.ErrAlreadyExists)
 		require.Equal(t, newState.ID, stateID)
 		require.Equal(t, newState.IdempotencyKey, createOpts.IdempotencyKey)
 	})
 
-	// TODO: Complete не существующего стейта
+	// Попытка выполнить Complete для не существующего стейта
+	t.Run("complete not found state", func(t *testing.T) {
+		// Выпуск не найден
+		deps.storageMock.EXPECT().GetStateByID(gomock.Any(), stateID).Return(nil, storage.ErrNotFound)
+		completeState, executeErr, err := deps.service.Complete(deps.ctx, stateID)
+		require.Error(t, err)
+		require.ErrorIs(t, err, statemachine.ErrNotFound)
+		require.NoError(t, executeErr)
+		require.Nil(t, completeState)
+	})
+
+	// Попытка выполнить Complete для стейта в терминальном статусе
+	t.Run("complete not found state", func(t *testing.T) {
+		init := initStateDb()
+		init.Status = statemachine.CompletedStatus
+		deps.storageMock.EXPECT().GetStateByID(gomock.Any(), stateID).Return(init, nil)
+
+		completeState, executeErr, err := deps.service.Complete(deps.ctx, stateID)
+		require.Error(t, err)
+		require.ErrorIs(t, err, statemachine.ErrInTerminalStatus)
+		require.NoError(t, executeErr)
+		require.Nil(t, completeState)
+	})
 
 	// Выполняем первый прогон стейт машины
-	// Выполняем шаг FirstStep и выходим с ошибкой на шаге TestErrorStep
+	// выполняем шаг FirstStep и выходим с ошибкой на шаге TestErrorStep
 	t.Run("complete FirstStep and execute error in TestErrorStep", func(t *testing.T) {
 		var (
 			now = time.Now()
@@ -111,17 +136,17 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 			completeExecutedAt2 = now.Add(3 * time.Second)
 		)
 		// Достаем из базы свежесозданный стейт
-		deps.storage.EXPECT().GetStateByID(gomock.Any(), stateID).Return(initStateDb(), nil)
+		deps.storageMock.EXPECT().GetStateByID(gomock.Any(), stateID).Return(initStateDb(), nil)
 
 		// Первое выполнение - шаг FirstStep
 		deps.clock.EXPECT().Now().Return(startExecutedAt1)
 		deps.clock.EXPECT().Now().Return(completeExecutedAt1)
 
-		deps.storage.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
+		deps.storageMock.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, txFunc func(context.Context) error) error {
 				return txFunc(ctx)
 			})
-		deps.storage.EXPECT().SaveStepExecuteInfo(gomock.Any(), storage.StepExecuteInfo{
+		deps.storageMock.EXPECT().SaveStepExecuteInfo(gomock.Any(), storage.StepExecuteInfo{
 			StateID:            stateID,
 			StartExecutedAt:    startExecutedAt1,
 			CompleteExecutedAt: completeExecutedAt1,
@@ -129,7 +154,7 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 			PreviewStep:        string(FirstStep),
 			NextStep:           lo.ToPtr(string(TestErrorStep)),
 		})
-		deps.storage.EXPECT().UpdateState(gomock.Any(), storage.UpdateState{
+		deps.storageMock.EXPECT().UpdateState(gomock.Any(), stateID, storage.UpdateState{
 			UpdatedAt: completeExecutedAt1,
 			Status:    statemachine.InProgressStatus,
 			Step:      string(TestErrorStep),
@@ -144,18 +169,18 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 		deps.clock.EXPECT().Now().Return(startExecutedAt2)
 		deps.clock.EXPECT().Now().Return(completeExecutedAt2)
 		//
-		deps.storage.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
+		deps.storageMock.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, txFunc func(context.Context) error) error {
 				return txFunc(ctx)
 			})
-		deps.storage.EXPECT().SaveStepExecuteInfo(gomock.Any(), storage.StepExecuteInfo{
+		deps.storageMock.EXPECT().SaveStepExecuteInfo(gomock.Any(), storage.StepExecuteInfo{
 			StateID:            stateID,
 			StartExecutedAt:    startExecutedAt2,
 			CompleteExecutedAt: completeExecutedAt2,
 			Error:              lo.ToPtr("counter eq 2"),
 			PreviewStep:        string(TestErrorStep),
 		})
-		deps.storage.EXPECT().UpdateState(gomock.Any(), storage.UpdateState{
+		deps.storageMock.EXPECT().UpdateState(gomock.Any(), stateID, storage.UpdateState{
 			UpdatedAt: completeExecutedAt1,
 			Status:    statemachine.InProgressStatus,
 			Step:      string(TestErrorStep),
@@ -168,7 +193,7 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 
 		completeState, executeErr, err := deps.service.Complete(deps.ctx, stateID)
 		// Должны пройти шаг FirstStep
-		// Изменить Counter и Title
+		// изменить Counter и Title
 		// Далее на шаге TestErrorStep увеличиваем еще счетчик
 		// и падаем с ошибкой "counter eq 2"
 		require.NoError(t, err)
@@ -188,7 +213,7 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 		})
 	})
 
-	// Снова выполним TestErrorStep в ожидании что перейдем на Empty
+	// Снова выполним TestErrorStep, в ожидании что перейдем на Empty
 	t.Run("complete TestErrorStep and return Empty", func(t *testing.T) {
 		var (
 			now = time.Now()
@@ -200,23 +225,23 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 		// Достаем из базы свежесозданный стейт
 		init := initStateDb()
 		init.Step = string(TestErrorStep)
-		init.Status = uint8(statemachine.InProgressStatus)
+		init.Status = statemachine.InProgressStatus
 		init.Data = mustBeData(Data{
 			Counter: 2, // Состояние counter как раз что бы получить empty
 			Title:   "start title",
 			Amount:  42,
 		})
-		deps.storage.EXPECT().GetStateByID(gomock.Any(), stateID).Return(init, nil)
+		deps.storageMock.EXPECT().GetStateByID(gomock.Any(), stateID).Return(init, nil)
 
 		// Первое выполнение - шаг TestErrorStep
 		deps.clock.EXPECT().Now().Return(startExecutedAt)
 		deps.clock.EXPECT().Now().Return(completeExecutedAt)
 
-		deps.storage.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
+		deps.storageMock.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, txFunc func(context.Context) error) error {
 				return txFunc(ctx)
 			})
-		deps.storage.EXPECT().SaveStepExecuteInfo(gomock.Any(), storage.StepExecuteInfo{
+		deps.storageMock.EXPECT().SaveStepExecuteInfo(gomock.Any(), storage.StepExecuteInfo{
 			StateID:            stateID,
 			StartExecutedAt:    startExecutedAt,
 			CompleteExecutedAt: completeExecutedAt,
@@ -227,7 +252,7 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 			Title:   "start title",
 			Amount:  42,
 		}
-		deps.storage.EXPECT().UpdateState(gomock.Any(), storage.UpdateState{
+		deps.storageMock.EXPECT().UpdateState(gomock.Any(), stateID, storage.UpdateState{
 			UpdatedAt: init.UpdatedAt, // Шаг не изменился, по этому время остается старым
 			Status:    statemachine.InProgressStatus,
 			Step:      string(TestErrorStep),
@@ -260,43 +285,43 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 		// Достаем из базы свежесозданный стейт
 		init := initStateDb()
 		init.Step = string(TestErrorStep)
-		init.Status = uint8(statemachine.InProgressStatus)
+		init.Status = statemachine.InProgressStatus
 		init.Data = mustBeData(Data{
 			Counter: 3, // Состояние counter как раз что бы перейти на след шаг
 			Title:   "start title",
 			Amount:  42,
 		})
-		deps.storage.EXPECT().GetStateByID(gomock.Any(), stateID).Return(init, nil)
+		deps.storageMock.EXPECT().GetStateByID(gomock.Any(), stateID).Return(init, nil)
 
 		// шаг TestErrorStep
 		deps.clock.EXPECT().Now().Return(startExecutedAt)
 		deps.clock.EXPECT().Now().Return(completeExecutedAt)
 
-		deps.storage.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
+		deps.storageMock.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, txFunc func(context.Context) error) error {
 				return txFunc(ctx)
 			})
 		// Уже нет смысла проверять, тестировали выше
-		deps.storage.EXPECT().SaveStepExecuteInfo(gomock.Any(), gomock.Any())
-		deps.storage.EXPECT().UpdateState(gomock.Any(), gomock.Any())
+		deps.storageMock.EXPECT().SaveStepExecuteInfo(gomock.Any(), gomock.Any())
+		deps.storageMock.EXPECT().UpdateState(gomock.Any(), gomock.Any(), gomock.Any())
 
 		// Шаг TestNoSaveChangeStep
-		// Даже не хотим перетестировать время, оставляем старые значения
+		// Даже не хотим пере тестировать время, оставляем старые значения
 		deps.clock.EXPECT().Now().Return(startExecutedAt)
 		deps.clock.EXPECT().Now().Return(completeExecutedAt)
 
-		deps.storage.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
+		deps.storageMock.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, txFunc func(context.Context) error) error {
 				return txFunc(ctx)
 			})
 		// Уже нет смысла проверять, тестировали выше
-		deps.storage.EXPECT().SaveStepExecuteInfo(gomock.Any(), gomock.Any())
+		deps.storageMock.EXPECT().SaveStepExecuteInfo(gomock.Any(), gomock.Any())
 		resultData := Data{
 			Counter: 4,             // Увеличился counter (еще в TestErrorStep)
 			Title:   "start title", // А значение не должно поменятся
 			Amount:  42,
 		}
-		deps.storage.EXPECT().UpdateState(gomock.Any(), storage.UpdateState{
+		deps.storageMock.EXPECT().UpdateState(gomock.Any(), stateID, storage.UpdateState{
 			UpdatedAt: completeExecutedAt,
 			Status:    statemachine.InProgressStatus,
 			Step:      string(WaitingInputStep), // Перешли на след шаг
@@ -307,13 +332,13 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 		deps.clock.EXPECT().Now().Return(startExecutedAt)
 		deps.clock.EXPECT().Now().Return(completeExecutedAt)
 
-		deps.storage.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
+		deps.storageMock.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, txFunc func(context.Context) error) error {
 				return txFunc(ctx)
 			})
 		// Уже нет смысла проверять, тестировали выше
-		deps.storage.EXPECT().SaveStepExecuteInfo(gomock.Any(), gomock.Any())
-		deps.storage.EXPECT().UpdateState(gomock.Any(), gomock.Any())
+		deps.storageMock.EXPECT().SaveStepExecuteInfo(gomock.Any(), gomock.Any())
+		deps.storageMock.EXPECT().UpdateState(gomock.Any(), gomock.Any(), gomock.Any())
 
 		completeState, executeErr, err := deps.service.Complete(deps.ctx, stateID)
 		require.NoError(t, err)
@@ -335,24 +360,24 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 		// Достаем из базы свежесозданный стейт
 		init := initStateDb()
 		init.Step = string(WaitingInputStep)
-		init.Status = uint8(statemachine.InProgressStatus)
+		init.Status = statemachine.InProgressStatus
 		init.Data = mustBeData(Data{
 			Counter: 3,
 			Title:   "start title",
 			Amount:  42,
 		})
-		deps.storage.EXPECT().GetStateByID(gomock.Any(), stateID).Return(init, nil)
+		deps.storageMock.EXPECT().GetStateByID(gomock.Any(), stateID).Return(init, nil)
 
 		// шаг WaitingInputStep
 		deps.clock.EXPECT().Now().Return(startExecutedAt)
 		deps.clock.EXPECT().Now().Return(completeExecutedAt)
 
-		deps.storage.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
+		deps.storageMock.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, txFunc func(context.Context) error) error {
 				return txFunc(ctx)
 			})
-		deps.storage.EXPECT().SaveStepExecuteInfo(gomock.Any(), gomock.Any())
-		deps.storage.EXPECT().UpdateState(gomock.Any(), gomock.Any())
+		deps.storageMock.EXPECT().SaveStepExecuteInfo(gomock.Any(), gomock.Any())
+		deps.storageMock.EXPECT().UpdateState(gomock.Any(), gomock.Any(), gomock.Any())
 
 		completeState, executeErr, err := deps.service.Complete(deps.ctx, stateID, "some options")
 		require.NoError(t, err)
@@ -374,24 +399,24 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 		// Достаем из базы свежесозданный стейт
 		init := initStateDb()
 		init.Step = string(WaitingInputStep)
-		init.Status = uint8(statemachine.InProgressStatus)
+		init.Status = statemachine.InProgressStatus
 		init.Data = mustBeData(Data{
 			Counter: 3,
 			Title:   "start title",
 			Amount:  42,
 		})
-		deps.storage.EXPECT().GetStateByID(gomock.Any(), stateID).Return(init, nil)
+		deps.storageMock.EXPECT().GetStateByID(gomock.Any(), stateID).Return(init, nil)
 
 		// шаг WaitingInputStep
 		deps.clock.EXPECT().Now().Return(startExecutedAt)
 		deps.clock.EXPECT().Now().Return(completeExecutedAt)
 
-		deps.storage.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
+		deps.storageMock.EXPECT().RunTransaction(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, txFunc func(context.Context) error) error {
 				return txFunc(ctx)
 			})
-		deps.storage.EXPECT().SaveStepExecuteInfo(gomock.Any(), gomock.Any())
-		deps.storage.EXPECT().UpdateState(gomock.Any(), gomock.Any())
+		deps.storageMock.EXPECT().SaveStepExecuteInfo(gomock.Any(), gomock.Any())
+		deps.storageMock.EXPECT().UpdateState(gomock.Any(), gomock.Any(), gomock.Any())
 
 		completeState, executeErr, err := deps.service.Complete(deps.ctx, stateID, WaitingInputOptions{
 			IsComplete: true,
@@ -407,5 +432,100 @@ func TestTaskRunner_StepRegistration(t *testing.T) {
 			Title:   "start title",
 			Amount:  100,
 		})
+	})
+}
+
+func TestTaskRunner_RealDB(t *testing.T) {
+	t.Parallel()
+
+	// Создание нового состояния в базе
+	t.Run("create new state", func(t *testing.T) {
+		var (
+			createdAt  = time.Now()
+			stateID    = uuid.New()
+			createOpts = CreateOptions{
+				IdempotencyKey: uuid.New(),
+				Title:          "Custom title",
+				Amount:         42,
+			}
+			deps = setupTestDepsSqlite(t)
+
+			now = time.Now()
+			// Фиксация времени начала выполнения шага
+			startExecutedAt1 = now
+			startExecutedAt2 = now.Add(2 * time.Second)
+			// Фиксация времени выполнения шага
+			completeExecutedAt1 = now.Add(time.Second)
+			completeExecutedAt2 = now.Add(3 * time.Second)
+		)
+
+		deps.uuidGenerator.EXPECT().New().Return(stateID)
+		deps.clock.EXPECT().Now().Return(createdAt)
+
+		newState, err := deps.service.Create(deps.ctx, &createOpts)
+		require.NoError(t, err)
+
+		findState, err := deps.storageSqlite.GetStateByID(deps.ctx, newState.ID)
+		require.NoError(t, err)
+		require.Equal(t, newState.ID, findState.ID)
+
+		// Выполняем первый прогон стейт машины
+		// выполняем шаг FirstStep и выходим с ошибкой на шаге TestErrorStep
+
+		// Первое выполнение - шаг FirstStep
+		deps.clock.EXPECT().Now().Return(startExecutedAt1)
+		deps.clock.EXPECT().Now().Return(completeExecutedAt1)
+
+		// Второе выполнение - шаг TestErrorStep
+		deps.clock.EXPECT().Now().Return(startExecutedAt2)
+		deps.clock.EXPECT().Now().Return(completeExecutedAt2)
+		//
+
+		completeState, executeErr, err := deps.service.Complete(deps.ctx, stateID)
+		// Должны пройти шаг FirstStep
+		// изменить Counter и Title
+		// Далее на шаге TestErrorStep увеличиваем еще счетчик
+		// и падаем с ошибкой "counter eq 2"
+		require.NoError(t, err)
+		require.Error(t, executeErr)
+		require.ErrorContains(t, executeErr, "counter eq 2")
+		require.Equal(t, completeState.ID, stateID)
+
+		// Прверяем в базе что данные совпадают
+		findState, err = deps.storageSqlite.GetStateByID(deps.ctx, newState.ID)
+		require.NoError(t, err)
+		require.Equal(t, findState.ID, stateID)
+		require.Equal(t, findState.CreatedAt.Unix(), createdAt.Unix())
+		// Должна быть равна времени завершения выполнения первого успешного шага те FirstStep
+		require.Equal(t, findState.UpdatedAt.Unix(), completeExecutedAt1.Unix())
+		require.Equal(t, findState.Type, string(TestType))
+		require.Equal(t, findState.Status, statemachine.InProgressStatus)
+		require.Equal(t, findState.Step, string(TestErrorStep))
+		require.Equal(t, findState.Data, mustBeData(Data{
+			Counter: 2,
+			Title:   "start title",
+			Amount:  42,
+		}))
+
+		// Проверяем step execute info
+		infos, err := deps.storageSqlite.GetStepExecuteInfos(deps.ctx, stateID)
+		require.NoError(t, err)
+		require.Len(t, infos, 2)
+		// Первый шаг
+		require.Equal(t, infos[0].StartExecutedAt.Unix(), startExecutedAt1.Unix())
+		require.Equal(t, infos[0].CompleteExecutedAt.Unix(), completeExecutedAt1.Unix())
+		require.Nil(t, infos[0].Error)
+		require.Equal(t, infos[0].PreviewStep, string(FirstStep))
+		require.NotNil(t, infos[0].NextStep, string(TestErrorStep))
+		require.Equal(t, *infos[0].NextStep, string(TestErrorStep))
+
+		// Второй шаг
+		require.Equal(t, infos[1].StartExecutedAt.Unix(), startExecutedAt2.Unix())
+		require.Equal(t, infos[1].CompleteExecutedAt.Unix(), completeExecutedAt2.Unix())
+		require.NotNil(t, infos[1].Error)
+		require.Equal(t, *infos[1].Error, "counter eq 2")
+		require.Equal(t, infos[1].PreviewStep, string(TestErrorStep))
+		require.Nil(t, infos[1].NextStep)
+
 	})
 }

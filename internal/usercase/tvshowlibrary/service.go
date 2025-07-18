@@ -3,6 +3,7 @@ package tvshowlibrary
 import (
 	"context"
 	"fmt"
+
 	"github.com/kkiling/torrent2emby/internal/adapter/themoviedb"
 )
 
@@ -12,9 +13,9 @@ const (
 )
 
 type TheMovieDb interface {
-	SearchTV(params themoviedb.SearchQuery) (*themoviedb.TVShowSearchResponse, error)
-	GetTV(tvID uint64, language themoviedb.Language) (*themoviedb.TVShow, error)
-	GetSeasonEpisodes(tvID uint64, seasonNumber int, language themoviedb.Language) ([]themoviedb.Episode, error)
+	SearchTV(ctx context.Context, params themoviedb.SearchQuery) (*themoviedb.TVShowSearchResponse, error)
+	GetTV(ctx context.Context, tvID uint64, language themoviedb.Language) (*themoviedb.TVShow, error)
+	GetSeasonEpisodes(ctx context.Context, tvID uint64, seasonNumber int, language themoviedb.Language) ([]themoviedb.Episode, error)
 }
 
 type Storage interface {
@@ -41,8 +42,8 @@ func NewService(
 }
 
 // SearchTVShow поиск сериалов по названию
-func (s *Service) SearchTVShow(_ context.Context, params TVShowSearchParams) (*TVShowSearchResult, error) {
-	response, err := s.theMovieDb.SearchTV(themoviedb.SearchQuery{
+func (s *Service) SearchTVShow(ctx context.Context, params TVShowSearchParams) (*TVShowSearchResult, error) {
+	response, err := s.theMovieDb.SearchTV(ctx, themoviedb.SearchQuery{
 		Language: language,
 		Query:    params.Query,
 		Page:     1,
@@ -68,7 +69,7 @@ func (s *Service) GetTVShowInfo(ctx context.Context, params GetTVShowParams) (*G
 		}, err
 	}
 
-	response, err := s.theMovieDb.GetTV(params.TVShowID, language)
+	response, err := s.theMovieDb.GetTV(ctx, params.TVShowID, language)
 	if err != nil {
 		return nil, fmt.Errorf("theMovieDb.GetTV: %w", err)
 	}
@@ -96,7 +97,7 @@ func (s *Service) GetSeasonEpisodes(ctx context.Context, params GetSeasonEpisode
 		}, err
 	}
 
-	response, err := s.theMovieDb.GetSeasonEpisodes(params.TVShowID, params.SeasonNumber, language)
+	response, err := s.theMovieDb.GetSeasonEpisodes(ctx, params.TVShowID, params.SeasonNumber, language)
 	if err != nil {
 		return nil, fmt.Errorf("theMovieDb.GetSeasonEpisodes: %w", err)
 	}

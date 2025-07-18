@@ -2,12 +2,14 @@ package rutracker
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"net/http"
 	"net/url"
 	"sort"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 )
 
 func (api *Api) SearchTorrents(query string) (*TorrentResponse, error) {

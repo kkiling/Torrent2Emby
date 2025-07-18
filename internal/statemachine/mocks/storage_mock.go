@@ -110,17 +110,17 @@ func (mr *MockStorageMockRecorder) SaveStepExecuteInfo(ctx, execute interface{})
 }
 
 // UpdateState mocks base method.
-func (m *MockStorage) UpdateState(ctx context.Context, state storage.UpdateState) error {
+func (m *MockStorage) UpdateState(ctx context.Context, stateID uuid.UUID, state storage.UpdateState) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateState", ctx, state)
+	ret := m.ctrl.Call(m, "UpdateState", ctx, stateID, state)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateState indicates an expected call of UpdateState.
-func (mr *MockStorageMockRecorder) UpdateState(ctx, state interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) UpdateState(ctx, stateID, state interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateState", reflect.TypeOf((*MockStorage)(nil).UpdateState), ctx, state)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateState", reflect.TypeOf((*MockStorage)(nil).UpdateState), ctx, stateID, state)
 }
 
 // MockUUIDGenerator is a mock of UUIDGenerator interface.

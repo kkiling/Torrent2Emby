@@ -3,8 +3,10 @@ package videocontent
 import (
 	"context"
 	"fmt"
-	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
+
 	"github.com/samber/lo"
+
+	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 )
 
 type Config struct {

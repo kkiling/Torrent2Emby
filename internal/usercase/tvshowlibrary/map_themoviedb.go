@@ -1,8 +1,9 @@
 package tvshowlibrary
 
 import (
-	"github.com/kkiling/torrent2emby/internal/adapter/themoviedb"
 	"github.com/samber/lo"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/themoviedb"
 )
 
 func mapImage(image *themoviedb.Image) *Image {

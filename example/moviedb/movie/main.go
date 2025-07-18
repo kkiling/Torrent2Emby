@@ -1,11 +1,12 @@
 package main
 
 import (
+	"time"
+
 	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	themoviedb2 "github.com/kkiling/torrent2emby/internal/adapter/themoviedb"
 	"github.com/kkiling/torrent2emby/internal/config"
 	"github.com/kkiling/torrent2emby/internal/log"
-	"time"
 )
 
 func main() {

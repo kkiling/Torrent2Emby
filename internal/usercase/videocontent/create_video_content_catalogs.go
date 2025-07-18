@@ -3,11 +3,13 @@ package videocontent
 import (
 	"context"
 	"fmt"
-	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
-	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
-	"github.com/samber/lo"
 	"os"
 	"path/filepath"
+
+	"github.com/samber/lo"
+
+	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
+	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 )
 
 type CreateVideoContentCatalogsParams struct {

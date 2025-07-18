@@ -2,9 +2,10 @@ package rutracker
 
 import (
 	"fmt"
+	"io"
+
 	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/net/html/charset"
-	"io"
 )
 
 func readerDocument(body io.Reader) (*goquery.Document, error) {

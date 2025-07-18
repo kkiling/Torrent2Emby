@@ -1,13 +1,15 @@
 package themoviedb
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"io"
 	"net/http"
 	"net/url"
 	"sort"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 )
 
 func (api *API) searchTV(params SearchQuery) (*TVShowSearchResponse, error) {
@@ -76,7 +78,7 @@ func (api *API) searchTV(params SearchQuery) (*TVShowSearchResponse, error) {
 	}, nil
 }
 
-func (api *API) SearchTV(params SearchQuery) (*TVShowSearchResponse, error) {
+func (api *API) SearchTV(ctx context.Context, params SearchQuery) (*TVShowSearchResponse, error) {
 	if err := api.validate.Struct(params); err != nil {
 		return nil, fmt.Errorf("invalid tvshowlibrary query: %w", err)
 	}

@@ -1,15 +1,17 @@
 package themoviedb
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 )
 
-func (api *API) GetTV(tvID uint64, language Language) (*TVShow, error) {
+func (api *API) GetTV(ctx context.Context, tvID uint64, language Language) (*TVShow, error) {
 	queryParams := url.Values{}
 	queryParams.Add("api_key", api.apiKey)
 	queryParams.Add("language", string(language))

@@ -3,11 +3,12 @@ package themoviedb
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"io"
 	"net/http"
 	"net/url"
 	"sort"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 )
 
 func (api *API) searchMovie(params SearchQuery) (*MovieSearchResponse, error) {

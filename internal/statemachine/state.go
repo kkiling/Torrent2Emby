@@ -1,12 +1,13 @@
 package statemachine
 
 import (
-	"github.com/google/uuid"
 	"reflect"
 	"time"
+
+	"github.com/google/uuid"
 )
 
-type Status = int
+type Status = uint8
 
 const (
 	NewStatus        Status = iota

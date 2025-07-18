@@ -2,13 +2,16 @@ package storage
 
 import (
 	"errors"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 var (
 	// ErrNotFound объект не найден в базе
 	ErrNotFound = errors.New("entity not found")
+	// ErrAlreadyExists запись уже существует
+	ErrAlreadyExists = errors.New("entity already exists")
 )
 
 // State состояние стейт машины
@@ -40,7 +43,7 @@ type UpdateState struct {
 	// UpdatedAt дата обновления Status или Step
 	UpdatedAt time.Time
 	// Status статус
-	Status int
+	Status uint8
 	// Step текущий шаг
 	Step string
 	// Data данные выпуска
@@ -48,7 +51,7 @@ type UpdateState struct {
 	// FailData Данные фейла стейта
 	FailData []byte
 	// MetaDataT методаные стейта
-	MetaDataT []byte
+	MetaData []byte
 }
 
 // StepExecuteInfo Информация о выполнении шагов стейт машины

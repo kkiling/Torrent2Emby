@@ -3,10 +3,11 @@ package apierr
 import (
 	"errors"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/log"
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/kkiling/torrent2emby/internal/log"
 )
 
 var (

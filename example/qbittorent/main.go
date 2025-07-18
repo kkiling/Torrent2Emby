@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
 	"github.com/kkiling/torrent2emby/internal/config"

@@ -2,10 +2,11 @@ package qbittorrent
 
 import (
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 )
 
 func (api *Api) AddTorrent(opts TorrentAddOptions) error {

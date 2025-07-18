@@ -2,10 +2,11 @@ package qbittorrent
 
 import (
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+
+	"github.com/kkiling/torrent2emby/internal/log"
 )
 
 const (

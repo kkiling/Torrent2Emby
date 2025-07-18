@@ -3,9 +3,11 @@ package videocontent
 import (
 	"context"
 	"fmt"
+
+	"github.com/samber/lo"
+
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
-	"github.com/samber/lo"
 )
 
 type GenerateSearchQueryParams struct {

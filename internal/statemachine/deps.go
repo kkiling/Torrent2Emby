@@ -4,9 +4,11 @@ package statemachine
 
 import (
 	"context"
-	"github.com/google/uuid"
-	"github.com/kkiling/torrent2emby/internal/statemachine/storage"
 	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/kkiling/torrent2emby/internal/statemachine/storage"
 )
 
 // Storage интерфейс хранения данных стейтмашины
@@ -21,7 +23,7 @@ type Storage interface {
 	// SaveStepExecuteInfo Сохранение информации о запуске выполнения шага
 	SaveStepExecuteInfo(ctx context.Context, execute storage.StepExecuteInfo) error
 	// UpdateState обновление стейта
-	UpdateState(ctx context.Context, state storage.UpdateState) error
+	UpdateState(ctx context.Context, stateID uuid.UUID, state storage.UpdateState) error
 }
 
 // UUIDGenerator интерфейс для генерации UUID (реальный или мок)

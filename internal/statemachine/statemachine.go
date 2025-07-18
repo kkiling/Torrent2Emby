@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/google/uuid"
+
 	"github.com/kkiling/torrent2emby/internal/statemachine/storage"
 )
 
@@ -57,8 +59,7 @@ func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]
 ) (*State[DataT, FailDataT, MetaDataT, StepT, TypeT], error) {
 	findState, err := i.storage.GetStateByID(ctx, stateID)
 	if err != nil {
-		// TODO: вернуть бизнес ошибку notfound
-		return nil, fmt.Errorf("i.storage.GetState: %w", err)
+		return nil, ErrNotFound
 	}
 	return mapStorageToState[DataT, FailDataT, MetaDataT, StepT, TypeT](findState)
 }
@@ -72,7 +73,7 @@ func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]
 	if findState, err := i.getStateByIdempotencyKey(ctx, options.GetIdempotencyKey()); err != nil {
 		return nil, fmt.Errorf("getStateByIdempotencyKey: %w", err)
 	} else if findState != nil {
-		return findState, nil
+		return findState, ErrAlreadyExists
 	}
 
 	now := i.clock.Now()
@@ -126,6 +127,10 @@ func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]
 	findState, err := i.getStateByID(ctx, stateID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("getStateByID: %w", err)
+	}
+
+	if findState.Status == FailedStatus || findState.Status == CompletedStatus {
+		return nil, nil, ErrInTerminalStatus
 	}
 
 	stepper := i.initStepper()

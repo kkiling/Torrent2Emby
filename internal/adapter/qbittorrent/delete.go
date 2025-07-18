@@ -2,9 +2,10 @@ package qbittorrent
 
 import (
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"net/http"
 	"net/url"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 )
 
 func (api *Api) DeleteTorrent(hash string, deleteFiles bool) error {

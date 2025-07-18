@@ -2,6 +2,11 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
+
+	"github.com/samber/lo"
+
 	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	mkvmerge2 "github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
 	"github.com/kkiling/torrent2emby/internal/adapter/prepare/tvshow"
@@ -9,9 +14,6 @@ import (
 	themoviedb2 "github.com/kkiling/torrent2emby/internal/adapter/themoviedb"
 	"github.com/kkiling/torrent2emby/internal/config"
 	"github.com/kkiling/torrent2emby/internal/log"
-	"github.com/samber/lo"
-	"path/filepath"
-	"strings"
 )
 
 const (

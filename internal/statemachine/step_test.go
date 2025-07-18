@@ -1,9 +1,10 @@
 package statemachine
 
 import (
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestStepContext_GetOptions(t *testing.T) {

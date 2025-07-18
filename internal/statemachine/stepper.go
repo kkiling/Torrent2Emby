@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/statemachine/storage"
+
 	"github.com/samber/lo"
+
+	"github.com/kkiling/torrent2emby/internal/statemachine/storage"
 )
 
 // Stepper выполняет шаги стейт машины
@@ -46,10 +48,6 @@ func (s *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT]) Compete(
 		return nil, nil, fmt.Errorf("too many options")
 	}
 
-	if inputState.Status == FailedStatus || inputState.Status == CompletedStatus {
-		// TODO: вернуть бизнес ошибку
-		return nil, nil, fmt.Errorf("state already in terminal status")
-	}
 	currentState := inputState
 
 	// Крутим стейт машину
@@ -135,7 +133,7 @@ func (s *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT]) Compete(
 				return fmt.Errorf("json.Marshal: %w", terr)
 			}
 
-			terr = s.storage.UpdateState(ctx, storage.UpdateState{
+			terr = s.storage.UpdateState(ctx, newState.ID, storage.UpdateState{
 				UpdatedAt: newState.UpdatedAt,
 				Status:    newState.Status,
 				Step:      string(newState.Step),

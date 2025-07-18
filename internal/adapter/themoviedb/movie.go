@@ -3,10 +3,11 @@ package themoviedb
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 )
 
 func (api *API) GetMovie(movieID uint64, language Language) (*Movie, error) {
