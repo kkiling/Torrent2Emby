@@ -61,7 +61,7 @@ func (api *API) searchMovie(params SearchQuery) (*MovieSearchResponse, error) {
 			Title:         item.Title,
 			OriginalTitle: item.OriginalTitle,
 			Overview:      item.Overview,
-			PosterPath:    api.getImage(item.PosterPath),
+			Poster:        api.getImage(item.PosterPath),
 			ReleaseDate:   parseDate(item.ReleaseDate),
 			VoteAverage:   item.VoteAverage,
 			VoteCount:     item.VoteCount,

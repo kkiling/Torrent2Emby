@@ -32,9 +32,9 @@ func (api *API) GetMovie(movieID uint64, language Language) (*Movie, error) {
 	}
 
 	var result struct {
-		BackdropPath string `json:"backdrop_path"`
-		Budget       int64  `json:"budget"`
-		Genres       []struct {
+		Backdrop string `json:"backdrop_path"`
+		Budget   int64  `json:"budget"`
+		Genres   []struct {
 			Name string `json:"name"`
 		} `json:"genres"`
 		ID               uint64   `json:"id"`
@@ -44,7 +44,7 @@ func (api *API) GetMovie(movieID uint64, language Language) (*Movie, error) {
 		OriginalTitle    string   `json:"original_title"`
 		Overview         string   `json:"overview"`
 		Popularity       float64  `json:"popularity"`
-		PosterPath       string   `json:"poster_path"`
+		Poster           string   `json:"poster_path"`
 		ReleaseDate      string   `json:"release_date"`
 		Revenue          int64    `json:"revenue"`
 		Runtime          int      `json:"runtime"`
@@ -70,13 +70,13 @@ func (api *API) GetMovie(movieID uint64, language Language) (*Movie, error) {
 			Title:         result.Title,
 			OriginalTitle: result.OriginalTitle,
 			Overview:      result.Overview,
-			PosterPath:    api.getImage(result.PosterPath),
+			Poster:        api.getImage(result.Poster),
 			ReleaseDate:   parseDate(result.ReleaseDate),
 			VoteAverage:   result.VoteAverage,
 			VoteCount:     result.VoteCount,
 			Popularity:    result.Popularity,
 		},
-		BackdropPath:     api.getImage(result.BackdropPath),
+		Backdrop:         api.getImage(result.Backdrop),
 		Budget:           result.Budget,
 		Genres:           genres,
 		OriginCountry:    result.OriginCountry,

@@ -3,15 +3,9 @@ package tvshowlibrary
 import "time"
 
 type Image struct {
+	ID       string
 	W342     string
 	Original string
-}
-
-type TVShowMetadata struct {
-	// Время добавления в библиотеку
-	// Время последнего обновления
-	// Наличие раздачи
-	// Флаг указывающий на то что раздача когда то была добавлена и скачена
 }
 
 // TVShowShort базовая информация о сериале
@@ -20,7 +14,7 @@ type TVShowShort struct {
 	Name         string
 	OriginalName string
 	Overview     string
-	PosterPath   *Image
+	Poster       *Image
 	FirstAirDate time.Time
 	VoteAverage  float64
 	VoteCount    int
@@ -30,7 +24,7 @@ type TVShowShort struct {
 // TVShow расширенная информация о сериале
 type TVShow struct {
 	TVShowShort
-	BackdropPath     *Image
+	Backdrop         *Image
 	Genres           []string
 	LastAirDate      time.Time
 	NextEpisodeToAir time.Time
@@ -45,19 +39,19 @@ type TVShow struct {
 
 // Season базовая информация о сезоне сериала
 type Season struct {
-	ID           int
-	AirDate      string
+	ID           uint64
+	AirDate      time.Time
 	EpisodeCount int
 	Name         string
 	Overview     string
-	PosterPath   *Image
+	Poster       *Image
 	SeasonNumber int
 	VoteAverage  float64
 }
 
 // Episode информация о эпизоде сезона
 type Episode struct {
-	ID int
+	ID uint64
 	// Дата выхода
 	AirDate time.Time
 	// Номер эпизода в сезоне
@@ -71,7 +65,7 @@ type Episode struct {
 	// Продолжительность эпизода (секунды)
 	Runtime int
 	// Превью эпизода
-	StillPath *Image
+	Still *Image
 	// Средний рейтинг эпизода
 	VoteAverage float64
 	// Количество оценок

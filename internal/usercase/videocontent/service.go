@@ -60,7 +60,7 @@ func (s *Service) Create(ctx context.Context, params CreateNewVideoContentParams
 
 	// Проверка на то что у текущего VideoContent нет VideoContent
 	if contents, err := s.repository.GetVideoContentByMediaID(ctx, params.MediaID); err != nil {
-		return nil, fmt.Errorf("repository.GetVideoContentByMediaID: %w", err)
+		return nil, fmt.Errorf("storage.GetVideoContentByMediaID: %w", err)
 	} else if len(contents) > 0 {
 		return nil, fmt.Errorf("video content for this media already exists: %w", ucerr.InvalidArgument)
 	}
@@ -73,7 +73,7 @@ func (s *Service) Create(ctx context.Context, params CreateNewVideoContentParams
 
 	// Сохранение content в базу
 	if err := s.repository.SaveVideoContent(ctx, &content); err != nil {
-		return nil, fmt.Errorf("repository.SaveVideoContent: %w", err)
+		return nil, fmt.Errorf("storage.SaveVideoContent: %w", err)
 	}
 
 	return &content, nil

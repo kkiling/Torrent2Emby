@@ -2,15 +2,15 @@ package teststate
 
 import (
 	"context"
-	"github.com/kkiling/torrent2emby/internal/log"
-	"github.com/kkiling/torrent2emby/internal/statemachine/storage/sqlitestorage"
-	"github.com/kkiling/torrent2emby/internal/statemachine/testutils"
-	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 
+	"github.com/kkiling/torrent2emby/internal/log"
 	mock_statemachine "github.com/kkiling/torrent2emby/internal/statemachine/mocks"
+	"github.com/kkiling/torrent2emby/internal/statemachine/storage/sqlite"
+	"github.com/kkiling/torrent2emby/internal/statemachine/testutils"
 )
 
 type testDeps struct {
@@ -20,7 +20,7 @@ type testDeps struct {
 	clock         *mock_statemachine.MockClock
 	uuidGenerator *mock_statemachine.MockUUIDGenerator
 	storageMock   *mock_statemachine.MockStorage
-	storageSqlite *sqlitestorage.Storage
+	storageSqlite *sqlite.Storage
 }
 
 func setupTestDeps(t *testing.T, opts ...func(d *testDeps)) *testDeps {
@@ -50,14 +50,14 @@ func setupTestDeps(t *testing.T, opts ...func(d *testDeps)) *testDeps {
 	return deps
 }
 
-func setupTestDB(t *testing.T) *sqlitestorage.Storage {
+func setupTestDB(t *testing.T) *sqlite.Storage {
 	// Инициализируем хранилище
-	cfg := sqlitestorage.Config{
+	cfg := sqlite.Config{
 		DSN: testutils.GetSqliteTestDNS(t), // Берем DSN из переменных окружения
 	}
 	logger := log.NewLogger(log.DebugLevel)
 
-	s, err := sqlitestorage.NewStorage(cfg, logger)
+	s, err := sqlite.NewStorage(cfg, logger)
 	require.NoError(t, err)
 
 	// Возвращаем хранилище и функцию очистки

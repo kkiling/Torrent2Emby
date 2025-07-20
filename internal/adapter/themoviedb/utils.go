@@ -11,6 +11,7 @@ func (api *API) getImage(path string) *Image {
 	}
 	urlImg := api.baseImgUrl.String()
 	return &Image{
+		ID:       path,
 		W92:      fmt.Sprintf("%s/w92%s", urlImg, path),
 		W154:     fmt.Sprintf("%s/w154%s", urlImg, path),
 		W185:     fmt.Sprintf("%s/w185%s", urlImg, path),

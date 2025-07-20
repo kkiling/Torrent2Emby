@@ -11,6 +11,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	uuid "github.com/google/uuid"
+
 	storage "github.com/kkiling/torrent2emby/internal/statemachine/storage"
 )
 

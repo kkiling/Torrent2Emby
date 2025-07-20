@@ -29,6 +29,8 @@ test-db:
 	rm -f ${TEST_DB_NAME}
 	@echo "\n --- 🖲️ statemachine sqlite migrations --- \n"
 	goose -dir=internal/statemachine/migrations/sqlite sqlite3 ${TEST_DB_NAME} up
+	@echo "\n --- 🖲️ torrent2emby sqlite migrations --- \n"
+	goose -dir=migrations/sqlite sqlite3 ${TEST_DB_NAME} up
 	@echo "\n --- 🖲️ Creating .testenv file --- \n"
 	rm -f ./testenv
 	echo "SQLITE_DSN=$(CURDIR)/$(notdir ${TEST_DB_NAME})" > ./.testenv

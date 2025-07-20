@@ -48,14 +48,14 @@ func (api *API) GetTV(ctx context.Context, tvID uint64, language Language) (*TVS
 		OriginalName     string   `json:"original_name"`
 		Overview         string   `json:"overview"`
 		Popularity       float64  `json:"popularity"`
-		PosterPath       string   `json:"poster_path"`
+		Poster           string   `json:"poster_path"`
 		Seasons          []struct {
 			AirDate      string  `json:"air_date"`
 			EpisodeCount int     `json:"episode_count"`
-			ID           int     `json:"id"`
+			ID           uint64  `json:"id"`
 			Name         string  `json:"name"`
 			Overview     string  `json:"overview"`
-			PosterPath   string  `json:"poster_path"`
+			Poster       string  `json:"poster_path"`
 			SeasonNumber int     `json:"season_number"`
 			VoteAverage  float64 `json:"vote_average"`
 		} `json:"seasons"`
@@ -78,12 +78,12 @@ func (api *API) GetTV(ctx context.Context, tvID uint64, language Language) (*TVS
 	seasons := make([]Season, len(result.Seasons))
 	for i, s := range result.Seasons {
 		seasons[i] = Season{
-			AirDate:      s.AirDate,
+			AirDate:      parseDate(s.AirDate),
 			EpisodeCount: s.EpisodeCount,
 			ID:           s.ID,
 			Name:         s.Name,
 			Overview:     s.Overview,
-			PosterPath:   api.getImage(s.PosterPath),
+			Poster:       api.getImage(s.Poster),
 			SeasonNumber: s.SeasonNumber,
 			VoteAverage:  s.VoteAverage,
 		}
@@ -95,13 +95,13 @@ func (api *API) GetTV(ctx context.Context, tvID uint64, language Language) (*TVS
 			Name:         result.Name,
 			OriginalName: result.OriginalName,
 			Overview:     result.Overview,
-			PosterPath:   api.getImage(result.PosterPath),
+			Poster:       api.getImage(result.Poster),
 			FirstAirDate: parseDate(result.FirstAirDate),
 			VoteAverage:  result.VoteAverage,
 			VoteCount:    result.VoteCount,
 			Popularity:   result.Popularity,
 		},
-		BackdropPath:     api.getImage(result.BackdropPath),
+		Backdrop:         api.getImage(result.BackdropPath),
 		Genres:           genres,
 		LastAirDate:      parseDate(result.LastAirDate),
 		NextEpisodeToAir: parseDate(result.NextEpisodeToAir),

@@ -19,7 +19,7 @@ func (api *API) searchTV(params SearchQuery) (*TVShowSearchResponse, error) {
 	queryParams.Add("language", string(params.Language))
 	queryParams.Add("page", fmt.Sprintf("%d", params.Page))
 
-	getUrl := fmt.Sprintf("%s/tvshowlibrary/tv?%s", api.baseAPIUrl.String(), queryParams.Encode())
+	getUrl := fmt.Sprintf("%s/search/tv?%s", api.baseAPIUrl.String(), queryParams.Encode())
 	resp, err := api.httpClient.Get(getUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to tvshowlibrary tv: %w", apierr.HandleRequestError(api.logger, err))
@@ -44,7 +44,7 @@ func (api *API) searchTV(params SearchQuery) (*TVShowSearchResponse, error) {
 			Name         string  `json:"name"`
 			OriginalName string  `json:"original_name"`
 			Overview     string  `json:"overview"`
-			PosterPath   string  `json:"poster_path"`
+			Poster       string  `json:"poster_path"`
 			FirstAirDate string  `json:"first_air_date"`
 			VoteAverage  float64 `json:"vote_average"`
 			VoteCount    int     `json:"vote_count"`
@@ -63,7 +63,7 @@ func (api *API) searchTV(params SearchQuery) (*TVShowSearchResponse, error) {
 			Name:         item.Name,
 			OriginalName: item.OriginalName,
 			Overview:     item.Overview,
-			PosterPath:   api.getImage(item.PosterPath),
+			Poster:       api.getImage(item.Poster),
 			FirstAirDate: parseDate(item.FirstAirDate),
 			VoteAverage:  item.VoteAverage,
 			VoteCount:    item.VoteCount,

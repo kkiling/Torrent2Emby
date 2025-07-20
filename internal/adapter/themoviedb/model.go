@@ -14,6 +14,7 @@ const (
 
 // Image contains URLs for different image sizes
 type Image struct {
+	ID       string
 	W92      string
 	W154     string
 	W185     string
@@ -29,7 +30,7 @@ type MovieShort struct {
 	Title         string
 	OriginalTitle string
 	Overview      string
-	PosterPath    *Image
+	Poster        *Image
 	ReleaseDate   time.Time
 	VoteAverage   float64
 	VoteCount     int
@@ -39,7 +40,7 @@ type MovieShort struct {
 // Movie contains detailed movie information
 type Movie struct {
 	MovieShort
-	BackdropPath     *Image
+	Backdrop         *Image
 	Budget           int64
 	Genres           []string
 	ImdbID           string
@@ -57,7 +58,7 @@ type TVShowShort struct {
 	Name         string
 	OriginalName string
 	Overview     string
-	PosterPath   *Image
+	Poster       *Image
 	FirstAirDate time.Time
 	VoteAverage  float64
 	VoteCount    int
@@ -67,7 +68,7 @@ type TVShowShort struct {
 // TVShow contains detailed TV show information
 type TVShow struct {
 	TVShowShort
-	BackdropPath     *Image
+	Backdrop         *Image
 	Genres           []string
 	LastAirDate      time.Time
 	NextEpisodeToAir time.Time
@@ -82,19 +83,19 @@ type TVShow struct {
 
 // Season contains TV show season information
 type Season struct {
-	ID           int
-	AirDate      string
+	ID           uint64
+	AirDate      time.Time
 	EpisodeCount int
 	Name         string
 	Overview     string
-	PosterPath   *Image
+	Poster       *Image
 	SeasonNumber int
 	VoteAverage  float64
 }
 
 // Episode contains TV show episode information
 type Episode struct {
-	ID int
+	ID uint64
 	// Дата выхода
 	AirDate time.Time
 	// Номер эпизода в сезоне
@@ -108,7 +109,7 @@ type Episode struct {
 	// Продолжительность эпизода (секунды)
 	Runtime int
 	// Превью эпизода
-	StillPath *Image
+	Still *Image
 	// Средний рейтинг эпизода
 	VoteAverage float64
 	// Количество оценок

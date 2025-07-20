@@ -37,11 +37,11 @@ func (api *API) GetSeasonEpisodes(ctx context.Context, tvID uint64, seasonNumber
 			AirDate       string  `json:"air_date"`
 			EpisodeNumber int     `json:"episode_number"`
 			EpisodeType   string  `json:"episode_type"`
-			ID            int     `json:"id"`
+			ID            uint64  `json:"id"`
 			Name          string  `json:"name"`
 			Overview      string  `json:"overview"`
 			Runtime       int     `json:"runtime"`
-			StillPath     string  `json:"still_path"`
+			Still         string  `json:"still_path"`
 			VoteAverage   float64 `json:"vote_average"`
 			VoteCount     int     `json:"vote_count"`
 		} `json:"episodes"`
@@ -61,7 +61,7 @@ func (api *API) GetSeasonEpisodes(ctx context.Context, tvID uint64, seasonNumber
 			Name:          ep.Name,
 			Overview:      ep.Overview,
 			Runtime:       ep.Runtime,
-			StillPath:     api.getImage(ep.StillPath),
+			Still:         api.getImage(ep.Still),
 			VoteAverage:   ep.VoteAverage,
 			VoteCount:     ep.VoteCount,
 		}

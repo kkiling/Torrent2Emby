@@ -7,7 +7,11 @@ import (
 )
 
 func mapImage(image *themoviedb.Image) *Image {
+	if image == nil {
+		return nil
+	}
 	return &Image{
+		ID:       image.ID,
 		W342:     image.W342,
 		Original: image.Original,
 	}
@@ -19,7 +23,7 @@ func mapTVShowShort(item themoviedb.TVShowShort) *TVShowShort {
 		Name:         item.Name,
 		OriginalName: item.OriginalName,
 		Overview:     item.Overview,
-		PosterPath:   mapImage(item.PosterPath),
+		Poster:       mapImage(item.Poster),
 		FirstAirDate: item.FirstAirDate,
 		VoteAverage:  item.VoteAverage,
 		VoteCount:    item.VoteCount,
@@ -40,7 +44,7 @@ func mapSeason(season themoviedb.Season) *Season {
 		EpisodeCount: season.EpisodeCount,
 		Name:         season.Name,
 		Overview:     season.Overview,
-		PosterPath:   mapImage(season.PosterPath),
+		Poster:       mapImage(season.Poster),
 		SeasonNumber: season.SeasonNumber,
 		VoteAverage:  season.VoteAverage,
 	}
@@ -49,7 +53,7 @@ func mapSeason(season themoviedb.Season) *Season {
 func mapTVShow(response *themoviedb.TVShow) *TVShow {
 	return &TVShow{
 		TVShowShort:      *mapTVShowShort(response.TVShowShort),
-		BackdropPath:     mapImage(response.BackdropPath),
+		Backdrop:         mapImage(response.Backdrop),
 		Genres:           response.Genres,
 		LastAirDate:      response.LastAirDate,
 		NextEpisodeToAir: response.NextEpisodeToAir,
@@ -75,7 +79,7 @@ func mapEpisodes(response []themoviedb.Episode) []Episode {
 			Name:          item.Name,
 			Overview:      item.Overview,
 			Runtime:       item.Runtime,
-			StillPath:     mapImage(item.StillPath),
+			Still:         mapImage(item.Still),
 			VoteAverage:   item.VoteAverage,
 			VoteCount:     item.VoteCount,
 		}
