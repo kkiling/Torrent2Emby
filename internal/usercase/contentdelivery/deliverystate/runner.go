@@ -1,4 +1,4 @@
-package runner
+package deliverystate
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"reflect"
 
 	"github.com/kkiling/torrent2emby/internal/statemachine"
+	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery"
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
-	"github.com/kkiling/torrent2emby/internal/usercase/videodelivery"
 )
 
 type Runner struct {
@@ -48,7 +48,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					// Генерация запроса
 					data := stepContext.State.Data
-					res, err := r.contentDelivery.GenerateSearchQuery(ctx, videodelivery.GenerateSearchQueryParams{
+					res, err := r.contentDelivery.GenerateSearchQuery(ctx, contentdelivery.GenerateSearchQueryParams{
 						MediaID: stepContext.State.MetaData.MediaID,
 					})
 					if err != nil {
@@ -62,7 +62,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					// ищем раздачи сезона сериала / фильма
 					data := stepContext.State.Data
-					res, err := r.contentDelivery.SearchTorrent(ctx, videodelivery.SearchTorrentParams{
+					res, err := r.contentDelivery.SearchTorrent(ctx, contentdelivery.SearchTorrentParams{
 						SearchQuery: *data.SearchQuery,
 					})
 					if err != nil {
@@ -102,7 +102,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 						data.SelectTorrentHref = opts.Href
 						return stepContext.Next(GetMagnetLink).WithData(data)
 					}
-					return stepContext.Error(fmt.Errorf("unknow state: %w", ucerr.InvalidArgument))
+					return stepContext.Error(fmt.Errorf("unknow deliverystate: %w", ucerr.InvalidArgument))
 				},
 				OptionsType: reflect.TypeOf(ChoseTorrentOptions{}),
 			},
@@ -110,7 +110,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					// Получение магнет ссылки
 					data := stepContext.State.Data
-					res, err := r.contentDelivery.GetMagnetLink(ctx, videodelivery.GetMagnetLinkParams{
+					res, err := r.contentDelivery.GetMagnetLink(ctx, contentdelivery.GetMagnetLinkParams{
 						Href: *data.SelectTorrentHref,
 					})
 					if err != nil {
@@ -124,7 +124,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					//  Добавление раздачи для скачивания торрент клиентом
 					data := stepContext.State.Data
-					res, err := r.contentDelivery.GetMagnetLink(ctx, videodelivery.GetMagnetLinkParams{
+					res, err := r.contentDelivery.GetMagnetLink(ctx, contentdelivery.GetMagnetLinkParams{
 						Href: *data.SelectTorrentHref,
 					})
 					if err != nil {
@@ -138,7 +138,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					// Получение информации о файлах раздачи
 					data := stepContext.State.Data
-					res, err := r.contentDelivery.PrepareFileMatches(ctx, videodelivery.PreparingFileMatchesParams{
+					res, err := r.contentDelivery.PrepareFileMatches(ctx, contentdelivery.PreparingFileMatchesParams{
 						Hash:    data.MagnetInfo.Hash,
 						MediaID: stepContext.State.MetaData.MediaID,
 					})

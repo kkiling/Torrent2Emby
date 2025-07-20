@@ -26,7 +26,7 @@ type API struct {
 	validate   *validator.Validate
 }
 
-func NewApi(logger log.Logger, apiKey string) (*API, error) {
+func NewApi(apiKey string, logger log.Logger) (*API, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, fmt.Errorf("cookiejar.New: %w", err)

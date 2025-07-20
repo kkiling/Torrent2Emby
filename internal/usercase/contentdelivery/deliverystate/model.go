@@ -1,9 +1,9 @@
-package runner
+package deliverystate
 
 import (
 	"fmt"
 
-	"github.com/kkiling/torrent2emby/internal/usercase/videodelivery"
+	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery"
 )
 
 type Type string
@@ -58,24 +58,24 @@ const (
 type ContentDeliveryData struct {
 	// Данные выпуска
 	SearchQuery           *string
-	TorrentSearch         *videodelivery.TorrentSearchResult
+	TorrentSearch         *contentdelivery.TorrentSearchResult
 	SelectTorrentHref     *string
-	MagnetInfo            *videodelivery.MagnetInfo
-	ContentMatches        []videodelivery.ContentMatches
-	TorrentDownloadStatus *videodelivery.TorrentDownloadStatus
-	CatalogsInfo          *videodelivery.CatalogsInfo
-	MergeVideoStatus      *videodelivery.MergeVideoStatus
+	MagnetInfo            *contentdelivery.MagnetInfo
+	ContentMatches        []contentdelivery.ContentMatches
+	TorrentDownloadStatus *contentdelivery.TorrentDownloadStatus
+	CatalogsInfo          *contentdelivery.CatalogsInfo
+	MergeVideoStatus      *contentdelivery.MergeVideoStatus
 }
 
 type ContentDeliveryMetadata struct {
-	MediaID videodelivery.MediaID
+	MediaID contentdelivery.MediaID
 }
 
 type ContentDeliveryFailData struct {
 }
 
 type CreateOptions struct {
-	MediaID videodelivery.MediaID
+	MediaID contentdelivery.MediaID
 }
 
 func (c CreateOptions) GetIdempotencyKey() string {

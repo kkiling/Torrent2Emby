@@ -73,7 +73,7 @@ func TestTaskRunner_MockDb(t *testing.T) {
 	}
 
 	// Создание нового состояния в базе
-	t.Run("create new state", func(t *testing.T) {
+	t.Run("create new deliverystate", func(t *testing.T) {
 		deps.uuidGenerator.EXPECT().New().Return(stateID)
 		deps.clock.EXPECT().Now().Return(createdAt)
 		// По IdempotencyKey ничего не нашли
@@ -100,7 +100,7 @@ func TestTaskRunner_MockDb(t *testing.T) {
 	})
 
 	// Попытка выполнить Complete для не существующего стейта
-	t.Run("complete not found state", func(t *testing.T) {
+	t.Run("complete not found deliverystate", func(t *testing.T) {
 		// Выпуск не найден
 		deps.storageMock.EXPECT().GetStateByID(gomock.Any(), stateID).Return(nil, storage.ErrNotFound)
 		completeState, executeErr, err := deps.service.Complete(deps.ctx, stateID)
@@ -111,7 +111,7 @@ func TestTaskRunner_MockDb(t *testing.T) {
 	})
 
 	// Попытка выполнить Complete для стейта в терминальном статусе
-	t.Run("complete not found state", func(t *testing.T) {
+	t.Run("complete not found deliverystate", func(t *testing.T) {
 		init := initStateDb()
 		init.Status = statemachine.CompletedStatus
 		deps.storageMock.EXPECT().GetStateByID(gomock.Any(), stateID).Return(init, nil)
@@ -439,7 +439,7 @@ func TestTaskRunner_RealDB(t *testing.T) {
 	t.Parallel()
 
 	// Создание нового состояния в базе
-	t.Run("create new state", func(t *testing.T) {
+	t.Run("create new deliverystate", func(t *testing.T) {
 		var (
 			createdAt  = time.Now()
 			stateID    = uuid.New()

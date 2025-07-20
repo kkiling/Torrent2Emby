@@ -11,7 +11,7 @@ import (
 
 func (s *Storage) CreateState(ctx context.Context, state *storage.State) error {
 	query := `
-		INSERT INTO state (
+		INSERT INTO deliverystate (
 			id, idempotency_key, created_at, updated_at, 
 			status, step, type, data, fail_data, meta_data
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -42,7 +42,7 @@ func (s *Storage) GetStateByIdempotencyKey(ctx context.Context, idempotencyKey s
 		SELECT 
 			id, idempotency_key, created_at, updated_at, 
 			status, step, type, data, fail_data, meta_data
-		FROM state
+		FROM deliverystate
 		WHERE idempotency_key = ?
 	`
 
@@ -79,7 +79,7 @@ func (s *Storage) GetStateByID(ctx context.Context, stateID uuid.UUID) (*storage
 		SELECT 
 			id, idempotency_key, created_at, updated_at, 
 			status, step, type, data, fail_data, meta_data
-		FROM state
+		FROM deliverystate
 		WHERE id = ?
 	`
 
@@ -192,7 +192,7 @@ func (s *Storage) GetStepExecuteInfos(ctx context.Context, stateID uuid.UUID) ([
 
 func (s *Storage) UpdateState(ctx context.Context, stateID uuid.UUID, state storage.UpdateState) error {
 	query := `
-		UPDATE state
+		UPDATE deliverystate
 		SET 
 			updated_at = ?,
 			status = ?,

@@ -8,16 +8,15 @@ import (
 
 // Константы для имен переменных окружения
 const (
-	TheMovieDbApiKey = "THE_MOVIE_DB_API_KEY"
-
-	RutrackerUsername  = "RUTRACKER_USERNAME"
-	RutrackerPassword  = "RUTRACKER_PASSWORD"
-	RutrackerCookieDir = "RUTRACKER_COOKIE_DIR"
-
+	TheMovieDbApiKey     = "THE_MOVIE_DB_API_KEY"
+	RutrackerUsername    = "RUTRACKER_USERNAME"
+	RutrackerPassword    = "RUTRACKER_PASSWORD"
+	RutrackerCookieDir   = "RUTRACKER_COOKIE_DIR"
 	QBittorrentUsername  = "QBITTORRENT_USERNAME"
 	QBittorrentPassword  = "QBITTORRENT_PASSWORD"
 	QBittorrentCookieDir = "QBITTORRENT_COOKIE_DIR"
 	QBittorrentApiUrl    = "QBITTORRENT_API_URL"
+	SqliteDns            = "SQLITE_DNS"
 )
 
 // MovieDbConfig конфигурация для The Movie DB API
@@ -40,11 +39,16 @@ type QBittorrentConfig struct {
 	ApiUrl    string
 }
 
+type StorageConfig struct {
+	SqliteDsn string
+}
+
 // EnvConfig объединяет все конфигурации
 type EnvConfig struct {
 	MovieDb     MovieDbConfig
 	Rutracker   RutrackerConfig
 	QBittorrent QBittorrentConfig
+	Storage     StorageConfig
 }
 
 func loadMovieDbConfig() (*MovieDbConfig, error) {
@@ -110,6 +114,17 @@ func loadQBittorrentConfig() (*QBittorrentConfig, error) {
 	}, nil
 }
 
+func loadStorageConfig() (*StorageConfig, error) {
+	sqliteDns, err := getEnvString(SqliteDns)
+	if err != nil {
+		return nil, err
+	}
+
+	return &StorageConfig{
+		SqliteDsn: sqliteDns,
+	}, nil
+}
+
 func NewEnvConfig(logger log.Logger) (*EnvConfig, error) {
 	// Загружаем .env файл
 	err := godotenv.Load()
@@ -132,9 +147,15 @@ func NewEnvConfig(logger log.Logger) (*EnvConfig, error) {
 		return nil, err
 	}
 
+	storageConfig, err := loadStorageConfig()
+	if err != nil {
+		return nil, err
+	}
+
 	return &EnvConfig{
 		MovieDb:     *movieDbConfig,
 		Rutracker:   *rutrackerConfig,
 		QBittorrent: *qBittorrentConfig,
+		Storage:     *storageConfig,
 	}, nil
 }

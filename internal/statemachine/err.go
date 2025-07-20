@@ -8,5 +8,5 @@ var (
 	// ErrAlreadyExists  уже существует
 	ErrAlreadyExists = errors.New("already exists")
 	// ErrInTerminalStatus уже в терминальном статусе
-	ErrInTerminalStatus = errors.New("state already in terminal status")
+	ErrInTerminalStatus = errors.New("deliverystate already in terminal status")
 )

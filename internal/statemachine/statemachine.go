@@ -80,7 +80,7 @@ func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]
 	// Вызываем раннер, который выполняет бизнес логику и возвращает issueData
 	create, err := i.runner.Create(ctx, options)
 	if err != nil {
-		return nil, fmt.Errorf("runner.Create: %w", err)
+		return nil, fmt.Errorf("deliverystate.Create: %w", err)
 	}
 
 	newIssue := State[DataT, FailDataT, MetaDataT, StepT, TypeT]{
