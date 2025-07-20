@@ -19,7 +19,7 @@ type State struct {
 	// ID идентификаторе текущего стейта
 	ID uuid.UUID
 	// IdempotencyKey Ключ идемпотентности стейта
-	IdempotencyKey uuid.UUID
+	IdempotencyKey string
 	//  CreatedAt дата создания состояния
 	CreatedAt time.Time
 	// UpdatedAt дата обновления Status или Step

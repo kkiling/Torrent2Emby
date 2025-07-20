@@ -1,4 +1,4 @@
-package videocontent
+package videodelivery
 
 import (
 	"context"
@@ -9,8 +9,8 @@ type SearchTorrentParams struct {
 	SearchQuery string
 }
 
-// searchTorrent Делаем запрос к торрент сайту, получаем список раздач
-func (s *Service) searchTorrent(_ context.Context, params SearchTorrentParams) (*TorrentSearchResult, error) {
+// SearchTorrent Делаем запрос к торрент сайту, получаем список раздач
+func (s *Service) SearchTorrent(_ context.Context, params SearchTorrentParams) (*TorrentSearchResult, error) {
 	searchResult, err := s.torrentSite.SearchTorrents(params.SearchQuery)
 	if err != nil {
 		return nil, fmt.Errorf("torrentSite.SearchTorrents: %w", err)

@@ -24,7 +24,7 @@ func TestCreateState(t *testing.T) {
 
 		state := &storage.State{
 			ID:             uuid.New(),
-			IdempotencyKey: uuid.New(),
+			IdempotencyKey: uuid.NewString(),
 			CreatedAt:      time.Now().UTC(),
 			UpdatedAt:      time.Now().UTC(),
 			Status:         1,
@@ -49,7 +49,7 @@ func TestCreateState(t *testing.T) {
 
 		state := &storage.State{
 			ID:             uuid.New(),
-			IdempotencyKey: uuid.New(),
+			IdempotencyKey: uuid.NewString(),
 			CreatedAt:      time.Now().UTC(),
 			UpdatedAt:      time.Now().UTC(),
 			Status:         1,
@@ -72,7 +72,7 @@ func TestCreateState(t *testing.T) {
 
 	t.Run("duplicate idempotency_key", func(t *testing.T) {
 		t.Parallel()
-		idempotencyKey := uuid.New()
+		idempotencyKey := uuid.NewString()
 
 		state1 := &storage.State{
 			ID:             uuid.New(),
@@ -115,7 +115,7 @@ func TestCreateState(t *testing.T) {
 
 		state := &storage.State{
 			ID:             uuid.New(),
-			IdempotencyKey: uuid.New(),
+			IdempotencyKey: uuid.NewString(),
 			CreatedAt:      time.Now().UTC(),
 			UpdatedAt:      time.Now().UTC(),
 			Status:         1,
@@ -149,7 +149,7 @@ func TestGetStateByIdempotencyKey(t *testing.T) {
 		// Подготовка тестовых данных
 		testState := &storage.State{
 			ID:             uuid.New(),
-			IdempotencyKey: uuid.New(),
+			IdempotencyKey: uuid.NewString(),
 			CreatedAt:      time.Now().UTC().Truncate(time.Second), // Округляем до секунд для сравнения
 			UpdatedAt:      time.Now().UTC().Truncate(time.Second),
 			Status:         1,
@@ -175,7 +175,7 @@ func TestGetStateByIdempotencyKey(t *testing.T) {
 		t.Parallel()
 
 		// Пытаемся получить несуществующее состояние
-		nonExistentKey := uuid.New()
+		nonExistentKey := uuid.NewString()
 		state, err := s.GetStateByIdempotencyKey(ctx, nonExistentKey)
 
 		// Проверяем, что получили ожидаемую ошибку
@@ -187,7 +187,7 @@ func TestGetStateByIdempotencyKey(t *testing.T) {
 		t.Parallel()
 
 		// Пытаемся получить состояние с пустым UUID
-		state, err := s.GetStateByIdempotencyKey(ctx, uuid.Nil)
+		state, err := s.GetStateByIdempotencyKey(ctx, "")
 
 		require.Nil(t, state)
 		require.Error(t, err)
@@ -203,7 +203,7 @@ func TestGetStateByID(t *testing.T) {
 	// Подготовка тестовых данных
 	testState := &storage.State{
 		ID:             uuid.New(),
-		IdempotencyKey: uuid.New(),
+		IdempotencyKey: uuid.NewString(),
 		CreatedAt:      time.Now().UTC().Truncate(time.Second), // Округляем для точного сравнения
 		UpdatedAt:      time.Now().UTC().Truncate(time.Second),
 		Status:         124,
@@ -258,7 +258,7 @@ func TestSaveStepExecuteInfo(t *testing.T) {
 		// Создаем тестовое состояние
 		testState := &storage.State{
 			ID:             uuid.New(),
-			IdempotencyKey: uuid.New(),
+			IdempotencyKey: uuid.NewString(),
 			CreatedAt:      time.Now().UTC(),
 			UpdatedAt:      time.Now().UTC(),
 			Status:         1,
@@ -346,7 +346,7 @@ func TestGetStepExecuteInfos(t *testing.T) {
 		// Создаем тестовое состояние
 		testState := &storage.State{
 			ID:             uuid.New(),
-			IdempotencyKey: uuid.New(),
+			IdempotencyKey: uuid.NewString(),
 			CreatedAt:      time.Now().UTC(),
 			UpdatedAt:      time.Now().UTC(),
 			Status:         1,
@@ -442,7 +442,7 @@ func TestUpdateState(t *testing.T) {
 	createTestState := func(t *testing.T) *storage.State {
 		state := &storage.State{
 			ID:             uuid.New(),
-			IdempotencyKey: uuid.New(),
+			IdempotencyKey: uuid.NewString(),
 			CreatedAt:      time.Now().UTC().Truncate(time.Second),
 			UpdatedAt:      time.Now().UTC().Truncate(time.Second),
 			Status:         StateStatusPending,

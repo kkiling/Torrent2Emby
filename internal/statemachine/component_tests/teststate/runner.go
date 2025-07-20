@@ -41,27 +41,32 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 		Steps: map[StepType]Step{
 			FirstStep: {
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
-					stepContext.Data.Counter += 1
-					stepContext.Data.Title = "start title"
-					return stepContext.Next(TestErrorStep).WithData(stepContext.Data)
+					data := stepContext.State.Data
+
+					data.Counter += 1
+					data.Title = "start title"
+					return stepContext.Next(TestErrorStep).WithData(data)
 				},
 			},
 			TestErrorStep: {
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
-					stepContext.Data.Counter += 1
-					if stepContext.Data.Counter <= 2 {
-						return stepContext.Error(fmt.Errorf("counter eq 2")).WithData(stepContext.Data)
-					} else if stepContext.Data.Counter <= 3 {
-						return stepContext.Empty().WithData(stepContext.Data)
+					data := stepContext.State.Data
+
+					data.Counter += 1
+					if data.Counter <= 2 {
+						return stepContext.Error(fmt.Errorf("counter eq 2")).WithData(data)
+					} else if data.Counter <= 3 {
+						return stepContext.Empty().WithData(data)
 					} else {
-						return stepContext.Next(TestNoSaveChangeStep).WithData(stepContext.Data)
+						return stepContext.Next(TestNoSaveChangeStep).WithData(data)
 					}
 				},
 			},
 			TestNoSaveChangeStep: {
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
+					data := stepContext.State.Data
 					// Изменили значение, но оно не должно записаться в базу
-					stepContext.Data.Title = "change title"
+					data.Title = "change title"
 					return stepContext.Next(WaitingInputStep)
 				},
 			},
@@ -78,9 +83,10 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 						return stepContext.Empty()
 					}
 
+					data := stepContext.State.Data
 					if opts.IsComplete {
-						stepContext.Data.Amount = opts.NewAmount
-						return stepContext.Complete().WithData(stepContext.Data)
+						data.Amount = opts.NewAmount
+						return stepContext.Complete().WithData(data)
 					}
 
 					return stepContext.Fail()

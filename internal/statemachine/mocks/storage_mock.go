@@ -68,7 +68,7 @@ func (mr *MockStorageMockRecorder) GetStateByID(ctx, stateID interface{}) *gomoc
 }
 
 // GetStateByIdempotencyKey mocks base method.
-func (m *MockStorage) GetStateByIdempotencyKey(ctx context.Context, idempotencyKey uuid.UUID) (*storage.State, error) {
+func (m *MockStorage) GetStateByIdempotencyKey(ctx context.Context, idempotencyKey string) (*storage.State, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStateByIdempotencyKey", ctx, idempotencyKey)
 	ret0, _ := ret[0].(*storage.State)

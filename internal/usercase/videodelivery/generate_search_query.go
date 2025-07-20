@@ -1,4 +1,4 @@
-package videocontent
+package videodelivery
 
 import (
 	"context"
@@ -38,8 +38,8 @@ func (s *Service) getTVShowQuery(ctx context.Context, tvShowID uint64, seasonNum
 	return searchQuery, nil
 }
 
-// generateSearchQuery Формируем поисковый запрос к торент трекеру на основе данных сезона сериала / фильма
-func (s *Service) generateSearchQuery(ctx context.Context, params GenerateSearchQueryParams) (string, error) {
+// GenerateSearchQuery формируем поисковый запрос к торент трекеру на основе данных сезона сериала / фильма
+func (s *Service) GenerateSearchQuery(ctx context.Context, params GenerateSearchQueryParams) (string, error) {
 	searchQuery := ""
 	if params.MediaID.TVShow != nil {
 		var err error

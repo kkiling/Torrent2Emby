@@ -37,7 +37,7 @@ func (s *Storage) CreateState(ctx context.Context, state *storage.State) error {
 	return err
 }
 
-func (s *Storage) GetStateByIdempotencyKey(ctx context.Context, idempotencyKey uuid.UUID) (*storage.State, error) {
+func (s *Storage) GetStateByIdempotencyKey(ctx context.Context, idempotencyKey string) (*storage.State, error) {
 	query := `
 		SELECT 
 			id, idempotency_key, created_at, updated_at, 
@@ -47,11 +47,11 @@ func (s *Storage) GetStateByIdempotencyKey(ctx context.Context, idempotencyKey u
 	`
 
 	var state storage.State
-	var idBytes, keyBytes []byte
+	var idBytes []byte
 
 	err := s.next(ctx).QueryRowContext(ctx, query, idempotencyKey[:]).Scan(
 		&idBytes,
-		&keyBytes,
+		&state.IdempotencyKey,
 		&state.CreatedAt,
 		&state.UpdatedAt,
 		&state.Status,
@@ -67,11 +67,6 @@ func (s *Storage) GetStateByIdempotencyKey(ctx context.Context, idempotencyKey u
 	}
 
 	state.ID, err = uuid.FromBytes(idBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	state.IdempotencyKey, err = uuid.FromBytes(keyBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -89,11 +84,11 @@ func (s *Storage) GetStateByID(ctx context.Context, stateID uuid.UUID) (*storage
 	`
 
 	var state storage.State
-	var idBytes, keyBytes []byte
+	var idBytes []byte
 
 	err := s.next(ctx).QueryRowContext(ctx, query, stateID[:]).Scan(
 		&idBytes,
-		&keyBytes,
+		&state.IdempotencyKey,
 		&state.CreatedAt,
 		&state.UpdatedAt,
 		&state.Status,
@@ -109,11 +104,6 @@ func (s *Storage) GetStateByID(ctx context.Context, stateID uuid.UUID) (*storage
 	}
 
 	state.ID, err = uuid.FromBytes(idBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	state.IdempotencyKey, err = uuid.FromBytes(keyBytes)
 	if err != nil {
 		return nil, err
 	}

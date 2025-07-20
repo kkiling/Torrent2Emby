@@ -1,4 +1,4 @@
-package videocontent
+package videodelivery
 
 import (
 	"context"
@@ -9,13 +9,6 @@ import (
 	"github.com/kkiling/torrent2emby/internal/adapter/rutracker"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 )
-
-type Repository interface {
-	// GetVideoContentByMediaID Получение видеоконтента для сезона сериала или фильма
-	GetVideoContentByMediaID(ctx context.Context, id MediaID) ([]VideoContent, error)
-	// SaveVideoContent сохранение информации о видео контенте
-	SaveVideoContent(ctx context.Context, content *VideoContent) error
-}
 
 type TVShowLibrary interface {
 	GetTVShowInfo(ctx context.Context, params tvshowlibrary.GetTVShowParams) (*tvshowlibrary.GetTVShowResult, error)

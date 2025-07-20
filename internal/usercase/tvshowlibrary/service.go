@@ -78,6 +78,7 @@ func (s *Service) GetTVShowInfo(ctx context.Context, params GetTVShowParams) (*G
 
 	response, err := s.theMovieDb.GetTV(ctx, params.TVShowID, language)
 	if err != nil {
+		// TODO: обработать not found
 		return nil, fmt.Errorf("theMovieDb.GetTV: %w", err)
 	}
 
@@ -85,6 +86,7 @@ func (s *Service) GetTVShowInfo(ctx context.Context, params GetTVShowParams) (*G
 
 	// Получение информации о сериале, автоматически добавляет его в библиотеку
 	if err = s.storage.SaveOrUpdateTVShow(ctx, tvShow); err != nil {
+
 		return nil, fmt.Errorf("s.storage.SaveTVShow: %w", err)
 	}
 
@@ -111,6 +113,7 @@ func (s *Service) GetSeasonEpisodes(ctx context.Context, params GetSeasonEpisode
 
 	response, err := s.theMovieDb.GetSeasonEpisodes(ctx, params.TVShowID, params.SeasonNumber, language)
 	if err != nil {
+		// TODO: обработать not found
 		return nil, fmt.Errorf("theMovieDb.GetSeasonEpisodes: %w", err)
 	}
 

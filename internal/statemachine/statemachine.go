@@ -40,7 +40,7 @@ func NewService[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~s
 
 func (i *StateMachine[DataT, FailDataT, MetaDataT, StepT, TypeT, CreateOptionsT]) getStateByIdempotencyKey(
 	ctx context.Context,
-	idempotencyKey uuid.UUID,
+	idempotencyKey string,
 ) (*State[DataT, FailDataT, MetaDataT, StepT, TypeT], error) {
 	findState, err := i.storage.GetStateByIdempotencyKey(ctx, idempotencyKey)
 	switch {

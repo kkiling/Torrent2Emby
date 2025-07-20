@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE state (
     id BLOB PRIMARY KEY,  -- uuid.UUID
-    idempotency_key BLOB NOT NULL,  -- uuid.UUID
+    idempotency_key TEXT NOT NULL,  -- uuid.UUID
     created_at TIMESTAMP NOT NULL,  -- time.Time
     updated_at TIMESTAMP NOT NULL,  -- time.Time
     status INTEGER NOT NULL,  -- uint8

@@ -1,4 +1,4 @@
-package videocontent
+package videodelivery
 
 import (
 	"context"

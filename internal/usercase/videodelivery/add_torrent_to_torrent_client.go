@@ -1,4 +1,4 @@
-package videocontent
+package videodelivery
 
 import (
 	"context"
@@ -13,8 +13,8 @@ type AddTorrentParams struct {
 	Magnet  string
 }
 
-// addTorrentToTorrentClient добавление торрент раздачи в торрент клиент
-func (s *Service) addTorrentToTorrentClient(_ context.Context, params AddTorrentParams) error {
+// AddTorrentToTorrentClient добавление торрент раздачи в торрент клиент
+func (s *Service) AddTorrentToTorrentClient(_ context.Context, params AddTorrentParams) error {
 	if params.MediaID.MovieID != nil && params.MediaID.TVShow == nil {
 		return fmt.Errorf("movie is not supported yet: %w", ucerr.InvalidArgument)
 	}

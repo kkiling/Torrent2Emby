@@ -24,7 +24,6 @@ const (
 
 // StepContext входные данные функции шага
 type StepContext[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string] struct {
-	Data                DataT
 	State               State[DataT, FailDataT, MetaDataT, StepT, TypeT]
 	completeOptionsType reflect.Type
 	completeOptions     any

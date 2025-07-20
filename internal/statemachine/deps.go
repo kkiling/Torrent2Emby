@@ -17,7 +17,7 @@ type Storage interface {
 	// CreateState создание нового стейта в базе
 	CreateState(ctx context.Context, state *storage.State) error
 	// GetStateByIdempotencyKey получение стейта по ключу idempotencyKey
-	GetStateByIdempotencyKey(ctx context.Context, idempotencyKey uuid.UUID) (*storage.State, error)
+	GetStateByIdempotencyKey(ctx context.Context, idempotencyKey string) (*storage.State, error)
 	// GetStateByID получение стейта по id
 	GetStateByID(ctx context.Context, stateID uuid.UUID) (*storage.State, error)
 	// SaveStepExecuteInfo Сохранение информации о запуске выполнения шага

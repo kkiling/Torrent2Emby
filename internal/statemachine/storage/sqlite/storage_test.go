@@ -39,7 +39,7 @@ func TestStorage_RunTransaction(t *testing.T) {
 		// Подготовка тестовых данных
 		testState := &storage.State{
 			ID:             stateID,
-			IdempotencyKey: uuid.New(),
+			IdempotencyKey: uuid.NewString(),
 			CreatedAt:      time.Now().UTC().Truncate(time.Second), // Округляем для точного сравнения
 			UpdatedAt:      time.Now().UTC().Truncate(time.Second),
 			Status:         124,
@@ -84,7 +84,7 @@ func TestStorage_RunTransaction(t *testing.T) {
 		stateID := uuid.New()
 		state := &storage.State{
 			ID:             stateID,
-			IdempotencyKey: uuid.New(),
+			IdempotencyKey: uuid.NewString(),
 			CreatedAt:      time.Now(),
 			UpdatedAt:      time.Now(),
 			Status:         1,

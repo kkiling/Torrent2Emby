@@ -29,7 +29,7 @@ func TestTaskRunner_MockDb(t *testing.T) {
 		createdAt  = time.Now()
 		stateID    = uuid.New()
 		createOpts = CreateOptions{
-			IdempotencyKey: uuid.New(),
+			IdempotencyKey: uuid.NewString(),
 			Title:          "Custom title",
 			Amount:         42,
 		}
@@ -444,7 +444,7 @@ func TestTaskRunner_RealDB(t *testing.T) {
 			createdAt  = time.Now()
 			stateID    = uuid.New()
 			createOpts = CreateOptions{
-				IdempotencyKey: uuid.New(),
+				IdempotencyKey: uuid.NewString(),
 				Title:          "Custom title",
 				Amount:         42,
 			}

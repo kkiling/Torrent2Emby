@@ -67,7 +67,6 @@ func (s *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT]) Compete(
 
 		// Выполнение шага
 		stepCtx := StepContext[DataT, FailDataT, MetaDataT, StepT, TypeT]{
-			Data:                currentState.Data,
 			State:               currentState,
 			completeOptionsType: stepInfo.OptionsType,
 			completeOptions: func() any {

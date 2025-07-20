@@ -168,7 +168,7 @@ func (s *Service) PrepareTvShowSeason(params *PrepareTvShowPrams) (*PrepareTVSho
 
 	for index, episode := range params.Episodes {
 		prepareEpisode := PrepareEpisode{
-			Episode: episode,
+			EpisodeNumber: episode.EpisodeNumber,
 		}
 
 		// Пока сопостовляем видео файл с серией просто по порядку

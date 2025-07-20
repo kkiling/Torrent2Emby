@@ -1,4 +1,4 @@
-package videocontent
+package videodelivery
 
 import (
 	"context"
@@ -44,7 +44,7 @@ func mapMkvMergeParams(content ContentMatches, contentPath string) mkvmerge.Merg
 }
 
 // MergeVideoFiles запуск обработки видеофайлов
-func (s *Service) mergeVideoFiles(_ context.Context, params MergeVideoFilesParams) (MergeVideoStatus, error) {
+func (s *Service) MergeVideoFiles(_ context.Context, params MergeVideoFilesParams) (MergeVideoStatus, error) {
 	// Подумать надо сохранением прогресса и востановление
 	for index, content := range params.ContentMatches {
 		mergeParams := mapMkvMergeParams(content, params.ContentPath)

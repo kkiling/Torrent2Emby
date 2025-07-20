@@ -1,4 +1,4 @@
-package videocontent
+package videodelivery
 
 import (
 	"context"
@@ -103,8 +103,8 @@ func mapToPrepareTvShowPrams(
 	}, nil
 }
 
-// prepareFileMatches получение информации о файлах раздачи
-func (s *Service) prepareFileMatches(ctx context.Context, params PreparingFileMatchesParams) ([]ContentMatches, error) {
+// PrepareFileMatches получение информации о файлах раздачи
+func (s *Service) PrepareFileMatches(ctx context.Context, params PreparingFileMatchesParams) ([]ContentMatches, error) {
 	if params.MediaID.MovieID != nil && params.MediaID.TVShow == nil {
 		return nil, fmt.Errorf("movie is not supported yet: %w", ucerr.InvalidArgument)
 	}

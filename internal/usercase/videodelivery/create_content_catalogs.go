@@ -1,4 +1,4 @@
-package videocontent
+package videodelivery
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 )
 
-type CreateVideoContentCatalogsParams struct {
+type CreateContentCatalogsParams struct {
 	MediaID MediaID
 }
 
@@ -42,8 +42,8 @@ func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID uint64, seas
 	return result, nil
 }
 
-// createVideoContentCatalogs формирование каталога куда будет сохранен контент
-func (s *Service) createVideoContentCatalogs(ctx context.Context, params CreateVideoContentCatalogsParams) (CatalogsInfo, error) {
+// CreateContentCatalogs формирование каталога куда будет сохранен контент
+func (s *Service) CreateContentCatalogs(ctx context.Context, params CreateContentCatalogsParams) (CatalogsInfo, error) {
 	var catalog = ""
 	if params.MediaID.TVShow != nil {
 		var err error

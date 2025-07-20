@@ -1,14 +1,12 @@
 package teststate
 
-import "github.com/google/uuid"
-
 type CreateOptions struct {
-	IdempotencyKey uuid.UUID
+	IdempotencyKey string
 	Title          string
 	Amount         int
 }
 
-func (c CreateOptions) GetIdempotencyKey() uuid.UUID {
+func (c CreateOptions) GetIdempotencyKey() string {
 	return c.IdempotencyKey
 }
 

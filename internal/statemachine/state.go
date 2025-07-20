@@ -21,7 +21,7 @@ type State[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string
 	// ID идентификаторе текущего стейта
 	ID uuid.UUID
 	// IdempotencyKey Ключ идемпотентности стейта
-	IdempotencyKey uuid.UUID
+	IdempotencyKey string
 	//  CreatedAt дата создания состояния
 	CreatedAt time.Time
 	// UpdatedAt дата обновления Status или Step
@@ -51,7 +51,8 @@ type CreateState[DataT any, MetaDataT any, StepT ~string] struct {
 }
 
 type CreateOptions interface {
-	GetIdempotencyKey() uuid.UUID
+	// GetIdempotencyKey Ключ идемпотентности
+	GetIdempotencyKey() string
 }
 
 type Step[DataT any, FailDataT any, MetaDataT any, StepT ~string, TypeT ~string] struct {

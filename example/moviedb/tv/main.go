@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	logger := log.NewLogger(log.DebugLevel)
 
 	cfg, err := config.NewEnvConfig(logger)
@@ -27,7 +29,7 @@ func main() {
 	}
 
 	// Поиск сериалов
-	response, err := api.SearchTV(themoviedb2.SearchQuery{
+	response, err := api.SearchTV(ctx, themoviedb2.SearchQuery{
 		Language: themoviedb2.LanguageRU,
 		Query:    "Сага о винланде",
 		Page:     1,
@@ -54,13 +56,13 @@ func main() {
 
 	// информация о сериале
 	tvId := response.Results[0].ID
-	tvOInfo, err := api.GetTV(tvId, themoviedb2.LanguageEN)
+	tvOInfo, err := api.GetTV(ctx, tvId, themoviedb2.LanguageEN)
 	if err != nil {
 		apierr.PrintError(logger, err)
 	}
 	logger.Info(tvOInfo.Seasons[2].Name)
 
-	episodes, err := api.GetSeasonEpisodes(tvId, 2, themoviedb2.LanguageEN)
+	episodes, err := api.GetSeasonEpisodes(ctx, tvId, 2, themoviedb2.LanguageEN)
 	if err != nil {
 		apierr.PrintError(logger, err)
 	}
