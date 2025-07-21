@@ -6,3 +6,8 @@ type ChoseTorrentOptions struct {
 	// Пользователь поменял поисковый запрос
 	NewSearchQuery *string
 }
+
+type ChoseFileMatchesOptions struct {
+	// Пользователь подтверждает сметченные файлы
+	Approve bool
+}

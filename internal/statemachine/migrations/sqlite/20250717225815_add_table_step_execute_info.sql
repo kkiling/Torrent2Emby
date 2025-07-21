@@ -11,7 +11,7 @@ CREATE TABLE step_execute_info (
     FOREIGN KEY (state_id) REFERENCES state(id) ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX idx_step_execute_unique_step_id_and_next_step ON step_execute_info(state_id, preview_step);
+CREATE INDEX idx_step_execute_state_id ON step_execute_info(state_id);
 -- +goose StatementEnd
 
 -- +goose Down

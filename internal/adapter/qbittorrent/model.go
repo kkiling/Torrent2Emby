@@ -30,6 +30,8 @@ const (
 	TorrentStateMetaDL TorrentState = "metaDL"
 	// TorrentStatePausedDL Торрент приостановлен и загрузка НЕ завершена
 	TorrentStatePausedDL TorrentState = "pausedDL"
+	// TorrentStateStoppedDL Торрент приостановлен и загрузка НЕ завершена
+	TorrentStateStoppedDL TorrentState = "stoppedDL"
 	// TorrentStateQueuedDL Очередь включена и торрент в очереди на загрузку
 	TorrentStateQueuedDL TorrentState = "queuedDL"
 	// TorrentStateStalledDL Торрент загружается, но нет активных соединений

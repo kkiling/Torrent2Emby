@@ -16,7 +16,7 @@ func (api *Api) ResumeTorrent(hash string) error {
 	form := url.Values{}
 	form.Set("hashes", hash)
 
-	postUrl := api.baseAPIUrl.String() + "/api/v2/torrents/resume"
+	postUrl := api.baseAPIUrl.String() + "/api/v2/torrents/start"
 	resp, err := api.httpClient.PostForm(postUrl, form)
 	if err != nil {
 		return apierr.HandleStatusCodeError(api.logger, resp)

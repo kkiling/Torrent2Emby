@@ -20,8 +20,6 @@ func TestCreateState(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("successful creation", func(t *testing.T) {
-		t.Parallel()
-
 		state := &storage.State{
 			ID:             uuid.New(),
 			IdempotencyKey: uuid.NewString(),
@@ -45,8 +43,6 @@ func TestCreateState(t *testing.T) {
 	})
 
 	t.Run("duplicate id", func(t *testing.T) {
-		t.Parallel()
-
 		state := &storage.State{
 			ID:             uuid.New(),
 			IdempotencyKey: uuid.NewString(),
@@ -71,7 +67,6 @@ func TestCreateState(t *testing.T) {
 	})
 
 	t.Run("duplicate idempotency_key", func(t *testing.T) {
-		t.Parallel()
 		idempotencyKey := uuid.NewString()
 
 		state1 := &storage.State{
@@ -111,8 +106,6 @@ func TestCreateState(t *testing.T) {
 	})
 
 	t.Run("with empty data", func(t *testing.T) {
-		t.Parallel()
-
 		state := &storage.State{
 			ID:             uuid.New(),
 			IdempotencyKey: uuid.NewString(),
@@ -292,7 +285,7 @@ func TestSaveStepExecuteInfo(t *testing.T) {
 		require.Equal(t, info, saved[0])
 	})
 
-	t.Run("fail on non-existent deliverystate", func(t *testing.T) {
+	t.Run("fail on non-existent state", func(t *testing.T) {
 		info := storage.StepExecuteInfo{
 			StateID:         uuid.New(), // Несуществующий ID
 			StartExecutedAt: time.Now(),
@@ -420,7 +413,7 @@ func TestGetStepExecuteInfos(t *testing.T) {
 		require.Equal(t, infos[2], find[2]) // step_3
 	})
 
-	t.Run("return empty slice for unknown deliverystate", func(t *testing.T) {
+	t.Run("return empty slice for unknown state", func(t *testing.T) {
 		infos, err := s.GetStepExecuteInfos(ctx, uuid.New())
 		require.NoError(t, err)
 		require.Empty(t, infos)
@@ -512,7 +505,7 @@ func TestUpdateState(t *testing.T) {
 		require.Equal(t, testState.MetaData, updatedState.MetaData)
 	})
 
-	t.Run("fail on non-existent deliverystate", func(t *testing.T) {
+	t.Run("fail on non-existent state", func(t *testing.T) {
 		update := storage.UpdateState{
 			UpdatedAt: time.Now(),
 			Status:    StateStatusPending,

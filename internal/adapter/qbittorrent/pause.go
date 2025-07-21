@@ -16,7 +16,7 @@ func (api *Api) PauseTorrent(hash string) error {
 	form := url.Values{}
 	form.Set("hashes", hash)
 
-	postUrl := api.baseAPIUrl.String() + "/api/v2/torrents/pause"
+	postUrl := api.baseAPIUrl.String() + "/api/v2/torrents/stop"
 	resp, err := api.httpClient.PostForm(postUrl, form)
 	if err != nil {
 		return apierr.HandleStatusCodeError(api.logger, resp)

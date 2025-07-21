@@ -24,6 +24,7 @@ type TorrentClient interface {
 	AddTorrent(opts qbittorrent.TorrentAddOptions) error
 	GetTorrentInfo(hash string) (*qbittorrent.TorrentInfo, error)
 	GetTorrentFiles(hash string) ([]qbittorrent.TorrentFile, error)
+	ResumeTorrent(hash string) error
 }
 
 type PrepareTVShow interface {

@@ -16,7 +16,7 @@ const (
 	QBittorrentPassword  = "QBITTORRENT_PASSWORD"
 	QBittorrentCookieDir = "QBITTORRENT_COOKIE_DIR"
 	QBittorrentApiUrl    = "QBITTORRENT_API_URL"
-	SqliteDns            = "SQLITE_DNS"
+	SqliteDsn            = "SQLITE_DSN"
 )
 
 // MovieDbConfig конфигурация для The Movie DB API
@@ -115,13 +115,13 @@ func loadQBittorrentConfig() (*QBittorrentConfig, error) {
 }
 
 func loadStorageConfig() (*StorageConfig, error) {
-	sqliteDns, err := getEnvString(SqliteDns)
+	SqliteDsn, err := getEnvString(SqliteDsn)
 	if err != nil {
 		return nil, err
 	}
 
 	return &StorageConfig{
-		SqliteDsn: sqliteDns,
+		SqliteDsn: SqliteDsn,
 	}, nil
 }
 

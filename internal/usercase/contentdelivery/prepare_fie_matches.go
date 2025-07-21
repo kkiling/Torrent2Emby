@@ -40,27 +40,31 @@ func mapTrack(tracks []tvshow.PrepareTrack) []Track {
 
 func mapContentMatchesFromPrepareTVShowSeason(
 	prepareResult *tvshow.PrepareTVShowSeason,
-	episodes []tvshowlibrary.Episode,
-) []ContentMatches {
-	result := make([]ContentMatches, len(prepareResult.Episodes))
-	for _, episode := range prepareResult.Episodes {
-		ep := episodes[episode.EpisodeNumber]
-
-		items := ContentMatches{
+	tvEpisodes []tvshowlibrary.Episode,
+) ([]ContentMatches, error) {
+	result := make([]ContentMatches, 0, len(prepareResult.Episodes))
+	for _, prepareEpisode := range prepareResult.Episodes {
+		tvEpisode, find := lo.Find(tvEpisodes, func(item tvshowlibrary.Episode) bool {
+			return item.EpisodeNumber == prepareEpisode.EpisodeNumber
+		})
+		if !find {
+			return nil, fmt.Errorf("episode not found")
+		}
+		content := ContentMatches{
 			ContentInfo: ContentInfo{
-				Name: fmt.Sprintf("%d %s", ep.EpisodeNumber, ep.Name),
+				Name: fmt.Sprintf("%d %s", tvEpisode.EpisodeNumber, tvEpisode.Name),
 			},
 			Video: VideoFile{
-				File: mapFile(episode.VideoFile.File),
+				File: mapFile(prepareEpisode.VideoFile.File),
 			},
-			AudioFiles: mapTrack(episode.AudioFiles),
-			Subtitles:  mapTrack(episode.Subtitles),
+			AudioFiles: mapTrack(prepareEpisode.AudioFiles),
+			Subtitles:  mapTrack(prepareEpisode.Subtitles),
 		}
 
-		result = append(result, items)
+		result = append(result, content)
 	}
 
-	return result
+	return result, nil
 }
 
 func mapToPrepareTvShowPrams(
@@ -120,10 +124,15 @@ func (s *Service) PrepareFileMatches(ctx context.Context, params PreparingFileMa
 	}
 
 	switch torrentInfo.State {
-	case qbittorrent.TorrentStateDownloading,
-		qbittorrent.TorrentStatePausedDL,
+	case qbittorrent.TorrentStatePausedDL, qbittorrent.TorrentStateStoppedDL:
+		if err := s.torrentClient.ResumeTorrent(params.Hash); err != nil {
+			return nil, fmt.Errorf("torrentClient.ResumeTorrent: %w", err)
+		}
+	case
+		qbittorrent.TorrentStateDownloading,
 		qbittorrent.TorrentStateUploading,
-		qbittorrent.TorrentStatePausedUP:
+		qbittorrent.TorrentStatePausedUP,
+		qbittorrent.TorrentStateStalledUP:
 		// Файлы начали скачиваться, значит можем получить информацию о файлах
 	default:
 		// Ошибки как таковой нет, придем в следующий раз
@@ -167,7 +176,10 @@ func (s *Service) PrepareFileMatches(ctx context.Context, params PreparingFileMa
 		return nil, fmt.Errorf("prepareTVShow.PrepareTvShowSeason: %w", err)
 	}
 
-	result := mapContentMatchesFromPrepareTVShowSeason(prepareResult, episodes.Items)
+	result, err := mapContentMatchesFromPrepareTVShowSeason(prepareResult, episodes.Items)
+	if err != nil {
+		return nil, fmt.Errorf("mapContentMatchesFromPrepareTVShowSeason: %w", err)
+	}
 
 	return result, nil
 }

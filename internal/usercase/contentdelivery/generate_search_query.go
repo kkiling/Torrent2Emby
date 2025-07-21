@@ -32,8 +32,8 @@ func (s *Service) getTVShowQuery(ctx context.Context, tvShowID uint64, seasonNum
 	if !find {
 		return "", fmt.Errorf("season not found: %w", ucerr.NotFound)
 	}
-	// Формируем поисковый запрос на основе инфы  о сезоне сериала
-	searchQuery := fmt.Sprintf("%s сезон %d", tvShowInfo.Result.Name, season.SeasonNumber)
+	// Формируем поисковый запрос на основе инфы о сезоне сериала
+	searchQuery := fmt.Sprintf("%s %d", tvShowInfo.Result.Name, season.AirDate.Year())
 
 	return searchQuery, nil
 }

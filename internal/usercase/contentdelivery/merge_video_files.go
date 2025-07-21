@@ -22,7 +22,7 @@ type MergeVideoFilesParams struct {
 func mapMkvMergeParams(content ContentMatches, contentPath string) mkvmerge.MergeParams {
 	mergeParams := mkvmerge.MergeParams{
 		VideoInputFile:  content.Video.File.FullPath,
-		VideoOutputFile: filepath.Join(contentPath, content.ContentInfo.Name),
+		VideoOutputFile: filepath.Join(contentPath, content.ContentInfo.Name) + content.Video.File.Extension,
 		AudioTracks: lo.Map(content.AudioFiles, func(item Track, index int) mkvmerge.Track {
 			return mkvmerge.Track{
 				Path:     item.File.FullPath,
@@ -45,8 +45,10 @@ func mapMkvMergeParams(content ContentMatches, contentPath string) mkvmerge.Merg
 
 // MergeVideoFiles запуск обработки видеофайлов
 func (s *Service) MergeVideoFiles(_ context.Context, params MergeVideoFilesParams) (MergeVideoStatus, error) {
-	// Подумать надо сохранением прогресса и востановление
 	for index, content := range params.ContentMatches {
+		if index < params.ProcessedFiles {
+			continue
+		}
 		mergeParams := mapMkvMergeParams(content, params.ContentPath)
 		err := s.mkvMerge.Merge(mergeParams)
 		if err != nil {

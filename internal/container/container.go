@@ -2,23 +2,23 @@ package container
 
 import (
 	"fmt"
+	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
+	prepareTVShow "github.com/kkiling/torrent2emby/internal/adapter/prepare/tvshow"
 	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
 	"github.com/kkiling/torrent2emby/internal/adapter/rutracker"
 	"github.com/kkiling/torrent2emby/internal/adapter/themoviedb"
 	"github.com/kkiling/torrent2emby/internal/config"
 	"github.com/kkiling/torrent2emby/internal/log"
 	statemachinesqlite "github.com/kkiling/torrent2emby/internal/statemachine/storage/sqlite"
+	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery"
+	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery/deliverystate"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary/storage/sqlite"
 )
 
 type Container struct {
-	cfg            *config.EnvConfig
-	themoviedbApi  *themoviedb.API
-	qBittorrentApi *qbittorrent.Api
-	rutrackerApi   *rutracker.Api
-
-	tvShowLibrary *tvshowlibrary.Service
+	tvShowLibrary        *tvshowlibrary.Service
+	deliveryStateMachine *deliverystate.StateMachineService
 }
 
 func NewContainer() (*Container, error) {
@@ -74,14 +74,38 @@ func NewContainer() (*Container, error) {
 		return nil, fmt.Errorf("rutracker.NewApi: %w", err)
 	}
 
+	mkvMerge := mkvmerge.NewService()
+	prepareTVShow := prepareTVShow.NewService(mkvMerge)
+
 	// UserCase
 	tvShowLibrary := tvshowlibrary.NewService(tvShowLibraryStorage, themoviedbApi)
 
+	delivery := contentdelivery.NewService(
+		// TODO: вынести в конфиг
+		contentdelivery.Config{
+			BasePath:              "/nfs",
+			TVShowTorrentSavePath: "/downloads",
+			TvShowMediaSavePath:   "/movies/tvshow",
+			UserGroup:             "nas",
+		},
+		tvShowLibrary,
+		rutrackerApi,
+		qBittorrentApi,
+		prepareTVShow,
+		mkvMerge,
+	)
+	deliveryStateMachine := deliverystate.NewState(delivery, stateStorage)
+
 	return &Container{
-		cfg:            cfg,
-		themoviedbApi:  themoviedbApi,
-		qBittorrentApi: qBittorrentApi,
-		rutrackerApi:   rutrackerApi,
-		tvShowLibrary:  tvShowLibrary,
+		tvShowLibrary:        tvShowLibrary,
+		deliveryStateMachine: deliveryStateMachine,
 	}, nil
+}
+
+func (c *Container) GetTvShowLibrary() *tvshowlibrary.Service {
+	return c.tvShowLibrary
+}
+
+func (c *Container) DeliveryStateMachine() *deliverystate.StateMachineService {
+	return c.deliveryStateMachine
 }

@@ -67,8 +67,6 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 	}
 
 	t.Run("SaveTVShow success", func(t *testing.T) {
-		t.Parallel()
-
 		testTVShow := initTvShow()
 
 		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
@@ -82,7 +80,6 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 	})
 
 	t.Run("SaveTVShow with nil images", func(t *testing.T) {
-		t.Parallel()
 		testTVShow := initTvShow()
 		testTVShow.Poster = nil
 		testTVShow.Backdrop = nil
@@ -93,8 +90,6 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 	})
 
 	t.Run("SaveTVShow empty arrays", func(t *testing.T) {
-		t.Parallel()
-
 		testTVShow := initTvShow()
 		testTVShow.Genres = []string{}
 		testTVShow.OriginCountry = []string{}
@@ -104,7 +99,6 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 	})
 
 	t.Run("GetTVShow success", func(t *testing.T) {
-		t.Parallel()
 		testTVShow := initTvShow()
 		// Сначала сохраняем тестовые данные
 		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
@@ -135,15 +129,11 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 	})
 
 	t.Run("GetTVShow not found", func(t *testing.T) {
-		t.Parallel()
-
 		_, err := s.GetTVShow(ctx, 9999)
 		require.ErrorIs(t, err, storage.ErrNotFound)
 	})
 
 	t.Run("GetTVShow with nil images", func(t *testing.T) {
-		t.Parallel()
-
 		testTVShow := initTvShow()
 		testTVShow.Poster = nil
 		testTVShow.Backdrop = nil
@@ -160,7 +150,6 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 	})
 
 	t.Run("Save and Get roundtrip", func(t *testing.T) {
-		t.Parallel()
 		testTVShow := initTvShow()
 		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
@@ -229,8 +218,6 @@ func TestGetTVShows(t *testing.T) {
 	}
 
 	t.Run("successful get all shows", func(t *testing.T) {
-		t.Parallel()
-
 		result, err := s.GetTVShows(ctx)
 
 		result = lo.Filter(result, func(item tvshowlibrary.TVShowShort, _ int) bool {
@@ -324,8 +311,6 @@ func TestStorage_SeasonEpisodes(t *testing.T) {
 	}
 
 	t.Run("SaveOrUpdateSeasonEpisode success", func(t *testing.T) {
-		t.Parallel()
-
 		testTVShow, testEpisodes := initTestData()
 
 		// First save the TV show with season
@@ -346,8 +331,6 @@ func TestStorage_SeasonEpisodes(t *testing.T) {
 	})
 
 	t.Run("SaveOrUpdateSeasonEpisode with empty episodes", func(t *testing.T) {
-		t.Parallel()
-
 		testTVShow, _ := initTestData()
 		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
@@ -357,8 +340,6 @@ func TestStorage_SeasonEpisodes(t *testing.T) {
 	})
 
 	t.Run("GetSeasonEpisodes success", func(t *testing.T) {
-		t.Parallel()
-
 		testTVShow, testEpisodes := initTestData()
 		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
@@ -383,8 +364,6 @@ func TestStorage_SeasonEpisodes(t *testing.T) {
 	})
 
 	t.Run("GetSeasonEpisodes not found", func(t *testing.T) {
-		t.Parallel()
-
 		testTVShow, _ := initTestData()
 		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
@@ -399,8 +378,6 @@ func TestStorage_SeasonEpisodes(t *testing.T) {
 	})
 
 	t.Run("Save and Get roundtrip", func(t *testing.T) {
-		t.Parallel()
-
 		testTVShow, testEpisodes := initTestData()
 		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
@@ -429,8 +406,6 @@ func TestStorage_SeasonEpisodes(t *testing.T) {
 	})
 
 	t.Run("Update existing episodes", func(t *testing.T) {
-		t.Parallel()
-
 		testTVShow, testEpisodes := initTestData()
 		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)

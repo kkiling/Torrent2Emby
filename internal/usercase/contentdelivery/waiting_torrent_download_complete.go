@@ -12,8 +12,8 @@ type WaitingTorrentDownloadCompleteParams struct {
 	Hash string
 }
 
-// waitingTorrentDownloadComplete ожидание завершения окончания скачивания раздачи
-func (s *Service) waitingTorrentDownloadComplete(_ context.Context, params WaitingTorrentDownloadCompleteParams) (*TorrentDownloadStatus, error) {
+// WaitingTorrentDownloadComplete ожидание завершения окончания скачивания раздачи
+func (s *Service) WaitingTorrentDownloadComplete(_ context.Context, params WaitingTorrentDownloadCompleteParams) (*TorrentDownloadStatus, error) {
 	// Достаем инфу о торрент раздаче
 	torrentInfo, err := s.torrentClient.GetTorrentInfo(params.Hash)
 	if err != nil {
@@ -25,16 +25,21 @@ func (s *Service) waitingTorrentDownloadComplete(_ context.Context, params Waiti
 	}
 
 	switch torrentInfo.State {
+	case qbittorrent.TorrentStatePausedDL, qbittorrent.TorrentStateStoppedDL:
+		if err := s.torrentClient.ResumeTorrent(params.Hash); err != nil {
+			return nil, fmt.Errorf("torrentClient.ResumeTorrent: %w", err)
+		}
 	case qbittorrent.TorrentStateUploading,
-		qbittorrent.TorrentStatePausedUP:
+		qbittorrent.TorrentStatePausedUP,
+		qbittorrent.TorrentStateStalledUP:
 		return &TorrentDownloadStatus{
 			Progress:   torrentInfo.Progress,
 			IsComplete: true,
 		}, nil
-	default:
-		return &TorrentDownloadStatus{
-			Progress:   torrentInfo.Progress,
-			IsComplete: false,
-		}, nil
 	}
+
+	return &TorrentDownloadStatus{
+		Progress:   torrentInfo.Progress,
+		IsComplete: false,
+	}, nil
 }

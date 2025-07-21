@@ -48,6 +48,13 @@ func (s *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT]) Compete(
 		return nil, nil, fmt.Errorf("too many options")
 	}
 
+	completeOptions := func() any {
+		if len(options) == 1 {
+			return options[0]
+		}
+		return nil
+	}()
+
 	currentState := inputState
 
 	// Крутим стейт машину
@@ -65,16 +72,15 @@ func (s *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT]) Compete(
 			PreviewStep: string(currentState.Step),
 		}
 
+		if stepInfo.OptionsType == nil && completeOptions != nil {
+			return nil, nil, fmt.Errorf("optionsType is undefined and completeOptions is specified")
+		}
+
 		// Выполнение шага
 		stepCtx := StepContext[DataT, FailDataT, MetaDataT, StepT, TypeT]{
 			State:               currentState,
 			completeOptionsType: stepInfo.OptionsType,
-			completeOptions: func() any {
-				if len(options) == 1 {
-					return options[0]
-				}
-				return nil
-			}(),
+			completeOptions:     completeOptions,
 		}
 
 		stepResult := stepInfo.OnStep(ctx, stepCtx)
@@ -121,15 +127,37 @@ func (s *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT]) Compete(
 			isBreak = true
 		}
 
+		// TODO: вынести в отделную функцию
+		var data []byte
+		data, err = json.Marshal(newState.Data)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to marshal data: %w", err)
+		}
+		if string(data) == "null" {
+			data = []byte{}
+		}
+
+		var failData []byte
+		failData, err = json.Marshal(newState.FailData)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to marshal failData: %w", err)
+		}
+		if string(failData) == "null" {
+			failData = []byte{}
+		}
+
+		var metaData []byte
+		metaData, err = json.Marshal(newState.MetaData)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to marshal metaData: %w", err)
+		}
+		if string(metaData) == "null" {
+			metaData = []byte{}
+		}
 		err = s.storage.RunTransaction(ctx, func(ctxTx context.Context) error {
 			terr := s.storage.SaveStepExecuteInfo(ctx, execute)
 			if terr != nil {
 				return fmt.Errorf("storage.SaveStepExecuteInfo: %w", terr)
-			}
-
-			data, terr := json.Marshal(newState.Data)
-			if terr != nil {
-				return fmt.Errorf("json.Marshal: %w", terr)
 			}
 
 			terr = s.storage.UpdateState(ctx, newState.ID, storage.UpdateState{
@@ -137,6 +165,8 @@ func (s *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT]) Compete(
 				Status:    newState.Status,
 				Step:      string(newState.Step),
 				Data:      data,
+				FailData:  failData,
+				MetaData:  metaData,
 			})
 			if terr != nil {
 				return fmt.Errorf("storage.UpdateState: %w", terr)
@@ -154,6 +184,8 @@ func (s *Stepper[DataT, FailDataT, MetaDataT, StepT, TypeT]) Compete(
 		}
 
 		currentState = newState
+		// Сбрассываем опции, так как они нужны только для выполнения первого шага
+		completeOptions = nil
 	}
 
 	return &currentState, nil, nil

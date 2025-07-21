@@ -3,6 +3,7 @@ package deliverystate
 import (
 	"context"
 	"fmt"
+	"github.com/samber/lo"
 	"reflect"
 
 	"github.com/kkiling/torrent2emby/internal/statemachine"
@@ -99,6 +100,14 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 					}
 					if opts.Href != nil {
 						// Пользователь выбрал раздачу для скачивания
+						// Проверяем что клиент выбрал href из списка
+						contains := lo.ContainsBy(data.TorrentSearch.Result, func(item contentdelivery.TorrentSearch) bool {
+							return item.Href == *opts.Href
+						})
+						if !contains {
+							return stepContext.Error(fmt.Errorf("no such href: %w", ucerr.InvalidArgument))
+						}
+
 						data.SelectTorrentHref = opts.Href
 						return stepContext.Next(GetMagnetLink).WithData(data)
 					}
@@ -124,13 +133,13 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					//  Добавление раздачи для скачивания торрент клиентом
 					data := stepContext.State.Data
-					res, err := r.contentDelivery.GetMagnetLink(ctx, contentdelivery.GetMagnetLinkParams{
-						Href: *data.SelectTorrentHref,
+					err := r.contentDelivery.AddTorrentToTorrentClient(ctx, contentdelivery.AddTorrentParams{
+						MediaID: stepContext.State.MetaData.MediaID,
+						Magnet:  data.MagnetInfo.Magnet,
 					})
 					if err != nil {
-						return stepContext.Error(fmt.Errorf("GetMagnetLink: %w", err))
+						return stepContext.Error(fmt.Errorf("AddTorrentToTorrentClient: %w", err))
 					}
-					data.MagnetInfo = res
 					return stepContext.Next(PrepareFileMatches).WithData(data)
 				},
 			},
@@ -150,6 +159,112 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 					}
 					data.ContentMatches = res
 					return stepContext.Next(WaitingChoseFileMatches).WithData(data)
+				},
+			},
+			WaitingChoseFileMatches: {
+				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
+					// ожидание подтверждения пользователем соответствий выбора файлов
+					opts := ChoseFileMatchesOptions{}
+					ok, err := stepContext.GetOptions(&opts)
+					if err != nil {
+						return stepContext.Error(err)
+					}
+					if !ok { // Пока не получили опцию, не идем дальше
+						return stepContext.Empty()
+					}
+					if !opts.Approve {
+						return stepContext.Empty()
+					}
+					// TODO: выбор пользовтелем другого сопоставления
+
+					return stepContext.Next(WaitingTorrentDownloadComplete)
+				},
+				OptionsType: reflect.TypeOf(ChoseFileMatchesOptions{}),
+			},
+			WaitingTorrentDownloadComplete: {
+				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
+					// Ожидание когда торрент докачается до конца
+					data := stepContext.State.Data
+					res, err := r.contentDelivery.WaitingTorrentDownloadComplete(ctx, contentdelivery.WaitingTorrentDownloadCompleteParams{
+						Hash: data.MagnetInfo.Hash,
+					})
+					if err != nil {
+						return stepContext.Error(fmt.Errorf("PrepareFileMatches: %w", err))
+					}
+					data.TorrentDownloadStatus = res
+					if res.IsComplete {
+						return stepContext.Next(CreateVideoContentCatalogs).WithData(data)
+					}
+					return stepContext.Empty().WithData(data)
+				},
+			},
+			CreateVideoContentCatalogs: {
+				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
+					// Формирование каталогов и иерархии файлов
+					res, err := r.contentDelivery.CreateContentCatalogs(ctx, contentdelivery.CreateContentCatalogsParams{
+						MediaID: stepContext.State.MetaData.MediaID,
+					})
+					if err != nil {
+						return stepContext.Error(fmt.Errorf("CreateContentCatalogs: %w", err))
+					}
+					data := stepContext.State.Data
+					data.CatalogsInfo = &res
+					return stepContext.Next(DeterminingNeedConvertFiles).WithData(data)
+				},
+			},
+			DeterminingNeedConvertFiles: {
+				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
+					// Определение необходимости конвертации файлов
+
+					data := stepContext.State.Data
+					needToMerge := false
+					for _, m := range data.ContentMatches {
+						// Если есть субтитры или аудиодорожки то нужно мержить
+						if len(m.AudioFiles) > 0 || len(m.Subtitles) > 0 {
+							needToMerge = true
+							break
+						}
+					}
+					if needToMerge {
+						return stepContext.Next(MergeVideoFiles)
+					}
+					return stepContext.Next(CopyVideoFiles)
+				},
+			},
+			CopyVideoFiles: {
+				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
+					// Копирование файлов из раздачи в каталог медиасервера (точнее создание симлинков)
+					// TODO: реализовать
+					return stepContext.Empty()
+				},
+			},
+			MergeVideoFiles: {
+				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
+					//  Конвертирование файлов - полученные файлы сразу сохраняются в каталог медиасервера
+					data := stepContext.State.Data
+
+					//  Конвертирование файлов - полученные файлы сразу сохраняются в каталог медиасервера
+					result, err := r.contentDelivery.MergeVideoFiles(ctx, contentdelivery.MergeVideoFilesParams{
+						Hash:           data.MagnetInfo.Hash,
+						ContentPath:    data.CatalogsInfo.CatalogPath,
+						ContentMatches: data.ContentMatches,
+						ProcessedFiles: func() int { // Стартуем с последнего
+							if data.MergeVideoStatus != nil {
+								return data.MergeVideoStatus.ProcessedFiles
+							}
+							return 0
+						}(),
+					})
+					if err != nil {
+						return stepContext.Error(fmt.Errorf("MergeVideoFiles: %w", err))
+					}
+
+					data.MergeVideoStatus = &result
+					if result.IsComplete {
+						// Переход на следующий шаг
+						return stepContext.Next(SetMediaMetaData).WithData(data)
+					}
+					return stepContext.Empty().WithData(data)
 				},
 			},
 		},

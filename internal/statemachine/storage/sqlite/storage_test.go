@@ -34,7 +34,6 @@ func TestStorage_RunTransaction(t *testing.T) {
 	s := setupTestDB(t)
 	ctx := context.Background()
 	t.Run("success", func(t *testing.T) {
-		t.Parallel()
 		stateID := uuid.New()
 		// Подготовка тестовых данных
 		testState := &storage.State{
@@ -80,7 +79,6 @@ func TestStorage_RunTransaction(t *testing.T) {
 	})
 
 	t.Run("rollback", func(t *testing.T) {
-		t.Parallel()
 		stateID := uuid.New()
 		state := &storage.State{
 			ID:             stateID,
