@@ -39,9 +39,15 @@ func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID uint64, seas
 		return "", fmt.Errorf("season not found: %w", ucerr.NotFound)
 	}
 	// Формируем каталог
+	// Название сезона
+	/*
+		Series Name/
+		  Season 01/
+		    S01E01 - Episode Name.mp4
+	*/
 	tvShowName := fmt.Sprintf("%s (%d)", tvShowInfo.Result.Name, tvShowInfo.Result.FirstAirDate.Year())
-	seasonName := fmt.Sprintf("#%d %s", seasonNumber, season.Name)
-	result := filepath.Join(s.config.BasePath, s.config.TvShowMediaSavePath, tvShowName, seasonName)
+	seasonName := fmt.Sprintf("S03%d %s", seasonNumber, season.Name)
+	result := filepath.Join(s.config.BasePath, s.config.TvShowMediaSaveTvShowsPath, tvShowName, seasonName)
 
 	return result, nil
 }

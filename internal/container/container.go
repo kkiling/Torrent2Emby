@@ -83,10 +83,10 @@ func NewContainer() (*Container, error) {
 	delivery := contentdelivery.NewService(
 		// TODO: вынести в конфиг
 		contentdelivery.Config{
-			BasePath:              "/nfs",
-			TVShowTorrentSavePath: "/downloads",
-			TvShowMediaSavePath:   "/movies/tvshow",
-			UserGroup:             "nas",
+			BasePath:                   "/nfs",
+			TVShowTorrentSavePath:      "/downloads",
+			TvShowMediaSaveTvShowsPath: "/tvshows",
+			UserGroup:                  "nas",
 		},
 		tvShowLibrary,
 		rutrackerApi,

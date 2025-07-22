@@ -33,7 +33,10 @@ type MagnetInfo struct {
 type ContentInfo struct {
 	// Наименования
 	Name string
-	// Постер и тд
+	// Номер сезона
+	SeasonNumber int
+	// Номер эпизода
+	EpisodeNumber int
 }
 
 type FileInfo struct {

@@ -20,9 +20,12 @@ type MergeVideoFilesParams struct {
 }
 
 func mapMkvMergeParams(content ContentMatches, contentPath string) mkvmerge.MergeParams {
+	episodeName := fmt.Sprintf("S03%dE03%d %s", content.ContentInfo.SeasonNumber, content.ContentInfo.EpisodeNumber, content.ContentInfo.Name)
+
 	mergeParams := mkvmerge.MergeParams{
-		VideoInputFile:  content.Video.File.FullPath,
-		VideoOutputFile: filepath.Join(contentPath, content.ContentInfo.Name) + content.Video.File.Extension,
+		VideoInputFile: content.Video.File.FullPath,
+		// Формирование исходного имени файла серии
+		VideoOutputFile: filepath.Join(contentPath, episodeName) + content.Video.File.Extension,
 		AudioTracks: lo.Map(content.AudioFiles, func(item Track, index int) mkvmerge.Track {
 			return mkvmerge.Track{
 				Path:     item.File.FullPath,

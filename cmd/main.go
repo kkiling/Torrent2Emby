@@ -61,13 +61,18 @@ func main() {
 	//newState, eerr, err := deliveryStateMachine.Complete(ctx, state.ID, deliverystate.ChoseFileMatchesOptions{
 	//	Approve: true,
 	//})
-	newState, eerr, err := deliveryStateMachine.Complete(ctx, state.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if eerr != nil {
-		log.Fatal(eerr)
-	}
-	fmt.Println(newState)
 
+	for {
+		newState, eerr, err := deliveryStateMachine.Complete(ctx, state.ID)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if eerr != nil {
+			log.Fatal(eerr)
+		}
+		fmt.Println(newState.Status)
+		if newState.Step != deliverystate.MergeVideoFiles {
+			break
+		}
+	}
 }

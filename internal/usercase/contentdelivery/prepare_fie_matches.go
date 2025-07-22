@@ -40,6 +40,7 @@ func mapTrack(tracks []tvshow.PrepareTrack) []Track {
 
 func mapContentMatchesFromPrepareTVShowSeason(
 	prepareResult *tvshow.PrepareTVShowSeason,
+	seasonNumber int,
 	tvEpisodes []tvshowlibrary.Episode,
 ) ([]ContentMatches, error) {
 	result := make([]ContentMatches, 0, len(prepareResult.Episodes))
@@ -52,7 +53,9 @@ func mapContentMatchesFromPrepareTVShowSeason(
 		}
 		content := ContentMatches{
 			ContentInfo: ContentInfo{
-				Name: fmt.Sprintf("%d %s", tvEpisode.EpisodeNumber, tvEpisode.Name),
+				Name:          tvEpisode.Name,
+				SeasonNumber:  seasonNumber,
+				EpisodeNumber: tvEpisode.EpisodeNumber,
 			},
 			Video: VideoFile{
 				File: mapFile(prepareEpisode.VideoFile.File),
@@ -176,7 +179,7 @@ func (s *Service) PrepareFileMatches(ctx context.Context, params PreparingFileMa
 		return nil, fmt.Errorf("prepareTVShow.PrepareTvShowSeason: %w", err)
 	}
 
-	result, err := mapContentMatchesFromPrepareTVShowSeason(prepareResult, episodes.Items)
+	result, err := mapContentMatchesFromPrepareTVShowSeason(prepareResult, params.MediaID.TVShow.SeasonNumber, episodes.Items)
 	if err != nil {
 		return nil, fmt.Errorf("mapContentMatchesFromPrepareTVShowSeason: %w", err)
 	}
