@@ -215,7 +215,6 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 			DeterminingNeedConvertFiles: {
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					// Определение необходимости конвертации файлов
-
 					data := stepContext.State.Data
 					needToMerge := false
 					for _, m := range data.ContentMatches {
@@ -246,7 +245,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 					//  Конвертирование файлов - полученные файлы сразу сохраняются в каталог медиасервера
 					result, err := r.contentDelivery.MergeVideoFiles(ctx, contentdelivery.MergeVideoFilesParams{
 						Hash:           data.MagnetInfo.Hash,
-						ContentPath:    data.CatalogsInfo.CatalogPath,
+						ContentPath:    data.CatalogsInfo.TvShowCatalogPath,
 						ContentMatches: data.ContentMatches,
 						ProcessedFiles: func() int { // Стартуем с последнего
 							if data.MergeVideoStatus != nil {

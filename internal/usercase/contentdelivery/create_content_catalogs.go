@@ -115,5 +115,5 @@ func (s *Service) CreateContentCatalogs(ctx context.Context, params CreateConten
 		return CatalogsInfo{}, fmt.Errorf("createDirectories: %w", err)
 	}
 
-	return CatalogsInfo{CatalogPath: catalog}, nil
+	return CatalogsInfo{TvShowCatalogPath: catalog}, nil
 }

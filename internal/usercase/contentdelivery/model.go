@@ -85,5 +85,5 @@ type MergeVideoStatus struct {
 }
 
 type CatalogsInfo struct {
-	CatalogPath string
+	TvShowCatalogPath string
 }
