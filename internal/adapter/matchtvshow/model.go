@@ -1,8 +1,12 @@
-package tvshow
+package matchtvshow
 
-type Episode struct {
+type EpisodeInfo struct {
+	// Номер сезона
+	SeasonNumber int
 	// Номер эпизода в сезоне
 	EpisodeNumber int
+	// Название эпизода, пока не нужно, но может будет нужно для метча в будущем
+	EpisodeName string
 }
 
 type TorrentFile struct {
@@ -27,10 +31,10 @@ type PrepareVideo struct {
 }
 
 type PrepareEpisode struct {
-	EpisodeNumber int
-	VideoFile     *PrepareVideo
-	AudioFiles    []PrepareTrack
-	Subtitles     []PrepareTrack
+	Episode    EpisodeInfo
+	VideoFile  *PrepareVideo
+	AudioFiles []PrepareTrack
+	Subtitles  []PrepareTrack
 }
 
 type PrepareTVShowSeason struct {

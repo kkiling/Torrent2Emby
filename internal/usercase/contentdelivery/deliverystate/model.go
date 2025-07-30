@@ -38,12 +38,19 @@ const (
 	DeterminingNeedConvertFiles StepDelivery = "determining_need_convert_files"
 	// --- Ветвь если необходимо добавление аудио дорожек/субтитров
 
-	// MergeVideoFiles Конвертирование файлов - полученные файлы сразу сохраняются в каталог медиасервера
-	MergeVideoFiles StepDelivery = "merge_video_files"
+	// StartMergeVideoFiles Запуск конвертирование файлов - полученные файлы сразу сохраняются в каталог медиасервера
+	StartMergeVideoFiles StepDelivery = "merge_video_files"
+	// WaitingMergeVideoFiles ожидание завершения конвертации файлов
+	WaitingMergeVideoFiles StepDelivery = "waiting_merge_video_files"
+
 	// -- Ветвь если не нужно изменять исходные файлы
 
 	// CopyVideoFiles Копирование файлов из раздачи в каталог медиасервера (точнее создание симлинков)
 	CopyVideoFiles StepDelivery = "copy_video_files"
+
+	// SetVideoFileGroup установка группы файлам
+	SetVideoFileGroup StepDelivery = "set_video_file_group"
+
 	// SetMediaMetaData установка методаных серий сезона сериала / фильма в медиасервере
 	SetMediaMetaData StepDelivery = "set_media_meta_data"
 	// SendDeliveryNotification Отправка уведомления в telegramm о успешной доставки видеофайлов до медиа сервера
@@ -64,6 +71,7 @@ type ContentDeliveryData struct {
 	ContentMatches        []contentdelivery.ContentMatches
 	TorrentDownloadStatus *contentdelivery.TorrentDownloadStatus
 	CatalogsInfo          *contentdelivery.CatalogsInfo
+	MergeVideoFiles       []contentdelivery.MergeVideoFile
 	MergeVideoStatus      *contentdelivery.MergeVideoStatus
 }
 

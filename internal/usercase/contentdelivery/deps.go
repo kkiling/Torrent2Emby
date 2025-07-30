@@ -2,9 +2,12 @@ package contentdelivery
 
 import (
 	"context"
+	"github.com/kkiling/torrent2emby/internal/adapter/emby"
 
+	"github.com/google/uuid"
+
+	tvshow2 "github.com/kkiling/torrent2emby/internal/adapter/matchtvshow"
 	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
-	"github.com/kkiling/torrent2emby/internal/adapter/prepare/tvshow"
 	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
 	"github.com/kkiling/torrent2emby/internal/adapter/rutracker"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
@@ -28,10 +31,15 @@ type TorrentClient interface {
 }
 
 type PrepareTVShow interface {
-	PrepareTvShowSeason(params *tvshow.PrepareTvShowPrams) (*tvshow.PrepareTVShowSeason, error)
+	PrepareTvShowSeason(params *tvshow2.PrepareTvShowPrams) (*tvshow2.PrepareTVShowSeason, error)
 }
 
-type MkvMerge interface {
-	Merge(params mkvmerge.MergeParams) error
-	GetMediaInfo(filePath string) (*mkvmerge.MediaInfo, error)
+type MkvMergePipeline interface {
+	AddToMerge(ctx context.Context, idempotencyKey string, params mkvmerge.MergeParams) (*mkvmerge.MergeResult, error)
+	GetMergeResult(ctx context.Context, id uuid.UUID) (*mkvmerge.MergeResult, error)
+}
+
+type EmbyApi interface {
+	RemoteSearchApply(embyID, theMovieDBID uint64) error
+	GetCatalogInfo(path string) (*emby.CatalogInfo, error)
 }

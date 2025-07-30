@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	mkvmerge "github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
+	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge/storage/sqlite"
 	"github.com/kkiling/torrent2emby/internal/log"
-	"github.com/kkiling/torrent2emby/internal/usercase/mkvmergepipeline"
-	sqlite "github.com/kkiling/torrent2emby/internal/usercase/mkvmergepipeline/storage/sqlite"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 	}
 
 	mkv := mkvmerge.NewService(logger)
-	service := mkvmergepipeline.NewService(mkvmergepipeline.Config{}, mkv, store, logger)
+	service := mkvmerge.NewService(mkvmerge.Config{}, mkv, store, logger)
 
 	idempotencyKey := "test-1"
 	result, err := service.AddToMerge(ctx, idempotencyKey, mkvmerge.MergeParams{
@@ -37,7 +37,7 @@ func main() {
 		},
 	})
 	if err != nil {
-		if errors.Is(err, mkvmergepipeline.ErrAlreadyExists) {
+		if errors.Is(err, mkvmerge.ErrAlreadyExists) {
 			fmt.Println("already exist")
 		} else {
 			logger.Fatal(err)

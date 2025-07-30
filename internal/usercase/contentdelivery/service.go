@@ -17,8 +17,9 @@ type Service struct {
 	tvShowLibrary TVShowLibrary
 	torrentSite   TorrentSite
 	torrentClient TorrentClient
+	embyApi       EmbyApi
 	prepareTVShow PrepareTVShow
-	mkvMerge      MkvMerge
+	mkvMerge      MkvMergePipeline
 }
 
 func NewService(
@@ -26,14 +27,16 @@ func NewService(
 	tvShowLibrary TVShowLibrary,
 	torrentSite TorrentSite,
 	torrentClient TorrentClient,
+	embyApi EmbyApi,
 	prepareTVShow PrepareTVShow,
-	mkvMerge MkvMerge,
+	mkvMerge MkvMergePipeline,
 ) *Service {
 	return &Service{
 		config:        config,
 		tvShowLibrary: tvShowLibrary,
 		torrentSite:   torrentSite,
 		torrentClient: torrentClient,
+		embyApi:       embyApi,
 		prepareTVShow: prepareTVShow,
 		mkvMerge:      mkvMerge,
 	}

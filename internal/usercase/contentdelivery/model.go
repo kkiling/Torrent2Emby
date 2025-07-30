@@ -30,11 +30,11 @@ type MagnetInfo struct {
 
 // --- --- --- --- ---
 
-type ContentInfo struct {
-	// Наименования
-	Name string
+type EpisodeInfo struct {
 	// Номер сезона
 	SeasonNumber int
+	// Наименования эпизода
+	EpisodeName string
 	// Номер эпизода
 	EpisodeNumber int
 }
@@ -62,10 +62,10 @@ type Track struct {
 
 // ContentMatches сопоставление видео файла с торрент файлом
 type ContentMatches struct {
-	ContentInfo ContentInfo
-	Video       VideoFile
-	AudioFiles  []Track
-	Subtitles   []Track
+	Episode    EpisodeInfo
+	Video      VideoFile
+	AudioFiles []Track
+	Subtitles  []Track
 }
 
 // ---
@@ -75,15 +75,9 @@ type TorrentDownloadStatus struct {
 	IsComplete bool
 }
 
-type MergeVideoStatus struct {
-	// Сколько обработано файлов
-	ProcessedFiles int
-	// Сколько файлов всего нужно обработать
-	AllFiles int
-	// Конвертация завершена
-	IsComplete bool
-}
-
 type CatalogsInfo struct {
-	TvShowCatalogPath string
+	// Путь до каталога сериала
+	TvShowPath string
+	// Путь до каталога сезона
+	TvShowSeasonPath string
 }

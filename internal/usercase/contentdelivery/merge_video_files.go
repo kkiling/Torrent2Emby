@@ -5,26 +5,36 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 
 	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
 )
 
-type MergeVideoFilesParams struct {
-	// Hash хеш торрента
-	Hash           string
+type MergeVideoParams struct {
 	ContentPath    string
+	IdempotencyKey string
 	ContentMatches []ContentMatches
-	// Курсор сколько обработано файлов, что бы вернуться к последнему
-	ProcessedFiles int
+}
+
+type MergeVideoFile struct {
+	MergeID         uuid.UUID
+	VideoInputFile  string
+	VideoOutputFile string
+}
+
+type MergeVideoStatus struct {
+	Progress   float64 // 0 до 1
+	IsComplete bool
+	Errors     []string
 }
 
 func mapMkvMergeParams(content ContentMatches, contentPath string) mkvmerge.MergeParams {
-	episodeName := fmt.Sprintf("S03%dE03%d %s", content.ContentInfo.SeasonNumber, content.ContentInfo.EpisodeNumber, content.ContentInfo.Name)
+	// Формируем выходное наименование эпизода
+	episodeName := fmt.Sprintf("S%02dE%02d %s", content.Episode.SeasonNumber, content.Episode.EpisodeNumber, content.Episode.EpisodeName)
 
 	mergeParams := mkvmerge.MergeParams{
-		VideoInputFile: content.Video.File.FullPath,
-		// Формирование исходного имени файла серии
+		VideoInputFile:  content.Video.File.FullPath,
 		VideoOutputFile: filepath.Join(contentPath, episodeName) + content.Video.File.Extension,
 		AudioTracks: lo.Map(content.AudioFiles, func(item Track, index int) mkvmerge.Track {
 			return mkvmerge.Track{
@@ -46,43 +56,45 @@ func mapMkvMergeParams(content ContentMatches, contentPath string) mkvmerge.Merg
 	return mergeParams
 }
 
-// MergeVideoFiles запуск обработки видеофайлов
-func (s *Service) MergeVideoFiles(_ context.Context, params MergeVideoFilesParams) (MergeVideoStatus, error) {
-	for index, content := range params.ContentMatches {
-		if index < params.ProcessedFiles {
-			continue
-		}
+// StartMergeVideo запуск обработки видеофайлов
+func (s *Service) StartMergeVideo(ctx context.Context, params MergeVideoParams) ([]MergeVideoFile, error) {
+	result := make([]MergeVideoFile, 0, len(params.ContentMatches))
+	for _, content := range params.ContentMatches {
 		mergeParams := mapMkvMergeParams(content, params.ContentPath)
-		err := s.mkvMerge.Merge(mergeParams)
+		idempotencyKey := fmt.Sprintf("%s-episode_%d", params.IdempotencyKey, content.Episode.EpisodeNumber)
+		mergeResult, err := s.mkvMerge.AddToMerge(ctx, idempotencyKey, mergeParams)
 		if err != nil {
-			return MergeVideoStatus{
-					ProcessedFiles: params.ProcessedFiles, // Возвращаем старое значение
-					AllFiles:       len(params.ContentMatches),
-					IsComplete:     false,
-				},
-				fmt.Errorf("mkvMerge.Merge: %w", err)
+			return nil, fmt.Errorf("mkvMerge.Merge: %w", err)
 		}
+		result = append(result, MergeVideoFile{
+			MergeID:         mergeResult.ID,
+			VideoInputFile:  mergeResult.Params.VideoInputFile,
+			VideoOutputFile: mergeResult.Params.VideoOutputFile,
+		})
+		break // TODO: удалить
+	}
+	return result, nil
+}
 
-		info, err := s.mkvMerge.GetMediaInfo(mergeParams.VideoOutputFile)
+func (s *Service) GetMergeVideoStatus(ctx context.Context, mergeIDs []uuid.UUID) (*MergeVideoStatus, error) {
+	var status MergeVideoStatus
+	completedCounter := 0
+	for _, id := range mergeIDs {
+		result, err := s.mkvMerge.GetMergeResult(ctx, id)
 		if err != nil {
-			return MergeVideoStatus{
-					ProcessedFiles: params.ProcessedFiles, // Возвращаем старое значение
-					AllFiles:       len(params.ContentMatches),
-					IsComplete:     false,
-				},
-				fmt.Errorf("mkvMerge.GetMediaInfo: %w", err)
+			return nil, fmt.Errorf("mkvMerge.GetMergeResult: %w", err)
 		}
-
-		// TODO: Валидация мержинга файлов
-		fmt.Println(info)
-
-		// Выходим после каждого обработанного файла, что бы сохранить состояние
-		return MergeVideoStatus{
-			ProcessedFiles: index + 1,
-			AllFiles:       len(params.ContentMatches),
-			IsComplete:     index == len(params.ContentMatches)-1,
-		}, nil
+		if result.Status == mkvmerge.ErrorStatus && result.Error != nil {
+			status.Errors = append(status.Errors, *result.Error)
+			completedCounter++
+		}
+		if result.Status == mkvmerge.CompleteStatus {
+			completedCounter++
+		}
 	}
 
-	return MergeVideoStatus{}, fmt.Errorf("unknow merge statemachine")
+	status.Progress = float64(completedCounter) / float64(len(mergeIDs))
+	status.IsComplete = completedCounter == len(mergeIDs)
+
+	return &status, nil
 }

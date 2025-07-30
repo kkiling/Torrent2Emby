@@ -6,12 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/google/uuid"
-	"github.com/kkiling/torrent2emby/internal/usercase/mkvmergepipeline"
-	"github.com/kkiling/torrent2emby/internal/usercase/mkvmergepipeline/storage"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
+	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge/storage"
 )
 
-func (s *Storage) Create(ctx context.Context, create *mkvmergepipeline.CreateMergeResult) error {
+func (s *Storage) Create(ctx context.Context, create *mkvmerge.CreateMergeResult) error {
 	paramsJSON, err := json.Marshal(create.Params)
 	if err != nil {
 		return fmt.Errorf("failed to marshal params: %w", err)
@@ -29,7 +31,7 @@ func (s *Storage) Create(ctx context.Context, create *mkvmergepipeline.CreateMer
 	return nil
 }
 
-func (s *Storage) Update(ctx context.Context, id uuid.UUID, update *mkvmergepipeline.UpdateMergeResult) error {
+func (s *Storage) Update(ctx context.Context, id uuid.UUID, update *mkvmerge.UpdateMergeResult) error {
 	query := "UPDATE mkv_merge SET status = ?"
 	args := []interface{}{update.Status}
 
@@ -54,8 +56,8 @@ func (s *Storage) Update(ctx context.Context, id uuid.UUID, update *mkvmergepipe
 	return nil
 }
 
-func (s *Storage) getMergeResult(row *sql.Row) (*mkvmergepipeline.MergeResult, error) {
-	var result mkvmergepipeline.MergeResult
+func (s *Storage) getMergeResult(row *sql.Row) (*mkvmerge.MergeResult, error) {
+	var result mkvmerge.MergeResult
 	var paramsJSON string
 	var errorStr sql.NullString
 	var completedAt sql.NullTime
@@ -92,7 +94,7 @@ func (s *Storage) getMergeResult(row *sql.Row) (*mkvmergepipeline.MergeResult, e
 	return &result, nil
 }
 
-func (s *Storage) GetByID(ctx context.Context, id uuid.UUID) (*mkvmergepipeline.MergeResult, error) {
+func (s *Storage) GetByID(ctx context.Context, id uuid.UUID) (*mkvmerge.MergeResult, error) {
 	row := s.next(ctx).QueryRowContext(ctx, `
         SELECT id, params, status, error, created_at, completed_at
         FROM mkv_merge WHERE id = ?
@@ -100,7 +102,7 @@ func (s *Storage) GetByID(ctx context.Context, id uuid.UUID) (*mkvmergepipeline.
 	return s.getMergeResult(row)
 }
 
-func (s *Storage) GetByIdempotencyKey(ctx context.Context, idempotencyKey string) (*mkvmergepipeline.MergeResult, error) {
+func (s *Storage) GetByIdempotencyKey(ctx context.Context, idempotencyKey string) (*mkvmerge.MergeResult, error) {
 	row := s.next(ctx).QueryRowContext(ctx, `
         SELECT id, params, status, error, created_at, completed_at
         FROM mkv_merge WHERE idempotency_key = ?
@@ -108,7 +110,7 @@ func (s *Storage) GetByIdempotencyKey(ctx context.Context, idempotencyKey string
 	return s.getMergeResult(row)
 }
 
-func (s *Storage) GetOldestUncompleted(ctx context.Context) (*mkvmergepipeline.MergeResult, error) {
+func (s *Storage) GetOldestUncompleted(ctx context.Context) (*mkvmerge.MergeResult, error) {
 	row := s.next(ctx).QueryRowContext(ctx, `
         SELECT id, params, status, error, created_at, completed_at
         FROM mkv_merge
@@ -120,7 +122,7 @@ func (s *Storage) GetOldestUncompleted(ctx context.Context) (*mkvmergepipeline.M
 	return s.getMergeResult(row)
 }
 
-func (s *Storage) AddMergeLogs(ctx context.Context, id uuid.UUID, log mkvmergepipeline.MergeLogs) error {
+func (s *Storage) AddMergeLogs(ctx context.Context, id uuid.UUID, log mkvmerge.MergeLogs) error {
 	_, err := s.next(ctx).ExecContext(ctx, `
         INSERT INTO mkv_merge_logs (merge_id, type, content, created_at)
         VALUES (?, ?, ?, ?)
@@ -149,9 +151,9 @@ func (s *Storage) DeleteLogs(ctx context.Context, mergeID uuid.UUID) error {
 	query := "UPDATE mkv_merge SET status = ?"
 	args := []interface{}{update.Status}
 
-	if update.Error != nil {
+	if update.ErrorStatus != nil {
 		query += ", error = ?"
-		args = append(args, *update.Error)
+		args = append(args, *update.ErrorStatus)
 	}
 
 	if update.Completed != nil {

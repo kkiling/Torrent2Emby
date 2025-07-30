@@ -16,6 +16,8 @@ const (
 	QBittorrentPassword  = "QBITTORRENT_PASSWORD"
 	QBittorrentCookieDir = "QBITTORRENT_COOKIE_DIR"
 	QBittorrentApiUrl    = "QBITTORRENT_API_URL"
+	EmbyApiUrl           = "EMBY_API_URL"
+	EmbyApiKey           = "EMBY_API_KEY"
 	SqliteDsn            = "SQLITE_DSN"
 )
 
@@ -39,6 +41,12 @@ type QBittorrentConfig struct {
 	ApiUrl    string
 }
 
+// EmbyConfig конфигурация для Emby Api
+type EmbyConfig struct {
+	ApiKey string
+	ApiUrl string
+}
+
 type StorageConfig struct {
 	SqliteDsn string
 }
@@ -48,6 +56,7 @@ type EnvConfig struct {
 	MovieDb     MovieDbConfig
 	Rutracker   RutrackerConfig
 	QBittorrent QBittorrentConfig
+	Emby        EmbyConfig
 	Storage     StorageConfig
 }
 
@@ -82,6 +91,23 @@ func loadRutrackerConfig() (*RutrackerConfig, error) {
 		Username:  username,
 		Password:  password,
 		CookieDir: cookieDir,
+	}, nil
+}
+
+func loadEmbyConfig() (*EmbyConfig, error) {
+	apiKey, err := getEnvString(EmbyApiKey)
+	if err != nil {
+		return nil, err
+	}
+
+	url, err := getEnvString(EmbyApiUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return &EmbyConfig{
+		ApiKey: apiKey,
+		ApiUrl: url,
 	}, nil
 }
 
@@ -147,6 +173,11 @@ func NewEnvConfig(logger log.Logger) (*EnvConfig, error) {
 		return nil, err
 	}
 
+	embyConfig, err := loadEmbyConfig()
+	if err != nil {
+		return nil, err
+	}
+
 	storageConfig, err := loadStorageConfig()
 	if err != nil {
 		return nil, err
@@ -156,6 +187,7 @@ func NewEnvConfig(logger log.Logger) (*EnvConfig, error) {
 		MovieDb:     *movieDbConfig,
 		Rutracker:   *rutrackerConfig,
 		QBittorrent: *qBittorrentConfig,
+		Emby:        *embyConfig,
 		Storage:     *storageConfig,
 	}, nil
 }

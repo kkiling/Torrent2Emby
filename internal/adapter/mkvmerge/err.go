@@ -1,4 +1,4 @@
-package mkvmergepipeline
+package mkvmerge
 
 import "errors"
 

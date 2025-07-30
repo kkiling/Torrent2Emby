@@ -1,4 +1,4 @@
-package tvshow
+package matchtvshow
 
 import (
 	"fmt"
@@ -168,7 +168,7 @@ func (s *Service) PrepareTvShowSeason(params *PrepareTvShowPrams) (*PrepareTVSho
 
 	for index, episode := range params.Episodes {
 		prepareEpisode := PrepareEpisode{
-			EpisodeNumber: episode.EpisodeNumber,
+			Episode: episode,
 		}
 
 		// Пока сопостовляем видео файл с серией просто по порядку

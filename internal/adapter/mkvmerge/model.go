@@ -1,29 +1,29 @@
-package mkvmergepipeline
+package mkvmerge
 
 import (
-	"github.com/google/uuid"
-	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Status int
 
 const (
-	Pending  Status = iota
-	Running  Status = iota
-	Complete Status = iota
-	Error    Status = iota
+	PendingStatus  Status = iota
+	RunningStatus  Status = iota
+	CompleteStatus Status = iota
+	ErrorStatus    Status = iota
 )
 
 type MergeLogs struct {
 	CreatedAt time.Time
-	Type      mkvmerge.MessageType
+	Type      MessageType
 	Content   string
 }
 
 type MergeResult struct {
 	ID          uuid.UUID
-	Params      mkvmerge.MergeParams
+	Params      MergeParams
 	Status      Status
 	Error       *string
 	CreatedAt   time.Time
@@ -33,7 +33,7 @@ type MergeResult struct {
 type CreateMergeResult struct {
 	ID             uuid.UUID
 	IdempotencyKey string
-	Params         mkvmerge.MergeParams
+	Params         MergeParams
 	Status         Status
 	CreatedAt      time.Time
 }
@@ -42,4 +42,16 @@ type UpdateMergeResult struct {
 	Status    Status
 	Error     *string
 	Completed *time.Time
+}
+
+type MessageType int
+
+const (
+	InfoMessageType MessageType = iota
+	ErrorMessageType
+)
+
+type OutputMessage struct {
+	Type    MessageType
+	Content string
 }

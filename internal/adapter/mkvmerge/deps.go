@@ -1,13 +1,13 @@
-package mkvmergepipeline
+package mkvmerge
 
 import (
 	"context"
+
 	"github.com/google/uuid"
-	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
 )
 
 type MkvMerge interface {
-	Merge(ctx context.Context, params mkvmerge.MergeParams, outputChan chan<- mkvmerge.OutputMessage) error
+	Merge(ctx context.Context, params MergeParams, outputChan chan<- OutputMessage) error
 }
 
 type Storage interface {

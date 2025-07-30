@@ -4,23 +4,31 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/kkiling/torrent2emby/internal/container"
 	"github.com/kkiling/torrent2emby/internal/statemachine"
 	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery"
 	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery/deliverystate"
-	"log"
-
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 )
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	cn, err := container.NewContainer()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	go func() {
+		err = cn.MkvMergePipeline().StartMergePipeline(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 	tvShowLibrary := cn.GetTvShowLibrary()
 	deliveryStateMachine := cn.DeliveryStateMachine()
 
@@ -52,8 +60,6 @@ func main() {
 		}
 	}
 
-	fmt.Println(state)
-
 	//newState, eerr, err := deliveryStateMachine.Complete(ctx, state.ID, deliverystate.ChoseTorrentOptions{
 	//	//NewSearchQuery: lo.ToPtr("Сага о Винланде 2023"),
 	//	Href: lo.ToPtr("https://rutracker.org/forum/viewtopic.php?t=6313846"),
@@ -62,17 +68,16 @@ func main() {
 	//	Approve: true,
 	//})
 
-	for {
-		newState, eerr, err := deliveryStateMachine.Complete(ctx, state.ID)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if eerr != nil {
-			log.Fatal(eerr)
-		}
-		fmt.Println(newState.Status)
-		if newState.Step != deliverystate.MergeVideoFiles {
-			break
-		}
+	newState, eerr, err := deliveryStateMachine.Complete(ctx, state.ID)
+
+	if err != nil {
+		log.Fatal(err)
 	}
+	if eerr != nil {
+		log.Fatal(eerr)
+	}
+
+	fmt.Println(newState.Status)
+
+	time.Sleep(1 * time.Hour)
 }

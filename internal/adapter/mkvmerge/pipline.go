@@ -1,39 +1,35 @@
-package mkvmergepipeline
+package mkvmerge
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
-	"github.com/kkiling/torrent2emby/internal/log"
-	"github.com/kkiling/torrent2emby/internal/usercase/mkvmergepipeline/storage"
-	"github.com/samber/lo"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/samber/lo"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge/storage"
+	"github.com/kkiling/torrent2emby/internal/log"
 )
 
 const retryDelay = time.Second * 5
 
-type Config struct {
-}
-
-type Service struct {
-	cfg     Config
+type Pipeline struct {
 	logger  log.Logger
 	merger  MkvMerge
 	storage Storage
 }
 
-func NewService(cfg Config, merger MkvMerge, storage Storage, logger log.Logger) *Service {
-	return &Service{
-		cfg:     cfg,
+func NewPipeline(merger MkvMerge, storage Storage, logger log.Logger) *Pipeline {
+	return &Pipeline{
 		logger:  logger.Named("mkv_merge_convener"),
 		merger:  merger,
 		storage: storage,
 	}
 }
 
-func (s *Service) AddToMerge(ctx context.Context, idempotencyKey string, params mkvmerge.MergeParams) (*MergeResult, error) {
+func (s *Pipeline) AddToMerge(ctx context.Context, idempotencyKey string, params MergeParams) (*MergeResult, error) {
 	if find, err := s.storage.GetByIdempotencyKey(ctx, idempotencyKey); err != nil {
 		switch {
 		case errors.Is(err, storage.ErrNotFound):
@@ -47,7 +43,7 @@ func (s *Service) AddToMerge(ctx context.Context, idempotencyKey string, params 
 	result := MergeResult{
 		ID:        uuid.New(),
 		Params:    params,
-		Status:    Pending,
+		Status:    PendingStatus,
 		CreatedAt: time.Now(),
 	}
 
@@ -64,7 +60,7 @@ func (s *Service) AddToMerge(ctx context.Context, idempotencyKey string, params 
 	return &result, nil
 }
 
-func (s *Service) GetMergeResult(ctx context.Context, id uuid.UUID) (*MergeResult, error) {
+func (s *Pipeline) GetMergeResult(ctx context.Context, id uuid.UUID) (*MergeResult, error) {
 	result, err := s.storage.GetByID(ctx, id)
 	if err != nil {
 		switch {
@@ -77,7 +73,7 @@ func (s *Service) GetMergeResult(ctx context.Context, id uuid.UUID) (*MergeResul
 	return result, nil
 }
 
-func (s *Service) startTimer(ctx context.Context) error {
+func (s *Pipeline) startTimer(ctx context.Context) error {
 	// Используем таймер с select для корректной обработки отмены контекста
 	timer := time.NewTimer(retryDelay)
 	select {
@@ -89,15 +85,21 @@ func (s *Service) startTimer(ctx context.Context) error {
 	}
 }
 
-func (s *Service) runMerge(ctx context.Context, id uuid.UUID, params mkvmerge.MergeParams) error {
+func (s *Pipeline) runMerge(ctx context.Context, id uuid.UUID, params MergeParams) error {
 	mergeCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	var outputChan = make(chan mkvmerge.OutputMessage)
+	var outputChan = make(chan OutputMessage)
 	// Закрываем канал при завершении функции
 	defer close(outputChan)
 
 	go func() {
 		for msg := range outputChan {
+			if msg.Type == ErrorMessageType {
+				s.logger.Errorf("mvk merge logs: %s", msg.Content)
+			} else {
+				s.logger.Debugf("mvk merge logs: %s", msg.Content)
+			}
+
 			logErr := s.storage.AddMergeLogs(ctx, id, MergeLogs{
 				CreatedAt: time.Now(),
 				Type:      msg.Type,
@@ -115,7 +117,7 @@ func (s *Service) runMerge(ctx context.Context, id uuid.UUID, params mkvmerge.Me
 	return nil
 }
 
-func (s *Service) StartMergePipeline(ctx context.Context) error {
+func (s *Pipeline) StartMergePipeline(ctx context.Context) error {
 	for ctx.Err() == nil {
 		result, err := s.storage.GetOldestUncompleted(ctx)
 		if err != nil {
@@ -131,13 +133,15 @@ func (s *Service) StartMergePipeline(ctx context.Context) error {
 			}
 		}
 
+		s.logger.Debugf("start mvk merge: %s", result.Params.VideoInputFile)
+
 		// TODO: транзакция
 		err = s.storage.DeleteLogs(ctx, result.ID)
 		if err != nil {
 			return fmt.Errorf("storage.DeleteLogs: %w", err)
 		}
 		err = s.storage.Update(ctx, result.ID, &UpdateMergeResult{
-			Status: Running,
+			Status: RunningStatus,
 		})
 		if err != nil {
 			return fmt.Errorf("storage.Update: %w", err)
@@ -145,8 +149,10 @@ func (s *Service) StartMergePipeline(ctx context.Context) error {
 
 		err = s.runMerge(ctx, result.ID, result.Params)
 		if err != nil {
+			s.logger.Errorf("error mvk merge: %s", result.Params.VideoInputFile)
+
 			uerr := s.storage.Update(ctx, result.ID, &UpdateMergeResult{
-				Status:    Error,
+				Status:    ErrorStatus,
 				Completed: lo.ToPtr(time.Now()),
 				Error:     lo.ToPtr(err.Error()),
 			})
@@ -156,15 +162,17 @@ func (s *Service) StartMergePipeline(ctx context.Context) error {
 			return fmt.Errorf("runMerge: %w", err)
 		}
 
-		// TODO: научится определять ошибки обработки
+		s.logger.Debugf("complete mvk merge: %s", result.Params.VideoInputFile)
+
 		err = s.storage.Update(ctx, result.ID, &UpdateMergeResult{
-			Status:    Complete,
+			Status:    CompleteStatus,
 			Completed: lo.ToPtr(time.Now()),
 		})
 
 		if err != nil {
 			return fmt.Errorf("storage.Update: %w", err)
 		}
+
 	}
 
 	return ctx.Err()

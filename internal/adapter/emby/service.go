@@ -1,4 +1,4 @@
-package themoviedb
+package emby
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/go-playground/validator/v10"
+
 	"github.com/kkiling/torrent2emby/internal/log"
 )
 

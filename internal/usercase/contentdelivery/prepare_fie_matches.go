@@ -8,7 +8,7 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/kkiling/torrent2emby/internal/adapter/prepare/tvshow"
+	matchtvshow "github.com/kkiling/torrent2emby/internal/adapter/matchtvshow"
 	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
@@ -19,7 +19,7 @@ type PreparingFileMatchesParams struct {
 	MediaID MediaID
 }
 
-func mapFile(file tvshow.TorrentFile) FileInfo {
+func mapFile(file matchtvshow.TorrentFile) FileInfo {
 	return FileInfo{
 		RelativePath: file.RelativePath,
 		FullPath:     file.FullPath,
@@ -28,8 +28,8 @@ func mapFile(file tvshow.TorrentFile) FileInfo {
 	}
 }
 
-func mapTrack(tracks []tvshow.PrepareTrack) []Track {
-	return lo.Map(tracks, func(item tvshow.PrepareTrack, index int) Track {
+func mapTrack(tracks []matchtvshow.PrepareTrack) []Track {
+	return lo.Map(tracks, func(item matchtvshow.PrepareTrack, index int) Track {
 		return Track{
 			Name:     item.Name,
 			Language: item.Language,
@@ -39,23 +39,15 @@ func mapTrack(tracks []tvshow.PrepareTrack) []Track {
 }
 
 func mapContentMatchesFromPrepareTVShowSeason(
-	prepareResult *tvshow.PrepareTVShowSeason,
-	seasonNumber int,
-	tvEpisodes []tvshowlibrary.Episode,
+	prepareResult *matchtvshow.PrepareTVShowSeason,
 ) ([]ContentMatches, error) {
 	result := make([]ContentMatches, 0, len(prepareResult.Episodes))
 	for _, prepareEpisode := range prepareResult.Episodes {
-		tvEpisode, find := lo.Find(tvEpisodes, func(item tvshowlibrary.Episode) bool {
-			return item.EpisodeNumber == prepareEpisode.EpisodeNumber
-		})
-		if !find {
-			return nil, fmt.Errorf("episode not found")
-		}
 		content := ContentMatches{
-			ContentInfo: ContentInfo{
-				Name:          tvEpisode.Name,
-				SeasonNumber:  seasonNumber,
-				EpisodeNumber: tvEpisode.EpisodeNumber,
+			Episode: EpisodeInfo{
+				SeasonNumber:  prepareEpisode.Episode.SeasonNumber,
+				EpisodeName:   prepareEpisode.Episode.EpisodeName,
+				EpisodeNumber: prepareEpisode.Episode.EpisodeNumber,
 			},
 			Video: VideoFile{
 				File: mapFile(prepareEpisode.VideoFile.File),
@@ -74,7 +66,7 @@ func mapToPrepareTvShowPrams(
 	basePath, savePath, contentPath string,
 	episodes []tvshowlibrary.Episode,
 	torrentFiles []qbittorrent.TorrentFile,
-) (*tvshow.PrepareTvShowPrams, error) {
+) (*matchtvshow.PrepareTvShowPrams, error) {
 	fullPath := filepath.Join(basePath, contentPath)
 	// Вычисляем относительный путь от savePath до currentPath
 	// SavePath: /downloads
@@ -86,13 +78,13 @@ func mapToPrepareTvShowPrams(
 	}
 
 	// Получаем относительный путь файла
-	var prepareTorrentFiles []tvshow.TorrentFile
+	var prepareTorrentFiles []matchtvshow.TorrentFile
 	for _, file := range torrentFiles {
 		relFile, err := filepath.Rel(relPath, file.Name)
 		if err != nil {
 			return nil, fmt.Errorf("filepath.Rel: %w", err)
 		}
-		prepareTorrentFiles = append(prepareTorrentFiles, tvshow.TorrentFile{
+		prepareTorrentFiles = append(prepareTorrentFiles, matchtvshow.TorrentFile{
 			RelativePath: relFile,
 			FullPath:     filepath.Join(fullPath, relFile),
 			Extension:    strings.ToLower(filepath.Ext(relFile)),
@@ -100,10 +92,12 @@ func mapToPrepareTvShowPrams(
 		})
 	}
 
-	return &tvshow.PrepareTvShowPrams{
-		Episodes: lo.Map(episodes, func(episode tvshowlibrary.Episode, _ int) tvshow.Episode {
-			return tvshow.Episode{
+	return &matchtvshow.PrepareTvShowPrams{
+		Episodes: lo.Map(episodes, func(episode tvshowlibrary.Episode, _ int) matchtvshow.EpisodeInfo {
+			return matchtvshow.EpisodeInfo{
+				SeasonNumber:  episode.EpisodeNumber,
 				EpisodeNumber: episode.EpisodeNumber,
+				EpisodeName:   episode.Name,
 			}
 		}),
 		TorrentFiles: prepareTorrentFiles,
@@ -161,7 +155,6 @@ func (s *Service) PrepareFileMatches(ctx context.Context, params PreparingFileMa
 	}
 
 	// Подготавливаем параметры для преобразования файлов
-	// TODO: подумать так как торрент работает в контейнере у него абсолютный файл начинается с /download
 	prepareParams, err := mapToPrepareTvShowPrams(
 		s.config.BasePath,
 		torrentInfo.SavePath,
@@ -179,7 +172,8 @@ func (s *Service) PrepareFileMatches(ctx context.Context, params PreparingFileMa
 		return nil, fmt.Errorf("prepareTVShow.PrepareTvShowSeason: %w", err)
 	}
 
-	result, err := mapContentMatchesFromPrepareTVShowSeason(prepareResult, params.MediaID.TVShow.SeasonNumber, episodes.Items)
+	// Получаем инфу о метчах
+	result, err := mapContentMatchesFromPrepareTVShowSeason(prepareResult)
 	if err != nil {
 		return nil, fmt.Errorf("mapContentMatchesFromPrepareTVShowSeason: %w", err)
 	}

@@ -25,7 +25,7 @@ type MediaInfoTrack struct {
 	TrackName         string
 }
 
-func (s *Service) GetMediaInfo(filePath string) (*MediaInfo, error) {
+func (s *Merge) GetMediaInfo(filePath string) (*MediaInfo, error) {
 	cmd := exec.Command("mkvmerge", "-J", filePath)
 	var out bytes.Buffer
 	cmd.Stdout = &out

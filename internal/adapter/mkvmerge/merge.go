@@ -9,21 +9,21 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+
+	"github.com/kkiling/torrent2emby/internal/log"
 )
 
-type MessageType int
-
-const (
-	Info MessageType = iota
-	Error
-)
-
-type OutputMessage struct {
-	Type    MessageType
-	Content string
+type Merge struct {
+	logger log.Logger
 }
 
-func (s *Service) Merge(ctx context.Context, params MergeParams, outputChan chan<- OutputMessage) error {
+func NewMerge(logger log.Logger) *Merge {
+	return &Merge{
+		logger: logger.Named("mkvmerge"),
+	}
+}
+
+func (s *Merge) Merge(ctx context.Context, params MergeParams, outputChan chan<- OutputMessage) error {
 	// Проверка существования основного видеофайла
 	if _, err := os.Stat(params.VideoInputFile); os.IsNotExist(err) {
 		return fmt.Errorf("input video file does not exist: %s", params.VideoInputFile)
@@ -71,7 +71,7 @@ func (s *Service) Merge(ctx context.Context, params MergeParams, outputChan chan
 
 	// Для отладки
 	debugMsg := "Executing command: mkvmerge " + strings.Join(args, " ")
-	outputChan <- OutputMessage{Type: Info, Content: debugMsg}
+	outputChan <- OutputMessage{Type: InfoMessageType, Content: debugMsg}
 
 	// Создаем команду
 	cmd := exec.CommandContext(ctx, "mkvmerge", args...)
@@ -95,12 +95,12 @@ func (s *Service) Merge(ctx context.Context, params MergeParams, outputChan chan
 	go func() {
 		wg.Add(1)
 		defer wg.Done()
-		s.scanOutput(ctx, stdoutPipe, outputChan, Info)
+		s.scanOutput(ctx, stdoutPipe, outputChan, InfoMessageType)
 	}()
 	go func() {
 		wg.Add(1)
 		defer wg.Done()
-		s.scanOutput(ctx, stderrPipe, outputChan, Error)
+		s.scanOutput(ctx, stderrPipe, outputChan, ErrorMessageType)
 	}()
 
 	// Ждем завершения
@@ -113,7 +113,7 @@ func (s *Service) Merge(ctx context.Context, params MergeParams, outputChan chan
 }
 
 // Измененная функция scanOutput теперь является методом Service и принимает канал
-func (s *Service) scanOutput(ctx context.Context, reader io.Reader, outputChan chan<- OutputMessage, msgType MessageType) {
+func (s *Merge) scanOutput(ctx context.Context, reader io.Reader, outputChan chan<- OutputMessage, msgType MessageType) {
 	buf := make([]byte, 1024)
 	var leftover []byte
 
@@ -143,7 +143,7 @@ func (s *Service) scanOutput(ctx context.Context, reader io.Reader, outputChan c
 		if err != nil {
 			if err != io.EOF {
 				outputChan <- OutputMessage{
-					Type:    Error,
+					Type:    ErrorMessageType,
 					Content: fmt.Sprintf("read error: %v", err),
 				}
 			}

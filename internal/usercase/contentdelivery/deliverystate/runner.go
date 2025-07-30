@@ -3,8 +3,10 @@ package deliverystate
 import (
 	"context"
 	"fmt"
-	"github.com/samber/lo"
 	"reflect"
+
+	"github.com/google/uuid"
+	"github.com/samber/lo"
 
 	"github.com/kkiling/torrent2emby/internal/statemachine"
 	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery"
@@ -208,7 +210,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 						return stepContext.Error(fmt.Errorf("CreateContentCatalogs: %w", err))
 					}
 					data := stepContext.State.Data
-					data.CatalogsInfo = &res
+					data.CatalogsInfo = res
 					return stepContext.Next(DeterminingNeedConvertFiles).WithData(data)
 				},
 			},
@@ -225,7 +227,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 						}
 					}
 					if needToMerge {
-						return stepContext.Next(MergeVideoFiles)
+						return stepContext.Next(StartMergeVideoFiles)
 					}
 					return stepContext.Next(CopyVideoFiles)
 				},
@@ -237,33 +239,76 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 					return stepContext.Empty()
 				},
 			},
-			MergeVideoFiles: {
+			StartMergeVideoFiles: {
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					//  Конвертирование файлов - полученные файлы сразу сохраняются в каталог медиасервера
 					data := stepContext.State.Data
 
 					//  Конвертирование файлов - полученные файлы сразу сохраняются в каталог медиасервера
-					result, err := r.contentDelivery.MergeVideoFiles(ctx, contentdelivery.MergeVideoFilesParams{
-						Hash:           data.MagnetInfo.Hash,
-						ContentPath:    data.CatalogsInfo.TvShowCatalogPath,
+					mergeIDs, err := r.contentDelivery.StartMergeVideo(ctx, contentdelivery.MergeVideoParams{
+						ContentPath:    data.CatalogsInfo.TvShowSeasonPath,
+						IdempotencyKey: stepContext.State.ID.String(),
 						ContentMatches: data.ContentMatches,
-						ProcessedFiles: func() int { // Стартуем с последнего
-							if data.MergeVideoStatus != nil {
-								return data.MergeVideoStatus.ProcessedFiles
-							}
-							return 0
-						}(),
 					})
 					if err != nil {
-						return stepContext.Error(fmt.Errorf("MergeVideoFiles: %w", err))
+						return stepContext.Error(fmt.Errorf("StartMergeVideoFiles: %w", err))
+					}
+					data.MergeVideoFiles = mergeIDs
+					return stepContext.Next(WaitingMergeVideoFiles).WithData(data)
+				},
+			},
+			WaitingMergeVideoFiles: {
+				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
+					data := stepContext.State.Data
+
+					mergeIDs := lo.Map(data.MergeVideoFiles, func(item contentdelivery.MergeVideoFile, _ int) uuid.UUID {
+						return item.MergeID
+					})
+					//  Конвертирование файлов - полученные файлы сразу сохраняются в каталог медиасервера
+					status, err := r.contentDelivery.GetMergeVideoStatus(ctx, mergeIDs)
+					if err != nil {
+						return stepContext.Error(fmt.Errorf("WaitingMergeVideoFiles: %w", err))
 					}
 
-					data.MergeVideoStatus = &result
-					if result.IsComplete {
-						// Переход на следующий шаг
-						return stepContext.Next(SetMediaMetaData).WithData(data)
+					data.MergeVideoStatus = status
+					if status.IsComplete {
+						if len(status.Errors) == 0 {
+							return stepContext.Next(SetVideoFileGroup).WithData(data)
+						}
+						return stepContext.Error(fmt.Errorf("merge videos contains errors")).WithData(data)
 					}
 					return stepContext.Empty().WithData(data)
+				},
+			},
+			SetVideoFileGroup: {
+				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
+					data := stepContext.State.Data
+					files := lo.Map(data.MergeVideoFiles, func(item contentdelivery.MergeVideoFile, _ int) string {
+						return item.VideoOutputFile
+					})
+
+					// Установка группы файлам
+					err := r.contentDelivery.SetVideoFileGroup(ctx, files)
+					if err != nil {
+						return stepContext.Error(fmt.Errorf("SetVideoFileGroup: %w", err))
+					}
+
+					return stepContext.Next(SetMediaMetaData)
+				},
+			},
+			SetMediaMetaData: {
+				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
+					data := stepContext.State.Data
+					// Установка группы файлам
+					err := r.contentDelivery.SetMediaMetaData(ctx, contentdelivery.SetMediaMetaDataParams{
+						SeasonPath:   data.CatalogsInfo.TvShowPath,
+						TheMovieDBID: stepContext.State.MetaData.MediaID.TVShow.TVShowID,
+					})
+					if err != nil {
+						return stepContext.Error(fmt.Errorf("SetVideoFileGroup: %w", err))
+					}
+
+					return stepContext.Complete().WithData(data)
 				},
 			},
 		},

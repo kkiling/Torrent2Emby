@@ -1,7 +1,7 @@
-package tvshow
+package matchtvshow
 
 // PrepareTvShowPrams входыне параметры
 type PrepareTvShowPrams struct {
-	Episodes     []Episode
+	Episodes     []EpisodeInfo
 	TorrentFiles []TorrentFile
 }
