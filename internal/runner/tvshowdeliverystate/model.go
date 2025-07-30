@@ -1,9 +1,9 @@
-package deliverystate
+package tvshowdeliverystate
 
 import (
 	"fmt"
 
-	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery"
+	"github.com/kkiling/torrent2emby/internal/usercase/tvshowdelivery"
 )
 
 type Type string
@@ -65,36 +65,27 @@ const (
 type ContentDeliveryData struct {
 	// Данные выпуска
 	SearchQuery           *string
-	TorrentSearch         *contentdelivery.TorrentSearchResult
+	TorrentSearch         *tvshowdelivery.TorrentSearchResult
 	SelectTorrentHref     *string
-	MagnetInfo            *contentdelivery.MagnetInfo
-	ContentMatches        []contentdelivery.ContentMatches
-	TorrentDownloadStatus *contentdelivery.TorrentDownloadStatus
-	CatalogsInfo          *contentdelivery.CatalogsInfo
-	MergeVideoFiles       []contentdelivery.MergeVideoFile
-	MergeVideoStatus      *contentdelivery.MergeVideoStatus
+	MagnetInfo            *tvshowdelivery.MagnetInfo
+	ContentMatches        []tvshowdelivery.ContentMatches
+	TorrentDownloadStatus *tvshowdelivery.TorrentDownloadStatus
+	CatalogsInfo          *tvshowdelivery.CatalogsInfo
+	MergeVideoFiles       []tvshowdelivery.MergeVideoFile
+	MergeVideoStatus      *tvshowdelivery.MergeVideoStatus
 }
 
 type ContentDeliveryMetadata struct {
-	MediaID contentdelivery.MediaID
+	TVShowID tvshowdelivery.TVShowID
 }
 
 type ContentDeliveryFailData struct {
 }
 
 type CreateOptions struct {
-	MediaID contentdelivery.MediaID
+	TVShowID tvshowdelivery.TVShowID
 }
 
 func (c CreateOptions) GetIdempotencyKey() string {
-
-	if c.MediaID.MovieID != nil {
-		return fmt.Sprintf("movie_%d", *c.MediaID.MovieID)
-	}
-
-	if c.MediaID.TVShow != nil {
-		return fmt.Sprintf("tv_%d_season_%d", c.MediaID.TVShow.TVShowID, c.MediaID.TVShow.SeasonNumber)
-	}
-
-	return ""
+	return fmt.Sprintf("tv_%d_season_%d", c.TVShowID.ID, c.TVShowID.SeasonNumber)
 }

@@ -1,12 +1,8 @@
-package contentdelivery
+package tvshowdelivery
 
 type TVShowID struct {
-	TVShowID     uint64
+	ID           uint64
 	SeasonNumber int
-}
-type MediaID struct {
-	MovieID *uint64
-	TVShow  *TVShowID
 }
 
 type TorrentSearch struct {

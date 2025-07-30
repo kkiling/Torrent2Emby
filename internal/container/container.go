@@ -3,6 +3,7 @@ package container
 import (
 	"fmt"
 	"github.com/kkiling/torrent2emby/internal/adapter/emby"
+	"github.com/kkiling/torrent2emby/internal/runner/tvshowdeliverystate"
 
 	prepareTVShow "github.com/kkiling/torrent2emby/internal/adapter/matchtvshow"
 	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
@@ -13,15 +14,14 @@ import (
 	"github.com/kkiling/torrent2emby/internal/config"
 	"github.com/kkiling/torrent2emby/internal/log"
 	statemachinesqlite "github.com/kkiling/torrent2emby/internal/statemachine/storage/sqlite"
-	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery"
-	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery/deliverystate"
+	"github.com/kkiling/torrent2emby/internal/usercase/tvshowdelivery"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary/storage/sqlite"
 )
 
 type Container struct {
 	tvShowLibrary        *tvshowlibrary.Service
-	deliveryStateMachine *deliverystate.StateMachineService
+	deliveryStateMachine *tvshowdeliverystate.StateMachineService
 	mkvMergePipeline     *mkvmerge.Pipeline
 }
 
@@ -98,9 +98,9 @@ func NewContainer() (*Container, error) {
 	// UserCase
 	tvShowLibrary := tvshowlibrary.NewService(tvShowLibraryStorage, themoviedbApi)
 
-	delivery := contentdelivery.NewService(
+	delivery := tvshowdelivery.NewService(
 		// TODO: вынести в конфиг
-		contentdelivery.Config{
+		tvshowdelivery.Config{
 			BasePath:                   "/nfs",
 			TVShowTorrentSavePath:      "/downloads",
 			TvShowMediaSaveTvShowsPath: "/tvshows",
@@ -113,7 +113,7 @@ func NewContainer() (*Container, error) {
 		prepareTVShowService,
 		mkvPipeline,
 	)
-	deliveryStateMachine := deliverystate.NewState(delivery, stateStorage)
+	deliveryStateMachine := tvshowdeliverystate.NewState(delivery, stateStorage)
 
 	return &Container{
 		tvShowLibrary:        tvShowLibrary,
@@ -126,7 +126,7 @@ func (c *Container) GetTvShowLibrary() *tvshowlibrary.Service {
 	return c.tvShowLibrary
 }
 
-func (c *Container) DeliveryStateMachine() *deliverystate.StateMachineService {
+func (c *Container) DeliveryStateMachine() *tvshowdeliverystate.StateMachineService {
 	return c.deliveryStateMachine
 }
 

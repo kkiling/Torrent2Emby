@@ -1,4 +1,4 @@
-package contentdelivery
+package tvshowdelivery
 
 import (
 	"context"
@@ -15,8 +15,8 @@ import (
 )
 
 type PreparingFileMatchesParams struct {
-	Hash    string
-	MediaID MediaID
+	Hash     string
+	TVShowID TVShowID
 }
 
 func mapFile(file matchtvshow.TorrentFile) FileInfo {
@@ -106,10 +106,6 @@ func mapToPrepareTvShowPrams(
 
 // PrepareFileMatches получение информации о файлах раздачи
 func (s *Service) PrepareFileMatches(ctx context.Context, params PreparingFileMatchesParams) ([]ContentMatches, error) {
-	if params.MediaID.MovieID != nil && params.MediaID.TVShow == nil {
-		return nil, fmt.Errorf("movie is not supported yet: %w", ucerr.InvalidArgument)
-	}
-
 	// Достаем инфу о торрент раздаче
 	torrentInfo, err := s.torrentClient.GetTorrentInfo(params.Hash)
 	if err != nil {
@@ -147,8 +143,8 @@ func (s *Service) PrepareFileMatches(ctx context.Context, params PreparingFileMa
 
 	// Достаем инфу о эпизодах
 	episodes, err := s.tvShowLibrary.GetSeasonEpisodes(ctx, tvshowlibrary.GetSeasonEpisodesParams{
-		TVShowID:     params.MediaID.TVShow.TVShowID,
-		SeasonNumber: params.MediaID.TVShow.SeasonNumber,
+		TVShowID:     params.TVShowID.ID,
+		SeasonNumber: params.TVShowID.SeasonNumber,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("tvShowLibrary.GetSeasonEpisodes: %w", err)

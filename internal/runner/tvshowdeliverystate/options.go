@@ -1,4 +1,4 @@
-package deliverystate
+package tvshowdeliverystate
 
 type ChoseTorrentOptions struct {
 	// Пользователь выбрал конкретный торрента файл

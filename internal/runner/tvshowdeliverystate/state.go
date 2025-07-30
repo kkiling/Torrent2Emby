@@ -1,4 +1,4 @@
-package deliverystate
+package tvshowdeliverystate
 
 import (
 	"github.com/kkiling/torrent2emby/internal/statemachine"

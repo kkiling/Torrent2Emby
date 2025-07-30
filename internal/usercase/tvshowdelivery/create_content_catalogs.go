@@ -1,4 +1,4 @@
-package contentdelivery
+package tvshowdelivery
 
 import (
 	"context"
@@ -15,13 +15,13 @@ import (
 )
 
 type CreateContentCatalogsParams struct {
-	MediaID MediaID
+	TVShowID TVShowID
 }
 
-func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID uint64, seasonNumber int) (*CatalogsInfo, error) {
+func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID TVShowID) (*CatalogsInfo, error) {
 	// Получаем инфу о сезоне сериала
 	tvShowInfo, err := s.tvShowLibrary.GetTVShowInfo(ctx, tvshowlibrary.GetTVShowParams{
-		TVShowID: tvShowID,
+		TVShowID: tvShowID.ID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("tvShowLibrary.GetTVShowInfo: %w", err)
@@ -31,7 +31,7 @@ func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID uint64, seas
 	}
 
 	season, find := lo.Find(tvShowInfo.Result.Seasons, func(item tvshowlibrary.Season) bool {
-		return item.SeasonNumber == seasonNumber
+		return item.SeasonNumber == tvShowID.SeasonNumber
 	})
 	if !find {
 		return nil, fmt.Errorf("season not found: %w", ucerr.NotFound)
@@ -44,7 +44,7 @@ func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID uint64, seas
 		    S01E01 - Episode Name.mp4
 	*/
 	tvShowName := fmt.Sprintf("%s (%d)", tvShowInfo.Result.Name, tvShowInfo.Result.FirstAirDate.Year())
-	seasonName := fmt.Sprintf("S%02d %s", seasonNumber, season.Name)
+	seasonName := fmt.Sprintf("S%02d %s", tvShowID.SeasonNumber, season.Name)
 
 	tvShowsPath := filepath.Join(s.config.BasePath, s.config.TvShowMediaSaveTvShowsPath, tvShowName)
 	return &CatalogsInfo{
@@ -68,18 +68,20 @@ func (s *Service) createDirectories(base, catalog string) error {
 	for _, part := range parts {
 		currentPath = filepath.Join(currentPath, part)
 		// Проверяем существование каталога
-		if _, err := os.Stat(currentPath); os.IsNotExist(err) {
+		if _, err = os.Stat(currentPath); os.IsNotExist(err) {
 			// Создаем каталог
-			err := syscall.Mkdir(currentPath, 0775)
-			if err != nil {
-				return fmt.Errorf("syscall.Mkdir: %w", err)
+
+			if mkdirErr := syscall.Mkdir(currentPath, 0775); mkdirErr != nil {
+				return fmt.Errorf("syscall.Mkdir: %w", mkdirErr)
 			}
+
 			// Меняем группу пользователей
 			if s.config.UserGroup != "" {
 				if err = setGroup(currentPath, s.config.UserGroup); err != nil {
 					return fmt.Errorf("syscall.Chown: %w", err)
 				}
 			}
+
 		} else if err != nil {
 			return fmt.Errorf("error checking directory %s: %v", currentPath, err)
 		}
@@ -90,25 +92,17 @@ func (s *Service) createDirectories(base, catalog string) error {
 
 // CreateContentCatalogs формирование каталога куда будет сохранен контент
 func (s *Service) CreateContentCatalogs(ctx context.Context, params CreateContentCatalogsParams) (*CatalogsInfo, error) {
-	var catalog *CatalogsInfo
-	if params.MediaID.TVShow != nil {
-		var err error
-		catalog, err = s.createTVShowCatalog(ctx, params.MediaID.TVShow.TVShowID, params.MediaID.TVShow.SeasonNumber)
-		if err != nil {
-			return nil, fmt.Errorf("tvShowLibrary.GetTVShowInfo: %w", err)
-		}
-	}
-	if params.MediaID.MovieID != nil {
-		return nil, fmt.Errorf("movie is not supported yet: %w", ucerr.InvalidArgument)
+	catalog, err := s.createTVShowCatalog(ctx, params.TVShowID)
+	if err != nil {
+		return nil, fmt.Errorf("tvShowLibrary.GetTVShowInfo: %w", err)
 	}
 
 	if catalog == nil {
 		return nil, fmt.Errorf("catalog is nil")
 	}
 
-	err := s.createDirectories(s.config.BasePath, catalog.TvShowSeasonPath)
-	if err != nil {
-		return nil, fmt.Errorf("createDirectories: %w", err)
+	if createErr := s.createDirectories(s.config.BasePath, catalog.TvShowSeasonPath); createErr != nil {
+		return nil, fmt.Errorf("createDirectories: %w", createErr)
 	}
 
 	return catalog, nil

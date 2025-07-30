@@ -1,4 +1,4 @@
-package contentdelivery
+package tvshowdelivery
 
 type Config struct {
 	// BasePath Базовый путь от которого расположены все файлы торрента или медиа сервера

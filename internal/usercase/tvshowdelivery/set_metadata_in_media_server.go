@@ -1,4 +1,4 @@
-package contentdelivery
+package tvshowdelivery
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 )
 
 type SetMediaMetaDataParams struct {
-	SeasonPath   string
-	TheMovieDBID uint64
+	SeasonPath string
+	TVShowID   TVShowID
 }
 
 // SetMediaMetaData установка методанных
@@ -34,7 +34,7 @@ func (s *Service) SetMediaMetaData(ctx context.Context, params SetMediaMetaDataP
 		return fmt.Errorf("catalogInfo: type is not series")
 	}
 
-	err = s.embyApi.RemoteSearchApply(info.ID, params.TheMovieDBID)
+	err = s.embyApi.RemoteSearchApply(info.ID, params.TVShowID.ID)
 	if err != nil {
 		return fmt.Errorf("embyApi.RemoteSearchApply: %w", err)
 	}

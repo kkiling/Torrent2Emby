@@ -1,4 +1,4 @@
-package contentdelivery
+package tvshowdelivery
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 )
 
 type GenerateSearchQueryParams struct {
-	MediaID MediaID
+	TVShowID TVShowID
 }
 
-func (s *Service) getTVShowQuery(ctx context.Context, tvShowID uint64, seasonNumber int) (string, error) {
+func (s *Service) getTVShowQuery(ctx context.Context, tvShowID TVShowID) (string, error) {
 	// Получаем инфу о сезоне сериала
 	tvShowInfo, err := s.tvShowLibrary.GetTVShowInfo(ctx, tvshowlibrary.GetTVShowParams{
-		TVShowID: tvShowID,
+		TVShowID: tvShowID.ID,
 	})
 	if err != nil {
 		return "", fmt.Errorf("tvShowLibrary.GetTVShowInfo: %w", err)
@@ -27,7 +27,7 @@ func (s *Service) getTVShowQuery(ctx context.Context, tvShowID uint64, seasonNum
 	}
 
 	season, find := lo.Find(tvShowInfo.Result.Seasons, func(item tvshowlibrary.Season) bool {
-		return item.SeasonNumber == seasonNumber
+		return item.SeasonNumber == tvShowID.SeasonNumber
 	})
 	if !find {
 		return "", fmt.Errorf("season not found: %w", ucerr.NotFound)
@@ -40,16 +40,9 @@ func (s *Service) getTVShowQuery(ctx context.Context, tvShowID uint64, seasonNum
 
 // GenerateSearchQuery формируем поисковый запрос к торент трекеру на основе данных сезона сериала / фильма
 func (s *Service) GenerateSearchQuery(ctx context.Context, params GenerateSearchQueryParams) (string, error) {
-	searchQuery := ""
-	if params.MediaID.TVShow != nil {
-		var err error
-		searchQuery, err = s.getTVShowQuery(ctx, params.MediaID.TVShow.TVShowID, params.MediaID.TVShow.SeasonNumber)
-		if err != nil {
-			return "", fmt.Errorf("tvShowLibrary.GetTVShowInfo: %w", err)
-		}
-	}
-	if params.MediaID.MovieID != nil {
-		return "", fmt.Errorf("movie is not supported yet: %w", ucerr.InvalidArgument)
+	searchQuery, err := s.getTVShowQuery(ctx, params.TVShowID)
+	if err != nil {
+		return "", fmt.Errorf("tvShowLibrary.GetTVShowInfo: %w", err)
 	}
 
 	return searchQuery, nil

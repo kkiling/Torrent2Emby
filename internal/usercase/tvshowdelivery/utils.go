@@ -1,4 +1,4 @@
-package contentdelivery
+package tvshowdelivery
 
 import (
 	"fmt"

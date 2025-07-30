@@ -1,4 +1,4 @@
-package deliverystate
+package tvshowdeliverystate
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/kkiling/torrent2emby/internal/statemachine"
-	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery"
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
+	"github.com/kkiling/torrent2emby/internal/usercase/tvshowdelivery"
 )
 
 type Runner struct {
@@ -24,10 +24,6 @@ func NewTaskRunner(contentDelivery ContentDelivery) *Runner {
 }
 
 func (r *Runner) Create(_ context.Context, options CreateOptions) (CreateState, error) {
-	if options.MediaID.MovieID == nil && options.MediaID.TVShow == nil {
-		return CreateState{}, fmt.Errorf("movieID or TVShow is required: %w", ucerr.InvalidArgument)
-	}
-
 	// Логика создания задачи
 	data := ContentDeliveryData{}
 
@@ -35,7 +31,7 @@ func (r *Runner) Create(_ context.Context, options CreateOptions) (CreateState, 
 		FirstStep: GenerateSearchQuery,
 		Data:      data,
 		MetaData: ContentDeliveryMetadata{
-			MediaID: options.MediaID,
+			TVShowID: options.TVShowID,
 		},
 	}, nil
 }
@@ -51,8 +47,8 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					// Генерация запроса
 					data := stepContext.State.Data
-					res, err := r.contentDelivery.GenerateSearchQuery(ctx, contentdelivery.GenerateSearchQueryParams{
-						MediaID: stepContext.State.MetaData.MediaID,
+					res, err := r.contentDelivery.GenerateSearchQuery(ctx, tvshowdelivery.GenerateSearchQueryParams{
+						TVShowID: stepContext.State.MetaData.TVShowID,
 					})
 					if err != nil {
 						return stepContext.Error(fmt.Errorf("GenerateSearchQuery: %w", err))
@@ -65,7 +61,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					// ищем раздачи сезона сериала / фильма
 					data := stepContext.State.Data
-					res, err := r.contentDelivery.SearchTorrent(ctx, contentdelivery.SearchTorrentParams{
+					res, err := r.contentDelivery.SearchTorrent(ctx, tvshowdelivery.SearchTorrentParams{
 						SearchQuery: *data.SearchQuery,
 					})
 					if err != nil {
@@ -103,7 +99,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 					if opts.Href != nil {
 						// Пользователь выбрал раздачу для скачивания
 						// Проверяем что клиент выбрал href из списка
-						contains := lo.ContainsBy(data.TorrentSearch.Result, func(item contentdelivery.TorrentSearch) bool {
+						contains := lo.ContainsBy(data.TorrentSearch.Result, func(item tvshowdelivery.TorrentSearch) bool {
 							return item.Href == *opts.Href
 						})
 						if !contains {
@@ -121,7 +117,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					// Получение магнет ссылки
 					data := stepContext.State.Data
-					res, err := r.contentDelivery.GetMagnetLink(ctx, contentdelivery.GetMagnetLinkParams{
+					res, err := r.contentDelivery.GetMagnetLink(ctx, tvshowdelivery.GetMagnetLinkParams{
 						Href: *data.SelectTorrentHref,
 					})
 					if err != nil {
@@ -135,9 +131,9 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					//  Добавление раздачи для скачивания торрент клиентом
 					data := stepContext.State.Data
-					err := r.contentDelivery.AddTorrentToTorrentClient(ctx, contentdelivery.AddTorrentParams{
-						MediaID: stepContext.State.MetaData.MediaID,
-						Magnet:  data.MagnetInfo.Magnet,
+					err := r.contentDelivery.AddTorrentToTorrentClient(ctx, tvshowdelivery.AddTorrentParams{
+						TVShowID: stepContext.State.MetaData.TVShowID,
+						Magnet:   data.MagnetInfo.Magnet,
 					})
 					if err != nil {
 						return stepContext.Error(fmt.Errorf("AddTorrentToTorrentClient: %w", err))
@@ -149,9 +145,9 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					// Получение информации о файлах раздачи
 					data := stepContext.State.Data
-					res, err := r.contentDelivery.PrepareFileMatches(ctx, contentdelivery.PreparingFileMatchesParams{
-						Hash:    data.MagnetInfo.Hash,
-						MediaID: stepContext.State.MetaData.MediaID,
+					res, err := r.contentDelivery.PrepareFileMatches(ctx, tvshowdelivery.PreparingFileMatchesParams{
+						Hash:     data.MagnetInfo.Hash,
+						TVShowID: stepContext.State.MetaData.TVShowID,
 					})
 					if err != nil {
 						return stepContext.Error(fmt.Errorf("PrepareFileMatches: %w", err))
@@ -187,7 +183,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					// Ожидание когда торрент докачается до конца
 					data := stepContext.State.Data
-					res, err := r.contentDelivery.WaitingTorrentDownloadComplete(ctx, contentdelivery.WaitingTorrentDownloadCompleteParams{
+					res, err := r.contentDelivery.WaitingTorrentDownloadComplete(ctx, tvshowdelivery.WaitingTorrentDownloadCompleteParams{
 						Hash: data.MagnetInfo.Hash,
 					})
 					if err != nil {
@@ -203,8 +199,8 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 			CreateVideoContentCatalogs: {
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					// Формирование каталогов и иерархии файлов
-					res, err := r.contentDelivery.CreateContentCatalogs(ctx, contentdelivery.CreateContentCatalogsParams{
-						MediaID: stepContext.State.MetaData.MediaID,
+					res, err := r.contentDelivery.CreateContentCatalogs(ctx, tvshowdelivery.CreateContentCatalogsParams{
+						TVShowID: stepContext.State.MetaData.TVShowID,
 					})
 					if err != nil {
 						return stepContext.Error(fmt.Errorf("CreateContentCatalogs: %w", err))
@@ -245,7 +241,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 					data := stepContext.State.Data
 
 					//  Конвертирование файлов - полученные файлы сразу сохраняются в каталог медиасервера
-					mergeIDs, err := r.contentDelivery.StartMergeVideo(ctx, contentdelivery.MergeVideoParams{
+					mergeIDs, err := r.contentDelivery.StartMergeVideo(ctx, tvshowdelivery.MergeVideoParams{
 						ContentPath:    data.CatalogsInfo.TvShowSeasonPath,
 						IdempotencyKey: stepContext.State.ID.String(),
 						ContentMatches: data.ContentMatches,
@@ -261,7 +257,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					data := stepContext.State.Data
 
-					mergeIDs := lo.Map(data.MergeVideoFiles, func(item contentdelivery.MergeVideoFile, _ int) uuid.UUID {
+					mergeIDs := lo.Map(data.MergeVideoFiles, func(item tvshowdelivery.MergeVideoFile, _ int) uuid.UUID {
 						return item.MergeID
 					})
 					//  Конвертирование файлов - полученные файлы сразу сохраняются в каталог медиасервера
@@ -283,7 +279,7 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 			SetVideoFileGroup: {
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					data := stepContext.State.Data
-					files := lo.Map(data.MergeVideoFiles, func(item contentdelivery.MergeVideoFile, _ int) string {
+					files := lo.Map(data.MergeVideoFiles, func(item tvshowdelivery.MergeVideoFile, _ int) string {
 						return item.VideoOutputFile
 					})
 
@@ -300,9 +296,9 @@ func (r *Runner) StepRegistration(_ statemachine.StepRegistrationParams) StepReg
 				OnStep: func(ctx context.Context, stepContext StepContext) *StepResult {
 					data := stepContext.State.Data
 					// Установка группы файлам
-					err := r.contentDelivery.SetMediaMetaData(ctx, contentdelivery.SetMediaMetaDataParams{
-						SeasonPath:   data.CatalogsInfo.TvShowPath,
-						TheMovieDBID: stepContext.State.MetaData.MediaID.TVShow.TVShowID,
+					err := r.contentDelivery.SetMediaMetaData(ctx, tvshowdelivery.SetMediaMetaDataParams{
+						SeasonPath: data.CatalogsInfo.TvShowPath,
+						TVShowID:   stepContext.State.MetaData.TVShowID,
 					})
 					if err != nil {
 						return stepContext.Error(fmt.Errorf("SetVideoFileGroup: %w", err))

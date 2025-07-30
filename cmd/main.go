@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/kkiling/torrent2emby/internal/runner/tvshowdeliverystate"
 	"log"
 	"time"
 
 	"github.com/kkiling/torrent2emby/internal/container"
 	"github.com/kkiling/torrent2emby/internal/statemachine"
-	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery"
-	"github.com/kkiling/torrent2emby/internal/usercase/contentdelivery/deliverystate"
+	"github.com/kkiling/torrent2emby/internal/usercase/tvshowdelivery"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 )
 
@@ -46,12 +46,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	state, err := deliveryStateMachine.Create(ctx, deliverystate.CreateOptions{
-		MediaID: contentdelivery.MediaID{
-			TVShow: &contentdelivery.TVShowID{
-				TVShowID:     searchResult.Items[0].ID,
-				SeasonNumber: info.Result.Seasons[2].SeasonNumber,
-			},
+	state, err := deliveryStateMachine.Create(ctx, tvshowdeliverystate.CreateOptions{
+		TVShowID: tvshowdelivery.TVShowID{
+			ID:           searchResult.Items[0].ID,
+			SeasonNumber: info.Result.Seasons[2].SeasonNumber,
 		},
 	})
 	if err != nil {
