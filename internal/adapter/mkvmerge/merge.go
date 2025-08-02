@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/kkiling/torrent2emby/internal/log"
+	"github.com/kkiling/goplatform/log"
 )
 
 type Merge struct {

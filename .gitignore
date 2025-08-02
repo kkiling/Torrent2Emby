@@ -178,5 +178,7 @@ cython_debug/
 # sqlite database
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 # Исключить файл .testenv
 .testenv

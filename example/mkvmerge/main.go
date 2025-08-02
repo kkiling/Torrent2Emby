@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kkiling/goplatform/log"
+
 	mkvmerge "github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
 	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge/storage/sqlite"
-	"github.com/kkiling/torrent2emby/internal/log"
 )
 
 func main() {

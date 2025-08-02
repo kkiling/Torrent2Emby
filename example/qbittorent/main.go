@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 
+	"github.com/kkiling/goplatform/log"
+
 	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
 	"github.com/kkiling/torrent2emby/internal/config"
-	"github.com/kkiling/torrent2emby/internal/log"
 )
 
 func main() {

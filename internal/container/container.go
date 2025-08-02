@@ -2,9 +2,11 @@ package container
 
 import (
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/adapter/emby"
-	"github.com/kkiling/torrent2emby/internal/runner/tvshowdeliverystate"
+	"github.com/kkiling/statemachine"
 
+	"github.com/kkiling/goplatform/log"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/emby"
 	prepareTVShow "github.com/kkiling/torrent2emby/internal/adapter/matchtvshow"
 	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
 	mkvsqlite "github.com/kkiling/torrent2emby/internal/adapter/mkvmerge/storage/sqlite"
@@ -12,17 +14,16 @@ import (
 	"github.com/kkiling/torrent2emby/internal/adapter/rutracker"
 	"github.com/kkiling/torrent2emby/internal/adapter/themoviedb"
 	"github.com/kkiling/torrent2emby/internal/config"
-	"github.com/kkiling/torrent2emby/internal/log"
-	statemachinesqlite "github.com/kkiling/torrent2emby/internal/statemachine/storage/sqlite"
-	"github.com/kkiling/torrent2emby/internal/usercase/tvshowdelivery"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary/storage/sqlite"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/delivery"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners/tvshowdeliverystate"
 )
 
 type Container struct {
-	tvShowLibrary        *tvshowlibrary.Service
-	deliveryStateMachine *tvshowdeliverystate.StateMachineService
-	mkvMergePipeline     *mkvmerge.Pipeline
+	tvShowLibrary              *tvshowlibrary.Service
+	tvShowDeliveryStateMachine *tvshowdeliverystate.StateMachineService
+	mkvMergePipeline           *mkvmerge.Pipeline
 }
 
 func NewContainer() (*Container, error) {
@@ -41,7 +42,7 @@ func NewContainer() (*Container, error) {
 		return nil, fmt.Errorf("sqlite.NewStorage: %w", err)
 	}
 
-	stateStorage, err := statemachinesqlite.NewStorage(statemachinesqlite.Config{
+	stateStorage, err := statemachine.NewSqliteStorage(statemachine.SqliteConfig{
 		DSN: cfg.Storage.SqliteDsn,
 	}, logger)
 	if err != nil {
@@ -98,9 +99,9 @@ func NewContainer() (*Container, error) {
 	// UserCase
 	tvShowLibrary := tvshowlibrary.NewService(tvShowLibraryStorage, themoviedbApi)
 
-	delivery := tvshowdelivery.NewService(
+	deliveryService := delivery.NewService(
 		// TODO: вынести в конфиг
-		tvshowdelivery.Config{
+		delivery.Config{
 			BasePath:                   "/nfs",
 			TVShowTorrentSavePath:      "/downloads",
 			TvShowMediaSaveTvShowsPath: "/tvshows",
@@ -113,12 +114,12 @@ func NewContainer() (*Container, error) {
 		prepareTVShowService,
 		mkvPipeline,
 	)
-	deliveryStateMachine := tvshowdeliverystate.NewState(delivery, stateStorage)
+	tvShowDeliveryStateMachine := tvshowdeliverystate.NewState(deliveryService, stateStorage)
 
 	return &Container{
-		tvShowLibrary:        tvShowLibrary,
-		deliveryStateMachine: deliveryStateMachine,
-		mkvMergePipeline:     mkvPipeline,
+		tvShowLibrary:              tvShowLibrary,
+		tvShowDeliveryStateMachine: tvShowDeliveryStateMachine,
+		mkvMergePipeline:           mkvPipeline,
 	}, nil
 }
 
@@ -126,8 +127,8 @@ func (c *Container) GetTvShowLibrary() *tvshowlibrary.Service {
 	return c.tvShowLibrary
 }
 
-func (c *Container) DeliveryStateMachine() *tvshowdeliverystate.StateMachineService {
-	return c.deliveryStateMachine
+func (c *Container) TVShowDeliveryStateMachine() *tvshowdeliverystate.StateMachineService {
+	return c.tvShowDeliveryStateMachine
 }
 
 func (c *Container) MkvMergePipeline() *mkvmerge.Pipeline {

@@ -6,7 +6,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 
-	"github.com/kkiling/torrent2emby/internal/log"
+	"github.com/kkiling/goplatform/log"
 )
 
 const (

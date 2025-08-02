@@ -1,10 +1,11 @@
 package main
 
 import (
+	"github.com/kkiling/goplatform/log"
+
 	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"github.com/kkiling/torrent2emby/internal/adapter/rutracker"
 	"github.com/kkiling/torrent2emby/internal/config"
-	"github.com/kkiling/torrent2emby/internal/log"
 )
 
 func main() {

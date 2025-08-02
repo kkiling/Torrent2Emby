@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kkiling/goplatform/log"
 	"github.com/mattn/go-sqlite3"
 
-	"github.com/kkiling/torrent2emby/internal/log"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary/storage"
 )
 

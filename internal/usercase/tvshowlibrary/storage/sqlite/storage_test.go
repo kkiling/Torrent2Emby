@@ -3,9 +3,9 @@ package sqlite
 import (
 	"testing"
 
+	"github.com/kkiling/goplatform/log"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kkiling/torrent2emby/internal/log"
 	"github.com/kkiling/torrent2emby/internal/statemachine/testutils"
 )
 

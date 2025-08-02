@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/runner/tvshowdeliverystate"
+	"github.com/kkiling/statemachine"
 	"log"
 	"time"
 
 	"github.com/kkiling/torrent2emby/internal/container"
-	"github.com/kkiling/torrent2emby/internal/statemachine"
-	"github.com/kkiling/torrent2emby/internal/usercase/tvshowdelivery"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners/tvshowdeliverystate"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 		}
 	}()
 	tvShowLibrary := cn.GetTvShowLibrary()
-	deliveryStateMachine := cn.DeliveryStateMachine()
+	tvShowDeliveryStateMachine := cn.TVShowDeliveryStateMachine()
 
 	searchResult, err := tvShowLibrary.SearchTVShow(ctx, tvshowlibrary.TVShowSearchParams{
 		Query: "Сага о Винланде",
@@ -46,8 +46,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	state, err := deliveryStateMachine.Create(ctx, tvshowdeliverystate.CreateOptions{
-		TVShowID: tvshowdelivery.TVShowID{
+	state, err := tvShowDeliveryStateMachine.Create(ctx, tvshowdeliverystate.CreateOptions{
+		TVShowID: videocontent.TVShowID{
 			ID:           searchResult.Items[0].ID,
 			SeasonNumber: info.Result.Seasons[2].SeasonNumber,
 		},
@@ -66,7 +66,7 @@ func main() {
 	//	Approve: true,
 	//})
 
-	newState, eerr, err := deliveryStateMachine.Complete(ctx, state.ID)
+	newState, eerr, err := tvShowDeliveryStateMachine.Complete(ctx, state.ID)
 
 	if err != nil {
 		log.Fatal(err)

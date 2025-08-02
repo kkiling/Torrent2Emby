@@ -28,7 +28,7 @@ test-db:
 	@echo "\n --- 🖲️ Migrate test sqlite database --- \n"
 	rm -f ${TEST_DB_NAME}
 	@echo "\n --- 🖲️ statemachine sqlite migrations --- \n"
-	goose -dir=internal/statemachine/migrations/sqlite sqlite3 ${TEST_DB_NAME} up
+	goose -dir=migrations/sqlite/state sqlite3 ${TEST_DB_NAME} up
 	@echo "\n --- 🖲️ torrent2emby sqlite migrations --- \n"
 	goose -dir=migrations/sqlite sqlite3 ${TEST_DB_NAME} up
 	@echo "\n --- 🖲️ Creating .testenv file --- \n"
