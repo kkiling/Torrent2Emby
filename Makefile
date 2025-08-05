@@ -34,3 +34,14 @@ test-db:
 	@echo "\n --- 🖲️ Creating .testenv file --- \n"
 	rm -f ./testenv
 	echo "SQLITE_DSN=$(CURDIR)/$(notdir ${TEST_DB_NAME})" > ./.testenv
+
+
+clear-cache:
+	buf registry cc
+
+.PHONY: generate
+generate:
+	mkdir -p vendor.protogen
+	cp -R api/torrent2emby/ vendor.protogen/
+	buf dep update
+	buf generate

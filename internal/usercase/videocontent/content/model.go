@@ -1,11 +1,11 @@
 package content
 
 import (
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
 	"time"
 
 	"github.com/google/uuid"
 
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners"
 )
 

@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kkiling/goplatform/storagebase"
+
 	"github.com/kkiling/torrent2emby/internal/adapter/themoviedb"
-	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary/storage"
 )
 
 const (
@@ -51,7 +52,7 @@ func (s *Service) GetTVShowInfo(ctx context.Context, params GetTVShowParams) (*G
 	// Сначала тянем информацию о сериале из библиотеки
 	if tvShow, err := s.storage.GetTVShow(ctx, params.TVShowID); err != nil {
 		switch {
-		case errors.Is(err, storage.ErrNotFound):
+		case errors.Is(err, storagebase.ErrNotFound):
 			// Не найдено, идем дальше
 		default:
 			return nil, fmt.Errorf("storage.GetStateByIdempotencyKey: %w", err)
@@ -86,7 +87,7 @@ func (s *Service) GetSeasonEpisodes(ctx context.Context, params GetSeasonEpisode
 	// сначала тянем информацию о эпизодах из библиотеки
 	if episodes, err := s.storage.GetSeasonEpisodes(ctx, params.TVShowID, params.SeasonNumber); err != nil {
 		switch {
-		case errors.Is(err, storage.ErrNotFound):
+		case errors.Is(err, storagebase.ErrNotFound):
 			// Не найдено, идем дальше
 		default:
 			return nil, fmt.Errorf("storage.GetTVShow: %w", err)

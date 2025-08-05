@@ -8,9 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kkiling/goplatform/log"
+	"github.com/kkiling/goplatform/storagebase"
 	"github.com/samber/lo"
-
-	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge/storage"
 )
 
 const retryDelay = time.Second * 5
@@ -32,7 +31,7 @@ func NewPipeline(merger MkvMerge, storage Storage, logger log.Logger) *Pipeline 
 func (s *Pipeline) AddToMerge(ctx context.Context, idempotencyKey string, params MergeParams) (*MergeResult, error) {
 	if find, err := s.storage.GetByIdempotencyKey(ctx, idempotencyKey); err != nil {
 		switch {
-		case errors.Is(err, storage.ErrNotFound):
+		case errors.Is(err, storagebase.ErrNotFound):
 		default:
 			return nil, fmt.Errorf("storage.GetByIdempotencyKey: %w", err)
 		}
@@ -64,7 +63,7 @@ func (s *Pipeline) GetMergeResult(ctx context.Context, id uuid.UUID) (*MergeResu
 	result, err := s.storage.GetByID(ctx, id)
 	if err != nil {
 		switch {
-		case errors.Is(err, storage.ErrNotFound):
+		case errors.Is(err, storagebase.ErrNotFound):
 			return nil, ErrNotFound
 		default:
 			return nil, fmt.Errorf("storage.GetFirstUncompletedMergeResult: %w", err)
@@ -122,7 +121,7 @@ func (s *Pipeline) StartMergePipeline(ctx context.Context) error {
 		result, err := s.storage.GetOldestUncompleted(ctx)
 		if err != nil {
 			switch {
-			case errors.Is(err, storage.ErrNotFound):
+			case errors.Is(err, storagebase.ErrNotFound):
 				// Тут  таймер  - что бы не спамить базу
 				if err = s.startTimer(ctx); err != nil {
 					return err

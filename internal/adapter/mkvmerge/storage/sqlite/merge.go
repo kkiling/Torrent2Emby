@@ -8,9 +8,9 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/kkiling/goplatform/storagebase"
 
 	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
-	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge/storage"
 )
 
 func (s *Storage) Create(ctx context.Context, create *mkvmerge.CreateMergeResult) error {
@@ -19,13 +19,13 @@ func (s *Storage) Create(ctx context.Context, create *mkvmerge.CreateMergeResult
 		return fmt.Errorf("failed to marshal params: %w", err)
 	}
 
-	_, err = s.next(ctx).ExecContext(ctx, `
+	_, err = s.base.Next(ctx).ExecContext(ctx, `
         INSERT INTO mkv_merge (id, idempotency_key, params, status, created_at)
         VALUES (?, ?, ?, ?, ?)
     `, create.ID, create.IdempotencyKey, paramsJSON, create.Status, create.CreatedAt)
 
 	if err != nil {
-		return handleError(err)
+		return s.base.HandleError(err)
 	}
 
 	return nil
@@ -48,9 +48,9 @@ func (s *Storage) Update(ctx context.Context, id uuid.UUID, update *mkvmerge.Upd
 	query += " WHERE id = ?"
 	args = append(args, id)
 
-	_, err := s.next(ctx).ExecContext(ctx, query, args...)
+	_, err := s.base.Next(ctx).ExecContext(ctx, query, args...)
 	if err != nil {
-		return handleError(err)
+		return s.base.HandleError(err)
 	}
 
 	return nil
@@ -73,9 +73,9 @@ func (s *Storage) getMergeResult(row *sql.Row) (*mkvmerge.MergeResult, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, storage.ErrNotFound
+			return nil, storagebase.ErrNotFound
 		}
-		return nil, handleError(err)
+		return nil, s.base.HandleError(err)
 	}
 
 	// Десериализуем параметры
@@ -95,7 +95,7 @@ func (s *Storage) getMergeResult(row *sql.Row) (*mkvmerge.MergeResult, error) {
 }
 
 func (s *Storage) GetByID(ctx context.Context, id uuid.UUID) (*mkvmerge.MergeResult, error) {
-	row := s.next(ctx).QueryRowContext(ctx, `
+	row := s.base.Next(ctx).QueryRowContext(ctx, `
         SELECT id, params, status, error, created_at, completed_at
         FROM mkv_merge WHERE id = ?
     `, id)
@@ -103,7 +103,7 @@ func (s *Storage) GetByID(ctx context.Context, id uuid.UUID) (*mkvmerge.MergeRes
 }
 
 func (s *Storage) GetByIdempotencyKey(ctx context.Context, idempotencyKey string) (*mkvmerge.MergeResult, error) {
-	row := s.next(ctx).QueryRowContext(ctx, `
+	row := s.base.Next(ctx).QueryRowContext(ctx, `
         SELECT id, params, status, error, created_at, completed_at
         FROM mkv_merge WHERE idempotency_key = ?
     `, idempotencyKey)
@@ -111,7 +111,7 @@ func (s *Storage) GetByIdempotencyKey(ctx context.Context, idempotencyKey string
 }
 
 func (s *Storage) GetOldestUncompleted(ctx context.Context) (*mkvmerge.MergeResult, error) {
-	row := s.next(ctx).QueryRowContext(ctx, `
+	row := s.base.Next(ctx).QueryRowContext(ctx, `
         SELECT id, params, status, error, created_at, completed_at
         FROM mkv_merge
         WHERE completed_at is null
@@ -123,52 +123,26 @@ func (s *Storage) GetOldestUncompleted(ctx context.Context) (*mkvmerge.MergeResu
 }
 
 func (s *Storage) AddMergeLogs(ctx context.Context, id uuid.UUID, log mkvmerge.MergeLogs) error {
-	_, err := s.next(ctx).ExecContext(ctx, `
+	_, err := s.base.Next(ctx).ExecContext(ctx, `
         INSERT INTO mkv_merge_logs (merge_id, type, content, created_at)
         VALUES (?, ?, ?, ?)
     `, id, log.Type, log.Content, log.CreatedAt)
 
 	if err != nil {
-		return handleError(err)
+		return s.base.HandleError(err)
 	}
 
 	return nil
 }
 
 func (s *Storage) DeleteLogs(ctx context.Context, mergeID uuid.UUID) error {
-	_, err := s.next(ctx).ExecContext(ctx, `
+	_, err := s.base.Next(ctx).ExecContext(ctx, `
         DELETE from mkv_merge_logs WHERE merge_id = ?
     `, mergeID)
 
 	if err != nil {
-		return handleError(err)
+		return s.base.HandleError(err)
 	}
 
 	return nil
 }
-
-/*
-	query := "UPDATE mkv_merge SET status = ?"
-	args := []interface{}{update.Status}
-
-	if update.ErrorStatus != nil {
-		query += ", error = ?"
-		args = append(args, *update.ErrorStatus)
-	}
-
-	if update.Completed != nil {
-		query += ", completed_at = ?"
-		args = append(args, *update.Completed)
-	}
-
-	query += " WHERE id = ?"
-	args = append(args, id)
-
-	_, err := s.next(ctx).ExecContext(ctx, query, args...)
-	if err != nil {
-		return handleError(err)
-	}
-
-	return nil
-}
-*/

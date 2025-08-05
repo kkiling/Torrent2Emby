@@ -182,3 +182,5 @@ cython_debug/
 *.db-wal
 # Исключить файл .testenv
 .testenv
+
+vendor.protogen

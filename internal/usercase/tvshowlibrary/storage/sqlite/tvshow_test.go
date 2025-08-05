@@ -7,17 +7,18 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/kkiling/goplatform/storagebase"
+	"github.com/kkiling/goplatform/storagebase/testutils"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
-	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary/storage"
 )
 
 func TestStorage_SaveAndGetTVShow(t *testing.T) {
 	t.Parallel()
 
-	s := setupTestDB(t)
+	testStorage := NewTestStorage(testutils.SetupSqlTestDB(t))
 	ctx := context.Background()
 
 	initTvShow := func() *tvshowlibrary.TVShow {
@@ -69,12 +70,12 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 	t.Run("SaveTVShow success", func(t *testing.T) {
 		testTVShow := initTvShow()
 
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := testStorage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 
 		// Проверяем, что данные сохранились
 		var count int
-		err = s.next(ctx).QueryRowContext(ctx, "SELECT COUNT(*) FROM tv_shows WHERE id = ?", testTVShow.ID).Scan(&count)
+		err = testStorage.base.Next(ctx).QueryRowContext(ctx, "SELECT COUNT(*) FROM tv_shows WHERE id = ?", testTVShow.ID).Scan(&count)
 		require.NoError(t, err)
 		require.Equal(t, 1, count)
 	})
@@ -85,7 +86,7 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 		testTVShow.Backdrop = nil
 		testTVShow.Seasons[0].Poster = nil
 
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := testStorage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 	})
 
@@ -94,18 +95,18 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 		testTVShow.Genres = []string{}
 		testTVShow.OriginCountry = []string{}
 
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := testStorage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 	})
 
 	t.Run("GetTVShow success", func(t *testing.T) {
 		testTVShow := initTvShow()
 		// Сначала сохраняем тестовые данные
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := testStorage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 
 		// Получаем данные
-		result, err := s.GetTVShow(ctx, testTVShow.ID)
+		result, err := testStorage.GetTVShow(ctx, testTVShow.ID)
 		require.NoError(t, err)
 		require.NotNil(t, result)
 
@@ -129,8 +130,8 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 	})
 
 	t.Run("GetTVShow not found", func(t *testing.T) {
-		_, err := s.GetTVShow(ctx, 9999)
-		require.ErrorIs(t, err, storage.ErrNotFound)
+		_, err := testStorage.GetTVShow(ctx, 9999)
+		require.ErrorIs(t, err, storagebase.ErrNotFound)
 	})
 
 	t.Run("GetTVShow with nil images", func(t *testing.T) {
@@ -139,10 +140,10 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 		testTVShow.Backdrop = nil
 		testTVShow.Seasons[0].Poster = nil
 
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := testStorage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 
-		result, err := s.GetTVShow(ctx, testTVShow.ID)
+		result, err := testStorage.GetTVShow(ctx, testTVShow.ID)
 		require.NoError(t, err)
 		require.Nil(t, result.Poster)
 		require.Nil(t, result.Backdrop)
@@ -151,10 +152,10 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 
 	t.Run("Save and Get roundtrip", func(t *testing.T) {
 		testTVShow := initTvShow()
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := testStorage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 
-		result, err := s.GetTVShow(ctx, testTVShow.ID)
+		result, err := testStorage.GetTVShow(ctx, testTVShow.ID)
 		require.NoError(t, err)
 
 		// Сравниваем все поля через JSON для глубокого сравнения
@@ -171,7 +172,7 @@ func TestStorage_SaveAndGetTVShow(t *testing.T) {
 func TestGetTVShows(t *testing.T) {
 	t.Parallel()
 
-	s := setupTestDB(t)
+	testStorage := NewTestStorage(testutils.SetupSqlTestDB(t))
 	ctx := context.Background()
 
 	// Тестовые данные
@@ -213,12 +214,12 @@ func TestGetTVShows(t *testing.T) {
 
 	// Подготовка: сохраняем тестовые данные
 	for _, show := range testShows {
-		err := s.SaveOrUpdateTVShow(ctx, show)
+		err := testStorage.SaveOrUpdateTVShow(ctx, show)
 		require.NoError(t, err)
 	}
 
 	t.Run("successful get all shows", func(t *testing.T) {
-		result, err := s.GetTVShows(ctx)
+		result, err := testStorage.GetTVShows(ctx)
 
 		result = lo.Filter(result, func(item tvshowlibrary.TVShowShort, _ int) bool {
 			return item.ID == testShows[0].ID || item.ID == testShows[1].ID
@@ -243,7 +244,7 @@ func TestGetTVShows(t *testing.T) {
 func TestStorage_SeasonEpisodes(t *testing.T) {
 	t.Parallel()
 
-	s := setupTestDB(t)
+	storage := NewTestStorage(testutils.SetupSqlTestDB(t))
 	ctx := context.Background()
 
 	// Helper function to initialize test data
@@ -314,16 +315,16 @@ func TestStorage_SeasonEpisodes(t *testing.T) {
 		testTVShow, testEpisodes := initTestData()
 
 		// First save the TV show with season
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := storage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 
 		// Save episodes
-		err = s.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, testEpisodes)
+		err = storage.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, testEpisodes)
 		require.NoError(t, err)
 
 		// Verify episodes were saved
 		var count int
-		err = s.next(ctx).QueryRowContext(ctx,
+		err = storage.base.Next(ctx).QueryRowContext(ctx,
 			"SELECT COUNT(*) FROM episodes WHERE season_id = ?",
 			testTVShow.Seasons[0].ID).Scan(&count)
 		require.NoError(t, err)
@@ -332,23 +333,23 @@ func TestStorage_SeasonEpisodes(t *testing.T) {
 
 	t.Run("SaveOrUpdateSeasonEpisode with empty episodes", func(t *testing.T) {
 		testTVShow, _ := initTestData()
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := storage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 
-		err = s.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, []tvshowlibrary.Episode{})
+		err = storage.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, []tvshowlibrary.Episode{})
 		require.NoError(t, err)
 	})
 
 	t.Run("GetSeasonEpisodes success", func(t *testing.T) {
 		testTVShow, testEpisodes := initTestData()
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := storage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 
-		err = s.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, testEpisodes)
+		err = storage.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, testEpisodes)
 		require.NoError(t, err)
 
 		// Retrieve episodes
-		episodes, err := s.GetSeasonEpisodes(ctx, testTVShow.ID, 1)
+		episodes, err := storage.GetSeasonEpisodes(ctx, testTVShow.ID, 1)
 		require.NoError(t, err)
 		require.Len(t, episodes, len(testEpisodes))
 
@@ -365,27 +366,27 @@ func TestStorage_SeasonEpisodes(t *testing.T) {
 
 	t.Run("GetSeasonEpisodes not found", func(t *testing.T) {
 		testTVShow, _ := initTestData()
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := storage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 
 		// Try to get episodes for non-existent season
-		_, err = s.GetSeasonEpisodes(ctx, testTVShow.ID, 999)
-		require.ErrorIs(t, err, storage.ErrNotFound)
+		_, err = storage.GetSeasonEpisodes(ctx, testTVShow.ID, 999)
+		require.ErrorIs(t, err, storagebase.ErrNotFound)
 
 		// Try to get episodes for non-existent show
-		_, err = s.GetSeasonEpisodes(ctx, 999, 1)
-		require.ErrorIs(t, err, storage.ErrNotFound)
+		_, err = storage.GetSeasonEpisodes(ctx, 999, 1)
+		require.ErrorIs(t, err, storagebase.ErrNotFound)
 	})
 
 	t.Run("Save and Get roundtrip", func(t *testing.T) {
 		testTVShow, testEpisodes := initTestData()
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := storage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 
-		err = s.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, testEpisodes)
+		err = storage.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, testEpisodes)
 		require.NoError(t, err)
 
-		retrievedEpisodes, err := s.GetSeasonEpisodes(ctx, testTVShow.ID, 1)
+		retrievedEpisodes, err := storage.GetSeasonEpisodes(ctx, testTVShow.ID, 1)
 		require.NoError(t, err)
 
 		// Compare all fields through JSON for deep comparison
@@ -407,11 +408,11 @@ func TestStorage_SeasonEpisodes(t *testing.T) {
 
 	t.Run("Update existing episodes", func(t *testing.T) {
 		testTVShow, testEpisodes := initTestData()
-		err := s.SaveOrUpdateTVShow(ctx, testTVShow)
+		err := storage.SaveOrUpdateTVShow(ctx, testTVShow)
 		require.NoError(t, err)
 
 		// First save
-		err = s.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, testEpisodes)
+		err = storage.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, testEpisodes)
 		require.NoError(t, err)
 
 		// Update episodes
@@ -421,11 +422,11 @@ func TestStorage_SeasonEpisodes(t *testing.T) {
 		updatedEpisodes[0].Overview = "Updated overview"
 		updatedEpisodes[0].VoteAverage = 9.0
 
-		err = s.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, updatedEpisodes)
+		err = storage.SaveOrUpdateSeasonEpisode(ctx, testTVShow.ID, 1, updatedEpisodes)
 		require.NoError(t, err)
 
 		// Retrieve and verify updates
-		retrievedEpisodes, err := s.GetSeasonEpisodes(ctx, testTVShow.ID, 1)
+		retrievedEpisodes, err := storage.GetSeasonEpisodes(ctx, testTVShow.ID, 1)
 		require.NoError(t, err)
 
 		require.Equal(t, "Updated Episode Name", retrievedEpisodes[0].Name)

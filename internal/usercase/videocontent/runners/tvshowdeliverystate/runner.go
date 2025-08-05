@@ -3,10 +3,10 @@ package tvshowdeliverystate
 import (
 	"context"
 	"fmt"
-	"github.com/kkiling/statemachine"
 	"reflect"
 
 	"github.com/google/uuid"
+	"github.com/kkiling/statemachine"
 	"github.com/samber/lo"
 
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"

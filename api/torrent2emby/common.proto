@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package torrent2emby;
+
+option go_package = "github.com/kkiling/torrent2emby/api";
+
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+message ErrorInfo {
+  string description = 2;
+  repeated FieldViolation field_violations = 4;
+}
+
+message FieldViolation {
+  string field = 1;
+  string error = 2;
+}

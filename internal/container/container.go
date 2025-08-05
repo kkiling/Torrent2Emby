@@ -2,9 +2,10 @@ package container
 
 import (
 	"fmt"
-	"github.com/kkiling/statemachine"
 
 	"github.com/kkiling/goplatform/log"
+	"github.com/kkiling/goplatform/storagebase/sqlitebase"
+	"github.com/kkiling/statemachine"
 
 	"github.com/kkiling/torrent2emby/internal/adapter/emby"
 	prepareTVShow "github.com/kkiling/torrent2emby/internal/adapter/matchtvshow"
@@ -21,6 +22,7 @@ import (
 )
 
 type Container struct {
+	logger                     log.Logger
 	tvShowLibrary              *tvshowlibrary.Service
 	tvShowDeliveryStateMachine *tvshowdeliverystate.StateMachineService
 	mkvMergePipeline           *mkvmerge.Pipeline
@@ -35,7 +37,7 @@ func NewContainer() (*Container, error) {
 	}
 
 	// Storage
-	tvShowLibraryStorage, err := sqlite.NewStorage(sqlite.Config{
+	tvShowLibraryStorage, err := sqlite.NewStorage(sqlitebase.Config{
 		DSN: cfg.Storage.SqliteDsn,
 	}, logger)
 	if err != nil {
@@ -49,7 +51,7 @@ func NewContainer() (*Container, error) {
 		return nil, fmt.Errorf("sqlite.NewStorage: %w", err)
 	}
 
-	mkvPipelineStorage, err := mkvsqlite.NewStorage(mkvsqlite.Config{
+	mkvPipelineStorage, err := mkvsqlite.NewStorage(sqlitebase.Config{
 		DSN: cfg.Storage.SqliteDsn,
 	}, logger)
 	if err != nil {
@@ -117,6 +119,7 @@ func NewContainer() (*Container, error) {
 	tvShowDeliveryStateMachine := tvshowdeliverystate.NewState(deliveryService, stateStorage)
 
 	return &Container{
+		logger:                     logger,
 		tvShowLibrary:              tvShowLibrary,
 		tvShowDeliveryStateMachine: tvShowDeliveryStateMachine,
 		mkvMergePipeline:           mkvPipeline,
@@ -133,4 +136,8 @@ func (c *Container) TVShowDeliveryStateMachine() *tvshowdeliverystate.StateMachi
 
 func (c *Container) MkvMergePipeline() *mkvmerge.Pipeline {
 	return c.mkvMergePipeline
+}
+
+func (c *Container) GetLogger() log.Logger {
+	return c.logger
 }

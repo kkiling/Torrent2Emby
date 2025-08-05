@@ -16,12 +16,12 @@ func (s *Storage) saveOrUpdateImage(ctx context.Context, img *tvshowlibrary.Imag
 	if img == nil {
 		return nil
 	}
-	_, err := s.next(ctx).ExecContext(ctx, `
+	_, err := s.base.Next(ctx).ExecContext(ctx, `
         INSERT OR REPLACE INTO images (id, w342, original) VALUES (?, ?, ?)
     `, img.ID, img.W342, img.Original)
 
 	if err != nil {
-		return handleError(err)
+		return s.base.HandleError(err)
 	}
 
 	return nil
@@ -42,7 +42,7 @@ func (s *Storage) saveOrUpdateSeason(ctx context.Context, tvID uint64, season tv
         `
 
 	posterID := lo.EmptyableToPtr(lo.FromPtr(season.Poster).ID)
-	_, err = s.next(ctx).ExecContext(ctx, seasonQuery,
+	_, err = s.base.Next(ctx).ExecContext(ctx, seasonQuery,
 		season.ID,
 		tvID,
 		season.AirDate,
@@ -55,7 +55,7 @@ func (s *Storage) saveOrUpdateSeason(ctx context.Context, tvID uint64, season tv
 	)
 
 	if err != nil {
-		return handleError(err)
+		return s.base.HandleError(err)
 	}
 
 	return nil
@@ -63,19 +63,19 @@ func (s *Storage) saveOrUpdateSeason(ctx context.Context, tvID uint64, season tv
 
 func (s *Storage) getImage(ctx context.Context, imageID string) (*tvshowlibrary.Image, error) {
 	var img tvshowlibrary.Image
-	err := s.next(ctx).QueryRowContext(ctx, `
+	err := s.base.Next(ctx).QueryRowContext(ctx, `
         SELECT id, w342, original FROM images WHERE id = ?
     `, imageID).Scan(&img.ID, &img.W342, &img.Original)
 
 	if err != nil {
-		return nil, handleError(err)
+		return nil, s.base.HandleError(err)
 	}
 
 	return &img, nil
 }
 
 func (s *Storage) getSeasons(ctx context.Context, tvID uint64) ([]tvshowlibrary.Season, error) {
-	rows, err := s.next(ctx).QueryContext(ctx, `
+	rows, err := s.base.Next(ctx).QueryContext(ctx, `
         SELECT 
             id, air_date, episode_count, name,
             overview, poster_id, season_number, vote_average
@@ -159,7 +159,7 @@ func (s *Storage) SaveOrUpdateTVShow(ctx context.Context, tvShow *tvshowlibrary.
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 
-		_, err = s.next(tCtx).ExecContext(ctx, query,
+		_, err = s.base.Next(tCtx).ExecContext(ctx, query,
 			tvShow.ID,
 			tvShow.Name,
 			tvShow.OriginalName,
@@ -182,7 +182,7 @@ func (s *Storage) SaveOrUpdateTVShow(ctx context.Context, tvShow *tvshowlibrary.
 		)
 
 		if err != nil {
-			return handleError(err)
+			return s.base.HandleError(err)
 		}
 
 		// Сохраняем сезоны
@@ -203,7 +203,7 @@ func (s *Storage) GetTVShow(ctx context.Context, tvID uint64) (*tvshowlibrary.TV
 	var posterID, backdropID sql.NullString
 
 	// Загружаем основную информацию о сериале
-	err := s.next(ctx).QueryRowContext(ctx, `
+	err := s.base.Next(ctx).QueryRowContext(ctx, `
         SELECT 
             id, name, original_name, overview, poster_id,
             first_air_date, vote_average, vote_count, popularity,
@@ -235,7 +235,7 @@ func (s *Storage) GetTVShow(ctx context.Context, tvID uint64) (*tvshowlibrary.TV
 	)
 
 	if err != nil {
-		return nil, handleError(err)
+		return nil, s.base.HandleError(err)
 	}
 
 	// Загружаем изображения
@@ -272,7 +272,7 @@ func (s *Storage) GetTVShow(ctx context.Context, tvID uint64) (*tvshowlibrary.TV
 }
 
 func (s *Storage) GetTVShows(ctx context.Context) ([]tvshowlibrary.TVShowShort, error) {
-	rows, err := s.next(ctx).QueryContext(ctx, `
+	rows, err := s.base.Next(ctx).QueryContext(ctx, `
         SELECT 
             ts.id, ts.name, ts.original_name, ts.overview,
             ts.first_air_date, ts.vote_average, ts.vote_count, ts.popularity,
@@ -334,17 +334,17 @@ func (s *Storage) GetTVShows(ctx context.Context) ([]tvshowlibrary.TVShowShort, 
 func (s *Storage) GetSeasonEpisodes(ctx context.Context, tvID uint64, seasonNumber int) ([]tvshowlibrary.Episode, error) {
 	// First get the season ID for the given TV show and season number
 	var seasonID uint64
-	err := s.next(ctx).QueryRowContext(ctx, `
+	err := s.base.Next(ctx).QueryRowContext(ctx, `
         SELECT id FROM seasons 
         WHERE tv_show_id = ? AND season_number = ?
     `, tvID, seasonNumber).Scan(&seasonID)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get season ID: %w", handleError(err))
+		return nil, fmt.Errorf("failed to get season ID: %w", s.base.HandleError(err))
 	}
 
 	// Now get all episodes for this season
-	rows, err := s.next(ctx).QueryContext(ctx, `
+	rows, err := s.base.Next(ctx).QueryContext(ctx, `
         SELECT 
             e.id, e.air_date, e.episode_number, e.episode_type,
             e.name, e.overview, e.runtime, e.still_id,
@@ -355,7 +355,7 @@ func (s *Storage) GetSeasonEpisodes(ctx context.Context, tvID uint64, seasonNumb
     `, seasonID)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to query episodes: %w", handleError(err))
+		return nil, fmt.Errorf("failed to query episodes: %w", s.base.HandleError(err))
 	}
 	defer rows.Close()
 
@@ -402,13 +402,13 @@ func (s *Storage) SaveOrUpdateSeasonEpisode(ctx context.Context, tvID uint64, se
 	return s.RunTransaction(ctx, func(tCtx context.Context) error {
 		// First get the season ID for the given TV show and season number
 		var seasonID uint64
-		err := s.next(tCtx).QueryRowContext(tCtx, `
+		err := s.base.Next(tCtx).QueryRowContext(tCtx, `
             SELECT id FROM seasons 
             WHERE tv_show_id = ? AND season_number = ?
         `, tvID, seasonNumber).Scan(&seasonID)
 
 		if err != nil {
-			return fmt.Errorf("failed to get season ID: %w", handleError(err))
+			return fmt.Errorf("failed to get season ID: %w", s.base.HandleError(err))
 		}
 
 		// Prepare the query for inserting/updating episodes
@@ -432,7 +432,7 @@ func (s *Storage) SaveOrUpdateSeasonEpisode(ctx context.Context, tvID uint64, se
 
 			// Insert/update episode
 			stillID := lo.EmptyableToPtr(lo.FromPtr(episode.Still).ID)
-			_, err = s.next(tCtx).ExecContext(tCtx, episodeQuery,
+			_, err = s.base.Next(tCtx).ExecContext(tCtx, episodeQuery,
 				episode.ID,
 				seasonID,
 				episode.AirDate,
@@ -447,7 +447,7 @@ func (s *Storage) SaveOrUpdateSeasonEpisode(ctx context.Context, tvID uint64, se
 			)
 
 			if err != nil {
-				return handleError(err)
+				return s.base.HandleError(err)
 			}
 		}
 

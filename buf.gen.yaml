@@ -1,0 +1,19 @@
+version: v2
+plugins:
+  - local: protoc-gen-go
+    out: pkg/gen
+    opt: paths=source_relative
+  - local: protoc-gen-go-grpc
+    out: pkg/gen
+    opt: paths=source_relative
+  - local: protoc-gen-grpc-gateway
+    out: pkg/gen
+    opt: paths=source_relative
+  - local: protoc-gen-openapiv2
+    out: swagger
+    opt:
+      - allow_merge=true
+      - merge_file_name=api
+      - json_names_for_fields=false
+      - openapi_naming_strategy=simple
+      - output_format=json
