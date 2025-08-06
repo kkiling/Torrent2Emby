@@ -20,6 +20,100 @@
     "application/json"
   ],
   "paths": {
+    "/v1/tvshow/get/{tv_show_id}": {
+      "get": {
+        "summary": "Получение подробной информации о сериале",
+        "operationId": "TVShowLibraryService_GetTVShowInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/GetTVShowInfoResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tv_show_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "TVShowLibraryService"
+        ]
+      }
+    },
+    "/v1/tvshow/get/{tv_show_id}/{season_number}": {
+      "get": {
+        "summary": "Получение информации о сериях сезона",
+        "operationId": "TVShowLibraryService_GetSeasonEpisodes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/GetSeasonEpisodesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tv_show_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "season_number",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "TVShowLibraryService"
+        ]
+      }
+    },
+    "/v1/tvshow/library": {
+      "get": {
+        "summary": "Получение списка сериалов из библиотеки",
+        "operationId": "TVShowLibraryService_GetTVShowsFromLibrary",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/GetTVShowsFromLibraryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "tags": [
+          "TVShowLibraryService"
+        ]
+      }
+    },
     "/v1/tvshow/search": {
       "get": {
         "summary": "Поиск сериалов по названию",
@@ -62,6 +156,93 @@
       },
       "additionalProperties": {}
     },
+    "Episode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "air_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "episode_number": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "episode_type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "overview": {
+          "type": "string"
+        },
+        "runtime": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "still": {
+          "$ref": "#/definitions/Image"
+        },
+        "vote_average": {
+          "type": "number",
+          "format": "float"
+        },
+        "vote_count": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "GetSeasonEpisodesResponse": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Episode"
+          }
+        }
+      }
+    },
+    "GetTVShowInfoResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/TVShow"
+        }
+      }
+    },
+    "GetTVShowsFromLibraryResponse": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/TVShowShort"
+          }
+        }
+      }
+    },
+    "Image": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "w342": {
+          "type": "string"
+        },
+        "original": {
+          "type": "string"
+        }
+      }
+    },
     "SearchTVShowResponse": {
       "type": "object",
       "properties": {
@@ -71,6 +252,40 @@
             "type": "object",
             "$ref": "#/definitions/TVShowShort"
           }
+        }
+      }
+    },
+    "Season": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "air_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "episode_count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "name": {
+          "type": "string"
+        },
+        "overview": {
+          "type": "string"
+        },
+        "poster": {
+          "$ref": "#/definitions/Image"
+        },
+        "season_number": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "vote_average": {
+          "type": "number",
+          "format": "float"
         }
       }
     },
@@ -93,6 +308,90 @@
         }
       }
     },
+    "TVShow": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "original_name": {
+          "type": "string"
+        },
+        "overview": {
+          "type": "string"
+        },
+        "poster": {
+          "$ref": "#/definitions/Image"
+        },
+        "first_air_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "vote_average": {
+          "type": "number",
+          "format": "float"
+        },
+        "vote_count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "popularity": {
+          "type": "number",
+          "format": "float"
+        },
+        "backdrop": {
+          "$ref": "#/definitions/Image"
+        },
+        "genres": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "last_air_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "next_episode_to_air": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "number_of_episodes": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "number_of_seasons": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "origin_country": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string"
+        },
+        "tagline": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "seasons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Season"
+          }
+        }
+      }
+    },
     "TVShowShort": {
       "type": "object",
       "properties": {
@@ -102,6 +401,31 @@
         },
         "name": {
           "type": "string"
+        },
+        "original_name": {
+          "type": "string"
+        },
+        "overview": {
+          "type": "string"
+        },
+        "poster": {
+          "$ref": "#/definitions/Image"
+        },
+        "first_air_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "vote_average": {
+          "type": "number",
+          "format": "float"
+        },
+        "vote_count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "popularity": {
+          "type": "number",
+          "format": "float"
         }
       }
     }

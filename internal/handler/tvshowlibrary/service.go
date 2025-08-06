@@ -1,6 +1,8 @@
 package tvshowlibrary
 
 import (
+	"context"
+	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 	"net/http"
 
 	"github.com/kkiling/goplatform/log"
@@ -12,6 +14,10 @@ import (
 
 // TVShowLibrary юзеркейс авторизации
 type TVShowLibrary interface {
+	SearchTVShow(ctx context.Context, params tvshowlibrary.TVShowSearchParams) (*tvshowlibrary.TVShowSearchResult, error)
+	GetTVShowInfo(ctx context.Context, params tvshowlibrary.GetTVShowParams) (*tvshowlibrary.GetTVShowResult, error)
+	GetSeasonEpisodes(ctx context.Context, params tvshowlibrary.GetSeasonEpisodesParams) (*tvshowlibrary.GetSeasonEpisodesResult, error)
+	GetTVShowsFromLibrary(ctx context.Context, params tvshowlibrary.GetTVShowsFromLibraryParams) (*tvshowlibrary.GetTVShowsFromLibraryResult, error)
 }
 
 type Handler struct {

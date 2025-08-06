@@ -41,6 +41,7 @@ func main() {
 			MaxReceiveMessageLength: 63554432,
 			ShutdownTimeout:         3,
 		},
+		cn.GetTvShowLibrary(),
 	)
 	go func() {
 		err = srv.Start(ctx)

@@ -18,12 +18,13 @@ type Torrent2EmbyServer struct {
 func NewTorrent2EmbyServer(
 	logger log.Logger,
 	cfg server.Config,
+	tvShowLibrary tvshowlibrary.TVShowLibrary,
 ) *Torrent2EmbyServer {
 	return &Torrent2EmbyServer{
 		CustomServer: NewCustomServer(
 			logger,
 			cfg,
-			tvshowlibrary.NewHandler(logger, nil),
+			tvshowlibrary.NewHandler(logger, tvShowLibrary),
 		),
 	}
 }

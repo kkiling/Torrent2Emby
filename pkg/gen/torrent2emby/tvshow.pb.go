@@ -12,7 +12,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/known/emptypb"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -25,17 +25,84 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Image struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	W342          string                 `protobuf:"bytes,2,opt,name=w342,proto3" json:"w342,omitempty"`
+	Original      string                 `protobuf:"bytes,3,opt,name=original,proto3" json:"original,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Image) Reset() {
+	*x = Image{}
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Image) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Image) ProtoMessage() {}
+
+func (x *Image) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Image.ProtoReflect.Descriptor instead.
+func (*Image) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Image) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Image) GetW342() string {
+	if x != nil {
+		return x.W342
+	}
+	return ""
+}
+
+func (x *Image) GetOriginal() string {
+	if x != nil {
+		return x.Original
+	}
+	return ""
+}
+
 type TVShowShort struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	OriginalName  string                 `protobuf:"bytes,3,opt,name=original_name,json=originalName,proto3" json:"original_name,omitempty"`
+	Overview      string                 `protobuf:"bytes,4,opt,name=overview,proto3" json:"overview,omitempty"`
+	Poster        *Image                 `protobuf:"bytes,5,opt,name=poster,proto3,oneof" json:"poster,omitempty"`
+	FirstAirDate  *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=first_air_date,json=firstAirDate,proto3" json:"first_air_date,omitempty"`
+	VoteAverage   float32                `protobuf:"fixed32,7,opt,name=vote_average,json=voteAverage,proto3" json:"vote_average,omitempty"`
+	VoteCount     int32                  `protobuf:"varint,8,opt,name=vote_count,json=voteCount,proto3" json:"vote_count,omitempty"`
+	Popularity    float32                `protobuf:"fixed32,9,opt,name=popularity,proto3" json:"popularity,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TVShowShort) Reset() {
 	*x = TVShowShort{}
-	mi := &file_torrent2emby_tvshow_proto_msgTypes[0]
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -47,7 +114,7 @@ func (x *TVShowShort) String() string {
 func (*TVShowShort) ProtoMessage() {}
 
 func (x *TVShowShort) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_tvshow_proto_msgTypes[0]
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -60,7 +127,7 @@ func (x *TVShowShort) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TVShowShort.ProtoReflect.Descriptor instead.
 func (*TVShowShort) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{0}
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *TVShowShort) GetId() uint64 {
@@ -77,6 +144,467 @@ func (x *TVShowShort) GetName() string {
 	return ""
 }
 
+func (x *TVShowShort) GetOriginalName() string {
+	if x != nil {
+		return x.OriginalName
+	}
+	return ""
+}
+
+func (x *TVShowShort) GetOverview() string {
+	if x != nil {
+		return x.Overview
+	}
+	return ""
+}
+
+func (x *TVShowShort) GetPoster() *Image {
+	if x != nil {
+		return x.Poster
+	}
+	return nil
+}
+
+func (x *TVShowShort) GetFirstAirDate() *timestamppb.Timestamp {
+	if x != nil {
+		return x.FirstAirDate
+	}
+	return nil
+}
+
+func (x *TVShowShort) GetVoteAverage() float32 {
+	if x != nil {
+		return x.VoteAverage
+	}
+	return 0
+}
+
+func (x *TVShowShort) GetVoteCount() int32 {
+	if x != nil {
+		return x.VoteCount
+	}
+	return 0
+}
+
+func (x *TVShowShort) GetPopularity() float32 {
+	if x != nil {
+		return x.Popularity
+	}
+	return 0
+}
+
+type TVShow struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name             string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	OriginalName     string                 `protobuf:"bytes,3,opt,name=original_name,json=originalName,proto3" json:"original_name,omitempty"`
+	Overview         string                 `protobuf:"bytes,4,opt,name=overview,proto3" json:"overview,omitempty"`
+	Poster           *Image                 `protobuf:"bytes,5,opt,name=poster,proto3,oneof" json:"poster,omitempty"`
+	FirstAirDate     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=first_air_date,json=firstAirDate,proto3" json:"first_air_date,omitempty"`
+	VoteAverage      float32                `protobuf:"fixed32,7,opt,name=vote_average,json=voteAverage,proto3" json:"vote_average,omitempty"`
+	VoteCount        int32                  `protobuf:"varint,8,opt,name=vote_count,json=voteCount,proto3" json:"vote_count,omitempty"`
+	Popularity       float32                `protobuf:"fixed32,9,opt,name=popularity,proto3" json:"popularity,omitempty"`
+	Backdrop         *Image                 `protobuf:"bytes,10,opt,name=backdrop,proto3,oneof" json:"backdrop,omitempty"`
+	Genres           []string               `protobuf:"bytes,11,rep,name=genres,proto3" json:"genres,omitempty"`
+	LastAirDate      *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=last_air_date,json=lastAirDate,proto3" json:"last_air_date,omitempty"`
+	NextEpisodeToAir *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=next_episode_to_air,json=nextEpisodeToAir,proto3" json:"next_episode_to_air,omitempty"`
+	NumberOfEpisodes int32                  `protobuf:"varint,14,opt,name=number_of_episodes,json=numberOfEpisodes,proto3" json:"number_of_episodes,omitempty"`
+	NumberOfSeasons  int32                  `protobuf:"varint,15,opt,name=number_of_seasons,json=numberOfSeasons,proto3" json:"number_of_seasons,omitempty"`
+	OriginCountry    []string               `protobuf:"bytes,16,rep,name=origin_country,json=originCountry,proto3" json:"origin_country,omitempty"`
+	Status           string                 `protobuf:"bytes,17,opt,name=status,proto3" json:"status,omitempty"`
+	Tagline          string                 `protobuf:"bytes,18,opt,name=tagline,proto3" json:"tagline,omitempty"`
+	Type             string                 `protobuf:"bytes,19,opt,name=type,proto3" json:"type,omitempty"`
+	Seasons          []*Season              `protobuf:"bytes,20,rep,name=seasons,proto3" json:"seasons,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *TVShow) Reset() {
+	*x = TVShow{}
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TVShow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TVShow) ProtoMessage() {}
+
+func (x *TVShow) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TVShow.ProtoReflect.Descriptor instead.
+func (*TVShow) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *TVShow) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *TVShow) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *TVShow) GetOriginalName() string {
+	if x != nil {
+		return x.OriginalName
+	}
+	return ""
+}
+
+func (x *TVShow) GetOverview() string {
+	if x != nil {
+		return x.Overview
+	}
+	return ""
+}
+
+func (x *TVShow) GetPoster() *Image {
+	if x != nil {
+		return x.Poster
+	}
+	return nil
+}
+
+func (x *TVShow) GetFirstAirDate() *timestamppb.Timestamp {
+	if x != nil {
+		return x.FirstAirDate
+	}
+	return nil
+}
+
+func (x *TVShow) GetVoteAverage() float32 {
+	if x != nil {
+		return x.VoteAverage
+	}
+	return 0
+}
+
+func (x *TVShow) GetVoteCount() int32 {
+	if x != nil {
+		return x.VoteCount
+	}
+	return 0
+}
+
+func (x *TVShow) GetPopularity() float32 {
+	if x != nil {
+		return x.Popularity
+	}
+	return 0
+}
+
+func (x *TVShow) GetBackdrop() *Image {
+	if x != nil {
+		return x.Backdrop
+	}
+	return nil
+}
+
+func (x *TVShow) GetGenres() []string {
+	if x != nil {
+		return x.Genres
+	}
+	return nil
+}
+
+func (x *TVShow) GetLastAirDate() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastAirDate
+	}
+	return nil
+}
+
+func (x *TVShow) GetNextEpisodeToAir() *timestamppb.Timestamp {
+	if x != nil {
+		return x.NextEpisodeToAir
+	}
+	return nil
+}
+
+func (x *TVShow) GetNumberOfEpisodes() int32 {
+	if x != nil {
+		return x.NumberOfEpisodes
+	}
+	return 0
+}
+
+func (x *TVShow) GetNumberOfSeasons() int32 {
+	if x != nil {
+		return x.NumberOfSeasons
+	}
+	return 0
+}
+
+func (x *TVShow) GetOriginCountry() []string {
+	if x != nil {
+		return x.OriginCountry
+	}
+	return nil
+}
+
+func (x *TVShow) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *TVShow) GetTagline() string {
+	if x != nil {
+		return x.Tagline
+	}
+	return ""
+}
+
+func (x *TVShow) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *TVShow) GetSeasons() []*Season {
+	if x != nil {
+		return x.Seasons
+	}
+	return nil
+}
+
+type Season struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	AirDate       *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=air_date,json=airDate,proto3" json:"air_date,omitempty"`
+	EpisodeCount  int32                  `protobuf:"varint,3,opt,name=episode_count,json=episodeCount,proto3" json:"episode_count,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Overview      string                 `protobuf:"bytes,5,opt,name=overview,proto3" json:"overview,omitempty"`
+	Poster        *Image                 `protobuf:"bytes,6,opt,name=poster,proto3,oneof" json:"poster,omitempty"`
+	SeasonNumber  int32                  `protobuf:"varint,7,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
+	VoteAverage   float32                `protobuf:"fixed32,8,opt,name=vote_average,json=voteAverage,proto3" json:"vote_average,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Season) Reset() {
+	*x = Season{}
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Season) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Season) ProtoMessage() {}
+
+func (x *Season) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Season.ProtoReflect.Descriptor instead.
+func (*Season) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Season) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Season) GetAirDate() *timestamppb.Timestamp {
+	if x != nil {
+		return x.AirDate
+	}
+	return nil
+}
+
+func (x *Season) GetEpisodeCount() int32 {
+	if x != nil {
+		return x.EpisodeCount
+	}
+	return 0
+}
+
+func (x *Season) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Season) GetOverview() string {
+	if x != nil {
+		return x.Overview
+	}
+	return ""
+}
+
+func (x *Season) GetPoster() *Image {
+	if x != nil {
+		return x.Poster
+	}
+	return nil
+}
+
+func (x *Season) GetSeasonNumber() int32 {
+	if x != nil {
+		return x.SeasonNumber
+	}
+	return 0
+}
+
+func (x *Season) GetVoteAverage() float32 {
+	if x != nil {
+		return x.VoteAverage
+	}
+	return 0
+}
+
+type Episode struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	AirDate       *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=air_date,json=airDate,proto3" json:"air_date,omitempty"`
+	EpisodeNumber int32                  `protobuf:"varint,3,opt,name=episode_number,json=episodeNumber,proto3" json:"episode_number,omitempty"`
+	EpisodeType   string                 `protobuf:"bytes,4,opt,name=episode_type,json=episodeType,proto3" json:"episode_type,omitempty"`
+	Name          string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
+	Overview      string                 `protobuf:"bytes,6,opt,name=overview,proto3" json:"overview,omitempty"`
+	Runtime       int32                  `protobuf:"varint,7,opt,name=runtime,proto3" json:"runtime,omitempty"`
+	Still         *Image                 `protobuf:"bytes,8,opt,name=still,proto3,oneof" json:"still,omitempty"`
+	VoteAverage   float32                `protobuf:"fixed32,9,opt,name=vote_average,json=voteAverage,proto3" json:"vote_average,omitempty"`
+	VoteCount     int32                  `protobuf:"varint,10,opt,name=vote_count,json=voteCount,proto3" json:"vote_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Episode) Reset() {
+	*x = Episode{}
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Episode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Episode) ProtoMessage() {}
+
+func (x *Episode) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Episode.ProtoReflect.Descriptor instead.
+func (*Episode) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Episode) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Episode) GetAirDate() *timestamppb.Timestamp {
+	if x != nil {
+		return x.AirDate
+	}
+	return nil
+}
+
+func (x *Episode) GetEpisodeNumber() int32 {
+	if x != nil {
+		return x.EpisodeNumber
+	}
+	return 0
+}
+
+func (x *Episode) GetEpisodeType() string {
+	if x != nil {
+		return x.EpisodeType
+	}
+	return ""
+}
+
+func (x *Episode) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Episode) GetOverview() string {
+	if x != nil {
+		return x.Overview
+	}
+	return ""
+}
+
+func (x *Episode) GetRuntime() int32 {
+	if x != nil {
+		return x.Runtime
+	}
+	return 0
+}
+
+func (x *Episode) GetStill() *Image {
+	if x != nil {
+		return x.Still
+	}
+	return nil
+}
+
+func (x *Episode) GetVoteAverage() float32 {
+	if x != nil {
+		return x.VoteAverage
+	}
+	return 0
+}
+
+func (x *Episode) GetVoteCount() int32 {
+	if x != nil {
+		return x.VoteCount
+	}
+	return 0
+}
+
 type SearchTVShowRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
@@ -86,7 +614,7 @@ type SearchTVShowRequest struct {
 
 func (x *SearchTVShowRequest) Reset() {
 	*x = SearchTVShowRequest{}
-	mi := &file_torrent2emby_tvshow_proto_msgTypes[1]
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -98,7 +626,7 @@ func (x *SearchTVShowRequest) String() string {
 func (*SearchTVShowRequest) ProtoMessage() {}
 
 func (x *SearchTVShowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_tvshow_proto_msgTypes[1]
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -111,7 +639,7 @@ func (x *SearchTVShowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchTVShowRequest.ProtoReflect.Descriptor instead.
 func (*SearchTVShowRequest) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{1}
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SearchTVShowRequest) GetQuery() string {
@@ -130,7 +658,7 @@ type SearchTVShowResponse struct {
 
 func (x *SearchTVShowResponse) Reset() {
 	*x = SearchTVShowResponse{}
-	mi := &file_torrent2emby_tvshow_proto_msgTypes[2]
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -142,7 +670,7 @@ func (x *SearchTVShowResponse) String() string {
 func (*SearchTVShowResponse) ProtoMessage() {}
 
 func (x *SearchTVShowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_tvshow_proto_msgTypes[2]
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -155,10 +683,274 @@ func (x *SearchTVShowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchTVShowResponse.ProtoReflect.Descriptor instead.
 func (*SearchTVShowResponse) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{2}
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SearchTVShowResponse) GetItems() []*TVShowShort {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type GetTVShowInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TvShowId      uint64                 `protobuf:"varint,1,opt,name=tv_show_id,json=tvShowId,proto3" json:"tv_show_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTVShowInfoRequest) Reset() {
+	*x = GetTVShowInfoRequest{}
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTVShowInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTVShowInfoRequest) ProtoMessage() {}
+
+func (x *GetTVShowInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTVShowInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetTVShowInfoRequest) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetTVShowInfoRequest) GetTvShowId() uint64 {
+	if x != nil {
+		return x.TvShowId
+	}
+	return 0
+}
+
+type GetTVShowInfoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Result        *TVShow                `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTVShowInfoResponse) Reset() {
+	*x = GetTVShowInfoResponse{}
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTVShowInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTVShowInfoResponse) ProtoMessage() {}
+
+func (x *GetTVShowInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTVShowInfoResponse.ProtoReflect.Descriptor instead.
+func (*GetTVShowInfoResponse) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetTVShowInfoResponse) GetResult() *TVShow {
+	if x != nil {
+		return x.Result
+	}
+	return nil
+}
+
+type GetSeasonEpisodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TvShowId      uint64                 `protobuf:"varint,1,opt,name=tv_show_id,json=tvShowId,proto3" json:"tv_show_id,omitempty"`
+	SeasonNumber  int32                  `protobuf:"varint,2,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSeasonEpisodesRequest) Reset() {
+	*x = GetSeasonEpisodesRequest{}
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSeasonEpisodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSeasonEpisodesRequest) ProtoMessage() {}
+
+func (x *GetSeasonEpisodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSeasonEpisodesRequest.ProtoReflect.Descriptor instead.
+func (*GetSeasonEpisodesRequest) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetSeasonEpisodesRequest) GetTvShowId() uint64 {
+	if x != nil {
+		return x.TvShowId
+	}
+	return 0
+}
+
+func (x *GetSeasonEpisodesRequest) GetSeasonNumber() int32 {
+	if x != nil {
+		return x.SeasonNumber
+	}
+	return 0
+}
+
+type GetSeasonEpisodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*Episode             `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSeasonEpisodesResponse) Reset() {
+	*x = GetSeasonEpisodesResponse{}
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSeasonEpisodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSeasonEpisodesResponse) ProtoMessage() {}
+
+func (x *GetSeasonEpisodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSeasonEpisodesResponse.ProtoReflect.Descriptor instead.
+func (*GetSeasonEpisodesResponse) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetSeasonEpisodesResponse) GetItems() []*Episode {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type GetTVShowsFromLibraryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTVShowsFromLibraryRequest) Reset() {
+	*x = GetTVShowsFromLibraryRequest{}
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTVShowsFromLibraryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTVShowsFromLibraryRequest) ProtoMessage() {}
+
+func (x *GetTVShowsFromLibraryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTVShowsFromLibraryRequest.ProtoReflect.Descriptor instead.
+func (*GetTVShowsFromLibraryRequest) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{11}
+}
+
+type GetTVShowsFromLibraryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*TVShowShort         `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTVShowsFromLibraryResponse) Reset() {
+	*x = GetTVShowsFromLibraryResponse{}
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTVShowsFromLibraryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTVShowsFromLibraryResponse) ProtoMessage() {}
+
+func (x *GetTVShowsFromLibraryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_tvshow_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTVShowsFromLibraryResponse.ProtoReflect.Descriptor instead.
+func (*GetTVShowsFromLibraryResponse) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_tvshow_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetTVShowsFromLibraryResponse) GetItems() []*TVShowShort {
 	if x != nil {
 		return x.Items
 	}
@@ -169,16 +961,99 @@ var File_torrent2emby_tvshow_proto protoreflect.FileDescriptor
 
 const file_torrent2emby_tvshow_proto_rawDesc = "" +
 	"\n" +
-	"\x19torrent2emby/tvshow.proto\x12\ftorrent2emby\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"1\n" +
+	"\x19torrent2emby/tvshow.proto\x12\ftorrent2emby\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"G\n" +
+	"\x05Image\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04w342\x18\x02 \x01(\tR\x04w342\x12\x1a\n" +
+	"\boriginal\x18\x03 \x01(\tR\boriginal\"\xd3\x02\n" +
 	"\vTVShowShort\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"+\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12#\n" +
+	"\roriginal_name\x18\x03 \x01(\tR\foriginalName\x12\x1a\n" +
+	"\boverview\x18\x04 \x01(\tR\boverview\x120\n" +
+	"\x06poster\x18\x05 \x01(\v2\x13.torrent2emby.ImageH\x00R\x06poster\x88\x01\x01\x12@\n" +
+	"\x0efirst_air_date\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ffirstAirDate\x12!\n" +
+	"\fvote_average\x18\a \x01(\x02R\vvoteAverage\x12\x1d\n" +
+	"\n" +
+	"vote_count\x18\b \x01(\x05R\tvoteCount\x12\x1e\n" +
+	"\n" +
+	"popularity\x18\t \x01(\x02R\n" +
+	"popularityB\t\n" +
+	"\a_poster\"\xab\x06\n" +
+	"\x06TVShow\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12#\n" +
+	"\roriginal_name\x18\x03 \x01(\tR\foriginalName\x12\x1a\n" +
+	"\boverview\x18\x04 \x01(\tR\boverview\x120\n" +
+	"\x06poster\x18\x05 \x01(\v2\x13.torrent2emby.ImageH\x00R\x06poster\x88\x01\x01\x12@\n" +
+	"\x0efirst_air_date\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ffirstAirDate\x12!\n" +
+	"\fvote_average\x18\a \x01(\x02R\vvoteAverage\x12\x1d\n" +
+	"\n" +
+	"vote_count\x18\b \x01(\x05R\tvoteCount\x12\x1e\n" +
+	"\n" +
+	"popularity\x18\t \x01(\x02R\n" +
+	"popularity\x124\n" +
+	"\bbackdrop\x18\n" +
+	" \x01(\v2\x13.torrent2emby.ImageH\x01R\bbackdrop\x88\x01\x01\x12\x16\n" +
+	"\x06genres\x18\v \x03(\tR\x06genres\x12>\n" +
+	"\rlast_air_date\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\vlastAirDate\x12I\n" +
+	"\x13next_episode_to_air\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\x10nextEpisodeToAir\x12,\n" +
+	"\x12number_of_episodes\x18\x0e \x01(\x05R\x10numberOfEpisodes\x12*\n" +
+	"\x11number_of_seasons\x18\x0f \x01(\x05R\x0fnumberOfSeasons\x12%\n" +
+	"\x0eorigin_country\x18\x10 \x03(\tR\roriginCountry\x12\x16\n" +
+	"\x06status\x18\x11 \x01(\tR\x06status\x12\x18\n" +
+	"\atagline\x18\x12 \x01(\tR\atagline\x12\x12\n" +
+	"\x04type\x18\x13 \x01(\tR\x04type\x12.\n" +
+	"\aseasons\x18\x14 \x03(\v2\x14.torrent2emby.SeasonR\aseasonsB\t\n" +
+	"\a_posterB\v\n" +
+	"\t_backdrop\"\xa9\x02\n" +
+	"\x06Season\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x125\n" +
+	"\bair_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aairDate\x12#\n" +
+	"\repisode_count\x18\x03 \x01(\x05R\fepisodeCount\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1a\n" +
+	"\boverview\x18\x05 \x01(\tR\boverview\x120\n" +
+	"\x06poster\x18\x06 \x01(\v2\x13.torrent2emby.ImageH\x00R\x06poster\x88\x01\x01\x12#\n" +
+	"\rseason_number\x18\a \x01(\x05R\fseasonNumber\x12!\n" +
+	"\fvote_average\x18\b \x01(\x02R\vvoteAverageB\t\n" +
+	"\a_poster\"\xe0\x02\n" +
+	"\aEpisode\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x125\n" +
+	"\bair_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aairDate\x12%\n" +
+	"\x0eepisode_number\x18\x03 \x01(\x05R\repisodeNumber\x12!\n" +
+	"\fepisode_type\x18\x04 \x01(\tR\vepisodeType\x12\x12\n" +
+	"\x04name\x18\x05 \x01(\tR\x04name\x12\x1a\n" +
+	"\boverview\x18\x06 \x01(\tR\boverview\x12\x18\n" +
+	"\aruntime\x18\a \x01(\x05R\aruntime\x12.\n" +
+	"\x05still\x18\b \x01(\v2\x13.torrent2emby.ImageH\x00R\x05still\x88\x01\x01\x12!\n" +
+	"\fvote_average\x18\t \x01(\x02R\vvoteAverage\x12\x1d\n" +
+	"\n" +
+	"vote_count\x18\n" +
+	" \x01(\x05R\tvoteCountB\b\n" +
+	"\x06_still\"+\n" +
 	"\x13SearchTVShowRequest\x12\x14\n" +
 	"\x05query\x18\x01 \x01(\tR\x05query\"G\n" +
 	"\x14SearchTVShowResponse\x12/\n" +
-	"\x05items\x18\x01 \x03(\v2\x19.torrent2emby.TVShowShortR\x05items2\xbf\x01\n" +
+	"\x05items\x18\x01 \x03(\v2\x19.torrent2emby.TVShowShortR\x05items\"4\n" +
+	"\x14GetTVShowInfoRequest\x12\x1c\n" +
+	"\n" +
+	"tv_show_id\x18\x01 \x01(\x04R\btvShowId\"E\n" +
+	"\x15GetTVShowInfoResponse\x12,\n" +
+	"\x06result\x18\x01 \x01(\v2\x14.torrent2emby.TVShowR\x06result\"]\n" +
+	"\x18GetSeasonEpisodesRequest\x12\x1c\n" +
+	"\n" +
+	"tv_show_id\x18\x01 \x01(\x04R\btvShowId\x12#\n" +
+	"\rseason_number\x18\x02 \x01(\x05R\fseasonNumber\"H\n" +
+	"\x19GetSeasonEpisodesResponse\x12+\n" +
+	"\x05items\x18\x01 \x03(\v2\x15.torrent2emby.EpisodeR\x05items\"\x1e\n" +
+	"\x1cGetTVShowsFromLibraryRequest\"P\n" +
+	"\x1dGetTVShowsFromLibraryResponse\x12/\n" +
+	"\x05items\x18\x01 \x03(\v2\x19.torrent2emby.TVShowShortR\x05items2\xd3\x06\n" +
 	"\x14TVShowLibraryService\x12\xa6\x01\n" +
-	"\fSearchTVShow\x12!.torrent2emby.SearchTVShowRequest\x1a\".torrent2emby.SearchTVShowResponse\"O\x92A3\x121Поиск сериалов по названию\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/tvshow/searchB%Z#github.com/kkiling/torrent2emby/apib\x06proto3"
+	"\fSearchTVShow\x12!.torrent2emby.SearchTVShowRequest\x1a\".torrent2emby.SearchTVShowResponse\"O\x92A3\x121Поиск сериалов по названию\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/tvshow/search\x12\xce\x01\n" +
+	"\rGetTVShowInfo\x12\".torrent2emby.GetTVShowInfoRequest\x1a#.torrent2emby.GetTVShowInfoResponse\"t\x92AN\x12LПолучение подробной информации о сериале\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/tvshow/get/{tv_show_id}\x12\xe2\x01\n" +
+	"\x11GetSeasonEpisodes\x12&.torrent2emby.GetSeasonEpisodesRequest\x1a'.torrent2emby.GetSeasonEpisodesResponse\"|\x92AF\x12DПолучение информации о сериях сезона\x82\xd3\xe4\x93\x02-\x12+/v1/tvshow/get/{tv_show_id}/{season_number}\x12\xdb\x01\n" +
+	"\x15GetTVShowsFromLibrary\x12*.torrent2emby.GetTVShowsFromLibraryRequest\x1a+.torrent2emby.GetTVShowsFromLibraryResponse\"i\x92AL\x12JПолучение списка сериалов из библиотеки\x82\xd3\xe4\x93\x02\x14\x12\x12/v1/tvshow/libraryB%Z#github.com/kkiling/torrent2emby/apib\x06proto3"
 
 var (
 	file_torrent2emby_tvshow_proto_rawDescOnce sync.Once
@@ -192,21 +1067,53 @@ func file_torrent2emby_tvshow_proto_rawDescGZIP() []byte {
 	return file_torrent2emby_tvshow_proto_rawDescData
 }
 
-var file_torrent2emby_tvshow_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_torrent2emby_tvshow_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_torrent2emby_tvshow_proto_goTypes = []any{
-	(*TVShowShort)(nil),          // 0: torrent2emby.TVShowShort
-	(*SearchTVShowRequest)(nil),  // 1: torrent2emby.SearchTVShowRequest
-	(*SearchTVShowResponse)(nil), // 2: torrent2emby.SearchTVShowResponse
+	(*Image)(nil),                         // 0: torrent2emby.Image
+	(*TVShowShort)(nil),                   // 1: torrent2emby.TVShowShort
+	(*TVShow)(nil),                        // 2: torrent2emby.TVShow
+	(*Season)(nil),                        // 3: torrent2emby.Season
+	(*Episode)(nil),                       // 4: torrent2emby.Episode
+	(*SearchTVShowRequest)(nil),           // 5: torrent2emby.SearchTVShowRequest
+	(*SearchTVShowResponse)(nil),          // 6: torrent2emby.SearchTVShowResponse
+	(*GetTVShowInfoRequest)(nil),          // 7: torrent2emby.GetTVShowInfoRequest
+	(*GetTVShowInfoResponse)(nil),         // 8: torrent2emby.GetTVShowInfoResponse
+	(*GetSeasonEpisodesRequest)(nil),      // 9: torrent2emby.GetSeasonEpisodesRequest
+	(*GetSeasonEpisodesResponse)(nil),     // 10: torrent2emby.GetSeasonEpisodesResponse
+	(*GetTVShowsFromLibraryRequest)(nil),  // 11: torrent2emby.GetTVShowsFromLibraryRequest
+	(*GetTVShowsFromLibraryResponse)(nil), // 12: torrent2emby.GetTVShowsFromLibraryResponse
+	(*timestamppb.Timestamp)(nil),         // 13: google.protobuf.Timestamp
 }
 var file_torrent2emby_tvshow_proto_depIdxs = []int32{
-	0, // 0: torrent2emby.SearchTVShowResponse.items:type_name -> torrent2emby.TVShowShort
-	1, // 1: torrent2emby.TVShowLibraryService.SearchTVShow:input_type -> torrent2emby.SearchTVShowRequest
-	2, // 2: torrent2emby.TVShowLibraryService.SearchTVShow:output_type -> torrent2emby.SearchTVShowResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0,  // 0: torrent2emby.TVShowShort.poster:type_name -> torrent2emby.Image
+	13, // 1: torrent2emby.TVShowShort.first_air_date:type_name -> google.protobuf.Timestamp
+	0,  // 2: torrent2emby.TVShow.poster:type_name -> torrent2emby.Image
+	13, // 3: torrent2emby.TVShow.first_air_date:type_name -> google.protobuf.Timestamp
+	0,  // 4: torrent2emby.TVShow.backdrop:type_name -> torrent2emby.Image
+	13, // 5: torrent2emby.TVShow.last_air_date:type_name -> google.protobuf.Timestamp
+	13, // 6: torrent2emby.TVShow.next_episode_to_air:type_name -> google.protobuf.Timestamp
+	3,  // 7: torrent2emby.TVShow.seasons:type_name -> torrent2emby.Season
+	13, // 8: torrent2emby.Season.air_date:type_name -> google.protobuf.Timestamp
+	0,  // 9: torrent2emby.Season.poster:type_name -> torrent2emby.Image
+	13, // 10: torrent2emby.Episode.air_date:type_name -> google.protobuf.Timestamp
+	0,  // 11: torrent2emby.Episode.still:type_name -> torrent2emby.Image
+	1,  // 12: torrent2emby.SearchTVShowResponse.items:type_name -> torrent2emby.TVShowShort
+	2,  // 13: torrent2emby.GetTVShowInfoResponse.result:type_name -> torrent2emby.TVShow
+	4,  // 14: torrent2emby.GetSeasonEpisodesResponse.items:type_name -> torrent2emby.Episode
+	1,  // 15: torrent2emby.GetTVShowsFromLibraryResponse.items:type_name -> torrent2emby.TVShowShort
+	5,  // 16: torrent2emby.TVShowLibraryService.SearchTVShow:input_type -> torrent2emby.SearchTVShowRequest
+	7,  // 17: torrent2emby.TVShowLibraryService.GetTVShowInfo:input_type -> torrent2emby.GetTVShowInfoRequest
+	9,  // 18: torrent2emby.TVShowLibraryService.GetSeasonEpisodes:input_type -> torrent2emby.GetSeasonEpisodesRequest
+	11, // 19: torrent2emby.TVShowLibraryService.GetTVShowsFromLibrary:input_type -> torrent2emby.GetTVShowsFromLibraryRequest
+	6,  // 20: torrent2emby.TVShowLibraryService.SearchTVShow:output_type -> torrent2emby.SearchTVShowResponse
+	8,  // 21: torrent2emby.TVShowLibraryService.GetTVShowInfo:output_type -> torrent2emby.GetTVShowInfoResponse
+	10, // 22: torrent2emby.TVShowLibraryService.GetSeasonEpisodes:output_type -> torrent2emby.GetSeasonEpisodesResponse
+	12, // 23: torrent2emby.TVShowLibraryService.GetTVShowsFromLibrary:output_type -> torrent2emby.GetTVShowsFromLibraryResponse
+	20, // [20:24] is the sub-list for method output_type
+	16, // [16:20] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_torrent2emby_tvshow_proto_init() }
@@ -214,13 +1121,17 @@ func file_torrent2emby_tvshow_proto_init() {
 	if File_torrent2emby_tvshow_proto != nil {
 		return
 	}
+	file_torrent2emby_tvshow_proto_msgTypes[1].OneofWrappers = []any{}
+	file_torrent2emby_tvshow_proto_msgTypes[2].OneofWrappers = []any{}
+	file_torrent2emby_tvshow_proto_msgTypes[3].OneofWrappers = []any{}
+	file_torrent2emby_tvshow_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_torrent2emby_tvshow_proto_rawDesc), len(file_torrent2emby_tvshow_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

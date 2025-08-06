@@ -70,6 +70,121 @@ func local_request_TVShowLibraryService_SearchTVShow_0(ctx context.Context, mars
 	return msg, metadata, err
 }
 
+func request_TVShowLibraryService_GetTVShowInfo_0(ctx context.Context, marshaler runtime.Marshaler, client TVShowLibraryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetTVShowInfoRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["tv_show_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tv_show_id")
+	}
+	protoReq.TvShowId, err = runtime.Uint64(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tv_show_id", err)
+	}
+	msg, err := client.GetTVShowInfo(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_TVShowLibraryService_GetTVShowInfo_0(ctx context.Context, marshaler runtime.Marshaler, server TVShowLibraryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetTVShowInfoRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["tv_show_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tv_show_id")
+	}
+	protoReq.TvShowId, err = runtime.Uint64(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tv_show_id", err)
+	}
+	msg, err := server.GetTVShowInfo(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_TVShowLibraryService_GetSeasonEpisodes_0(ctx context.Context, marshaler runtime.Marshaler, client TVShowLibraryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetSeasonEpisodesRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["tv_show_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tv_show_id")
+	}
+	protoReq.TvShowId, err = runtime.Uint64(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tv_show_id", err)
+	}
+	val, ok = pathParams["season_number"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "season_number")
+	}
+	protoReq.SeasonNumber, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "season_number", err)
+	}
+	msg, err := client.GetSeasonEpisodes(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_TVShowLibraryService_GetSeasonEpisodes_0(ctx context.Context, marshaler runtime.Marshaler, server TVShowLibraryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetSeasonEpisodesRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["tv_show_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tv_show_id")
+	}
+	protoReq.TvShowId, err = runtime.Uint64(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tv_show_id", err)
+	}
+	val, ok = pathParams["season_number"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "season_number")
+	}
+	protoReq.SeasonNumber, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "season_number", err)
+	}
+	msg, err := server.GetSeasonEpisodes(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_TVShowLibraryService_GetTVShowsFromLibrary_0(ctx context.Context, marshaler runtime.Marshaler, client TVShowLibraryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetTVShowsFromLibraryRequest
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.GetTVShowsFromLibrary(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_TVShowLibraryService_GetTVShowsFromLibrary_0(ctx context.Context, marshaler runtime.Marshaler, server TVShowLibraryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetTVShowsFromLibraryRequest
+		metadata runtime.ServerMetadata
+	)
+	msg, err := server.GetTVShowsFromLibrary(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 // RegisterTVShowLibraryServiceHandlerServer registers the http handlers for service TVShowLibraryService to "mux".
 // UnaryRPC     :call TVShowLibraryServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -95,6 +210,66 @@ func RegisterTVShowLibraryServiceHandlerServer(ctx context.Context, mux *runtime
 			return
 		}
 		forward_TVShowLibraryService_SearchTVShow_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_TVShowLibraryService_GetTVShowInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/torrent2emby.TVShowLibraryService/GetTVShowInfo", runtime.WithHTTPPathPattern("/v1/tvshow/get/{tv_show_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_TVShowLibraryService_GetTVShowInfo_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_TVShowLibraryService_GetTVShowInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_TVShowLibraryService_GetSeasonEpisodes_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/torrent2emby.TVShowLibraryService/GetSeasonEpisodes", runtime.WithHTTPPathPattern("/v1/tvshow/get/{tv_show_id}/{season_number}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_TVShowLibraryService_GetSeasonEpisodes_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_TVShowLibraryService_GetSeasonEpisodes_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_TVShowLibraryService_GetTVShowsFromLibrary_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/torrent2emby.TVShowLibraryService/GetTVShowsFromLibrary", runtime.WithHTTPPathPattern("/v1/tvshow/library"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_TVShowLibraryService_GetTVShowsFromLibrary_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_TVShowLibraryService_GetTVShowsFromLibrary_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -153,13 +328,70 @@ func RegisterTVShowLibraryServiceHandlerClient(ctx context.Context, mux *runtime
 		}
 		forward_TVShowLibraryService_SearchTVShow_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodGet, pattern_TVShowLibraryService_GetTVShowInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/torrent2emby.TVShowLibraryService/GetTVShowInfo", runtime.WithHTTPPathPattern("/v1/tvshow/get/{tv_show_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_TVShowLibraryService_GetTVShowInfo_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_TVShowLibraryService_GetTVShowInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_TVShowLibraryService_GetSeasonEpisodes_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/torrent2emby.TVShowLibraryService/GetSeasonEpisodes", runtime.WithHTTPPathPattern("/v1/tvshow/get/{tv_show_id}/{season_number}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_TVShowLibraryService_GetSeasonEpisodes_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_TVShowLibraryService_GetSeasonEpisodes_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_TVShowLibraryService_GetTVShowsFromLibrary_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/torrent2emby.TVShowLibraryService/GetTVShowsFromLibrary", runtime.WithHTTPPathPattern("/v1/tvshow/library"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_TVShowLibraryService_GetTVShowsFromLibrary_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_TVShowLibraryService_GetTVShowsFromLibrary_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
 var (
-	pattern_TVShowLibraryService_SearchTVShow_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "tvshow", "search"}, ""))
+	pattern_TVShowLibraryService_SearchTVShow_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "tvshow", "search"}, ""))
+	pattern_TVShowLibraryService_GetTVShowInfo_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "tvshow", "get", "tv_show_id"}, ""))
+	pattern_TVShowLibraryService_GetSeasonEpisodes_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "tvshow", "get", "tv_show_id", "season_number"}, ""))
+	pattern_TVShowLibraryService_GetTVShowsFromLibrary_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "tvshow", "library"}, ""))
 )
 
 var (
-	forward_TVShowLibraryService_SearchTVShow_0 = runtime.ForwardResponseMessage
+	forward_TVShowLibraryService_SearchTVShow_0          = runtime.ForwardResponseMessage
+	forward_TVShowLibraryService_GetTVShowInfo_0         = runtime.ForwardResponseMessage
+	forward_TVShowLibraryService_GetSeasonEpisodes_0     = runtime.ForwardResponseMessage
+	forward_TVShowLibraryService_GetTVShowsFromLibrary_0 = runtime.ForwardResponseMessage
 )
