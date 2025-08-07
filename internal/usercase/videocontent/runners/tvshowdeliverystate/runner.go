@@ -26,7 +26,7 @@ func NewTaskRunner(contentDelivery ContentDelivery) *Runner {
 
 func (r *Runner) Create(_ context.Context, options CreateOptions) (CreateState, error) {
 	// Логика создания задачи
-	data := ContentDeliveryData{}
+	data := TVShowDeliveryData{}
 
 	return CreateState{
 		FirstStep: GenerateSearchQuery,

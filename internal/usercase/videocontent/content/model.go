@@ -12,6 +12,8 @@ import (
 type DeliveryStatus string
 
 const (
+	// DeliveryStatusFailed доставка была зафейлена
+	DeliveryStatusFailed DeliveryStatus = "failed"
 	// DeliveryStatusInProgress - В процессе доставки файлов
 	DeliveryStatusInProgress DeliveryStatus = "in_progress"
 	// DeliveryStatusDelivered - Файлы доставлены
@@ -24,6 +26,15 @@ const (
 	DeliveryStatusDeleted DeliveryStatus = "deleted"
 )
 
+type TorrentInfo struct {
+	// href ссылки на торрент сайт раздачи
+	Href string
+	// Magnet ссылка текущую раздачу
+	Magnet string
+	// Хеш торрента
+	Hash string
+}
+
 // VideoContent информация о файлах
 type VideoContent struct {
 	// ID информации о файлах
@@ -32,12 +43,8 @@ type VideoContent struct {
 	CreatedAt time.Time
 	// ID сериала/фильма
 	ContentID videocontent.ContentID
-	// href ссылки на торрент сайт раздачи
-	Href *string
-	// Magnet ссылка текущую раздачу
-	Magnet *string
-	// Хеш торрента
-	Hash *string
+	// Инфа о торренте
+	TorrentInfo *TorrentInfo
 	// Статус
 	DeliveryStatus DeliveryStatus
 	// Стейты привязанные к текущему контенту
@@ -50,11 +57,9 @@ type State struct {
 	Type    runners.Type
 }
 
-/*
-	Какие кейсы:
-		- Создание новой доставки файлов с прохождением полного флоу от поиска раздачи до доставки файлов до медиасервера
-		- Можно оставить информацию о раздаче (Href и Magnet) но при этом удалить все файлы, что бы не занимали место на диске
-		- Потом на основе (Href и Magnet) восстанавливать файлы и скачивать их снова, при этом не запрашивая больше инфу от клиента
-			и все подтягивать из старых стейтов (что делать если раздача обновиться?)
-       - Раздача может обновиться и запускается процесс обновления раздачи
-*/
+type UpdateVideoContent struct {
+	// Инфа о торренте
+	TorrentInfo *TorrentInfo
+	// Статус
+	DeliveryStatus DeliveryStatus
+}

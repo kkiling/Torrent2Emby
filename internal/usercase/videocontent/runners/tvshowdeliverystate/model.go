@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
-	delivery2 "github.com/kkiling/torrent2emby/internal/usercase/videocontent/delivery"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/delivery"
 )
 
 // StepDelivery статус доставки видео файлов до медиа сервера
@@ -52,23 +52,23 @@ const (
 	SendDeliveryNotification StepDelivery = "send_delivery_notification"
 )
 
-// ContentDeliveryData модель содержащая информацию о видео контенте для сезона сериала / фильма
+// TVShowDeliveryData модель содержащая информацию о видео контенте для сезона сериала / фильма
 /*
 	К одному сезону сериала / фильму может быть привязано несколько VideoContent,
 	но для упрощения пока будем пока разрешать только 1
 */
-type ContentDeliveryData struct {
+type TVShowDeliveryData struct {
 	TVShowID videocontent.TVShowID
 	// Данные выпуска
 	SearchQuery           *string
-	TorrentSearch         *delivery2.TorrentSearchResult
+	TorrentSearch         *delivery.TorrentSearchResult
 	SelectTorrentHref     *string
-	MagnetInfo            *delivery2.MagnetInfo
-	ContentMatches        []delivery2.ContentMatches
-	TorrentDownloadStatus *delivery2.TorrentDownloadStatus
-	CatalogsInfo          *delivery2.CatalogsInfo
-	MergeVideoFiles       []delivery2.MergeVideoFile
-	MergeVideoStatus      *delivery2.MergeVideoStatus
+	MagnetInfo            *delivery.MagnetInfo
+	ContentMatches        []delivery.ContentMatches
+	TorrentDownloadStatus *delivery.TorrentDownloadStatus
+	CatalogsInfo          *delivery.CatalogsInfo
+	MergeVideoFiles       []delivery.MergeVideoFile
+	MergeVideoStatus      *delivery.MergeVideoStatus
 }
 
 type CreateOptions struct {
