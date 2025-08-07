@@ -6,6 +6,7 @@ bin-deps:
 	go install github.com/golang/mock/mockgen@v1.6.0
 	go install github.com/pav5000/smartimports/cmd/smartimports@v0.2.0
 	go install github.com/pressly/goose/v3/cmd/goose@latest
+	go install tool
 
 .PHONY: mocks
 mocks:
@@ -45,3 +46,8 @@ generate:
 	cp -R api/torrent2emby/ vendor.protogen/
 	buf dep update
 	buf generate
+
+.PHONY: schema
+schema:
+	pg_dump -d $(LOCAL_DB_NAME) --schema-only --no-owner --no-privileges --no-tablespaces --no-security-labels --no-comments |  sed -e '/^--/d' > schema.sql
+	sqlc generate

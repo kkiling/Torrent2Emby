@@ -28,31 +28,26 @@ type Container struct {
 	mkvMergePipeline           *mkvmerge.Pipeline
 }
 
-func NewContainer() (*Container, error) {
+func NewContainer(cfg *config.AppConfig) (*Container, error) {
 	logger := log.NewLogger(log.DebugLevel)
-
-	cfg, err := config.NewEnvConfig(logger)
-	if err != nil {
-		return nil, fmt.Errorf("config.NewEnvConfig: %w", err)
-	}
 
 	// Storage
 	tvShowLibraryStorage, err := sqlite.NewStorage(sqlitebase.Config{
-		DSN: cfg.Storage.SqliteDsn,
+		DSN: cfg.Sqlite.SqliteDsn,
 	}, logger)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite.NewStorage: %w", err)
 	}
 
 	stateStorage, err := statemachine.NewSqliteStorage(statemachine.SqliteConfig{
-		DSN: cfg.Storage.SqliteDsn,
+		DSN: cfg.Sqlite.SqliteDsn,
 	}, logger)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite.NewStorage: %w", err)
 	}
 
 	mkvPipelineStorage, err := mkvsqlite.NewStorage(sqlitebase.Config{
-		DSN: cfg.Storage.SqliteDsn,
+		DSN: cfg.Sqlite.SqliteDsn,
 	}, logger)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite.NewStorage: %w", err)
@@ -60,7 +55,7 @@ func NewContainer() (*Container, error) {
 
 	// Adapter
 	themoviedbApi, err := themoviedb.NewApi(
-		cfg.MovieDb.ApiKey,
+		cfg.TheMovieDb.ApiKey,
 		logger,
 	)
 	if err != nil {
@@ -102,12 +97,11 @@ func NewContainer() (*Container, error) {
 	tvShowLibrary := tvshowlibrary.NewService(tvShowLibraryStorage, themoviedbApi)
 
 	deliveryService := delivery.NewService(
-		// TODO: вынести в конфиг
 		delivery.Config{
-			BasePath:                   "/nfs",
-			TVShowTorrentSavePath:      "/downloads",
-			TvShowMediaSaveTvShowsPath: "/tvshows",
-			UserGroup:                  "nas",
+			BasePath:                   cfg.DeliveryConfig.BasePath,
+			TVShowTorrentSavePath:      cfg.DeliveryConfig.TVShowTorrentSavePath,
+			TVShowMediaSaveTvShowsPath: cfg.DeliveryConfig.TVShowMediaSaveTvShowsPath,
+			UserGroup:                  cfg.DeliveryConfig.UserGroup,
 		},
 		tvShowLibrary,
 		rutrackerApi,

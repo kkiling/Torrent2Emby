@@ -47,7 +47,7 @@ func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID videocontent
 	tvShowName := fmt.Sprintf("%s (%d)", tvShowInfo.Result.Name, tvShowInfo.Result.FirstAirDate.Year())
 	seasonName := fmt.Sprintf("S%02d %s", tvShowID.SeasonNumber, season.Name)
 
-	tvShowsPath := filepath.Join(s.config.BasePath, s.config.TvShowMediaSaveTvShowsPath, tvShowName)
+	tvShowsPath := filepath.Join(s.config.BasePath, s.config.TVShowMediaSaveTvShowsPath, tvShowName)
 	return &CatalogsInfo{
 		TvShowPath:       tvShowsPath,
 		TvShowSeasonPath: filepath.Join(tvShowsPath, seasonName),

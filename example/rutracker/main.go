@@ -1,17 +1,27 @@
 package main
 
 import (
+	"github.com/jessevdk/go-flags"
+	"github.com/kkiling/goplatform/config"
 	"github.com/kkiling/goplatform/log"
 
 	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 	"github.com/kkiling/torrent2emby/internal/adapter/rutracker"
-	"github.com/kkiling/torrent2emby/internal/config"
+	appconfig "github.com/kkiling/torrent2emby/internal/config"
 )
 
 func main() {
 	logger := log.NewLogger(log.DebugLevel)
 
-	cfg, err := config.NewEnvConfig(logger)
+	var args config.Arguments
+	if _, err := flags.Parse(&args); err != nil {
+		logger.Fatal(err)
+	}
+	cfgProvider, err := config.NewProvider(args)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	cfg, err := appconfig.NewEnvConfig(cfgProvider)
 	if err != nil {
 		logger.Fatal(err)
 	}

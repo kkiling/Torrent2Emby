@@ -6,8 +6,8 @@ type Config struct {
 	BasePath string // "/nfs"
 	// TVShowTorrentSavePath путь сохранения сериалов относительно торрент клиента
 	TVShowTorrentSavePath string
-	// TvShowMediaSaveTvShowsPath путь сохранения сериалов относительно медиа сервера
-	TvShowMediaSaveTvShowsPath string
+	// TVShowMediaSaveTvShowsPath путь сохранения сериалов относительно медиа сервера
+	TVShowMediaSaveTvShowsPath string
 	// Группа от именни которой будут проводиться манипуляции с файлами и каталогами (если не указать, то будет исопользована дефолтная группа пользователя)
 	UserGroup string
 }

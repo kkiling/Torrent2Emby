@@ -1,10 +1,11 @@
 package tvshowlibrary
 
 import (
-	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
-	desc "github.com/kkiling/torrent2emby/pkg/gen/torrent2emby"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
+	desc "github.com/kkiling/torrent2emby/pkg/gen/torrent2emby"
 )
 
 func mapImage(res *tvshowlibrary.Image) *desc.Image {
