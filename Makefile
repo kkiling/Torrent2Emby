@@ -46,8 +46,3 @@ generate:
 	cp -R api/torrent2emby/ vendor.protogen/
 	buf dep update
 	buf generate
-
-.PHONY: schema
-schema:
-	pg_dump -d $(LOCAL_DB_NAME) --schema-only --no-owner --no-privileges --no-tablespaces --no-security-labels --no-comments |  sed -e '/^--/d' > schema.sql
-	sqlc generate

@@ -7,16 +7,15 @@
 package api
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -95,7 +94,7 @@ type TVShowShort struct {
 	Poster        *Image                 `protobuf:"bytes,5,opt,name=poster,proto3,oneof" json:"poster,omitempty"`
 	FirstAirDate  *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=first_air_date,json=firstAirDate,proto3" json:"first_air_date,omitempty"`
 	VoteAverage   float32                `protobuf:"fixed32,7,opt,name=vote_average,json=voteAverage,proto3" json:"vote_average,omitempty"`
-	VoteCount     int32                  `protobuf:"varint,8,opt,name=vote_count,json=voteCount,proto3" json:"vote_count,omitempty"`
+	VoteCount     uint32                 `protobuf:"varint,8,opt,name=vote_count,json=voteCount,proto3" json:"vote_count,omitempty"`
 	Popularity    float32                `protobuf:"fixed32,9,opt,name=popularity,proto3" json:"popularity,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -180,7 +179,7 @@ func (x *TVShowShort) GetVoteAverage() float32 {
 	return 0
 }
 
-func (x *TVShowShort) GetVoteCount() int32 {
+func (x *TVShowShort) GetVoteCount() uint32 {
 	if x != nil {
 		return x.VoteCount
 	}
@@ -203,14 +202,14 @@ type TVShow struct {
 	Poster           *Image                 `protobuf:"bytes,5,opt,name=poster,proto3,oneof" json:"poster,omitempty"`
 	FirstAirDate     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=first_air_date,json=firstAirDate,proto3" json:"first_air_date,omitempty"`
 	VoteAverage      float32                `protobuf:"fixed32,7,opt,name=vote_average,json=voteAverage,proto3" json:"vote_average,omitempty"`
-	VoteCount        int32                  `protobuf:"varint,8,opt,name=vote_count,json=voteCount,proto3" json:"vote_count,omitempty"`
+	VoteCount        uint32                 `protobuf:"varint,8,opt,name=vote_count,json=voteCount,proto3" json:"vote_count,omitempty"`
 	Popularity       float32                `protobuf:"fixed32,9,opt,name=popularity,proto3" json:"popularity,omitempty"`
 	Backdrop         *Image                 `protobuf:"bytes,10,opt,name=backdrop,proto3,oneof" json:"backdrop,omitempty"`
 	Genres           []string               `protobuf:"bytes,11,rep,name=genres,proto3" json:"genres,omitempty"`
 	LastAirDate      *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=last_air_date,json=lastAirDate,proto3" json:"last_air_date,omitempty"`
 	NextEpisodeToAir *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=next_episode_to_air,json=nextEpisodeToAir,proto3" json:"next_episode_to_air,omitempty"`
-	NumberOfEpisodes int32                  `protobuf:"varint,14,opt,name=number_of_episodes,json=numberOfEpisodes,proto3" json:"number_of_episodes,omitempty"`
-	NumberOfSeasons  int32                  `protobuf:"varint,15,opt,name=number_of_seasons,json=numberOfSeasons,proto3" json:"number_of_seasons,omitempty"`
+	NumberOfEpisodes uint32                 `protobuf:"varint,14,opt,name=number_of_episodes,json=numberOfEpisodes,proto3" json:"number_of_episodes,omitempty"`
+	NumberOfSeasons  uint32                 `protobuf:"varint,15,opt,name=number_of_seasons,json=numberOfSeasons,proto3" json:"number_of_seasons,omitempty"`
 	OriginCountry    []string               `protobuf:"bytes,16,rep,name=origin_country,json=originCountry,proto3" json:"origin_country,omitempty"`
 	Status           string                 `protobuf:"bytes,17,opt,name=status,proto3" json:"status,omitempty"`
 	Tagline          string                 `protobuf:"bytes,18,opt,name=tagline,proto3" json:"tagline,omitempty"`
@@ -299,7 +298,7 @@ func (x *TVShow) GetVoteAverage() float32 {
 	return 0
 }
 
-func (x *TVShow) GetVoteCount() int32 {
+func (x *TVShow) GetVoteCount() uint32 {
 	if x != nil {
 		return x.VoteCount
 	}
@@ -341,14 +340,14 @@ func (x *TVShow) GetNextEpisodeToAir() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *TVShow) GetNumberOfEpisodes() int32 {
+func (x *TVShow) GetNumberOfEpisodes() uint32 {
 	if x != nil {
 		return x.NumberOfEpisodes
 	}
 	return 0
 }
 
-func (x *TVShow) GetNumberOfSeasons() int32 {
+func (x *TVShow) GetNumberOfSeasons() uint32 {
 	if x != nil {
 		return x.NumberOfSeasons
 	}
@@ -394,11 +393,11 @@ type Season struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	AirDate       *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=air_date,json=airDate,proto3" json:"air_date,omitempty"`
-	EpisodeCount  int32                  `protobuf:"varint,3,opt,name=episode_count,json=episodeCount,proto3" json:"episode_count,omitempty"`
+	EpisodeCount  uint32                 `protobuf:"varint,3,opt,name=episode_count,json=episodeCount,proto3" json:"episode_count,omitempty"`
 	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
 	Overview      string                 `protobuf:"bytes,5,opt,name=overview,proto3" json:"overview,omitempty"`
 	Poster        *Image                 `protobuf:"bytes,6,opt,name=poster,proto3,oneof" json:"poster,omitempty"`
-	SeasonNumber  int32                  `protobuf:"varint,7,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
+	SeasonNumber  uint32                 `protobuf:"varint,7,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
 	VoteAverage   float32                `protobuf:"fixed32,8,opt,name=vote_average,json=voteAverage,proto3" json:"vote_average,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -448,7 +447,7 @@ func (x *Season) GetAirDate() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *Season) GetEpisodeCount() int32 {
+func (x *Season) GetEpisodeCount() uint32 {
 	if x != nil {
 		return x.EpisodeCount
 	}
@@ -476,7 +475,7 @@ func (x *Season) GetPoster() *Image {
 	return nil
 }
 
-func (x *Season) GetSeasonNumber() int32 {
+func (x *Season) GetSeasonNumber() uint32 {
 	if x != nil {
 		return x.SeasonNumber
 	}
@@ -494,14 +493,14 @@ type Episode struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	AirDate       *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=air_date,json=airDate,proto3" json:"air_date,omitempty"`
-	EpisodeNumber int32                  `protobuf:"varint,3,opt,name=episode_number,json=episodeNumber,proto3" json:"episode_number,omitempty"`
+	EpisodeNumber uint32                 `protobuf:"varint,3,opt,name=episode_number,json=episodeNumber,proto3" json:"episode_number,omitempty"`
 	EpisodeType   string                 `protobuf:"bytes,4,opt,name=episode_type,json=episodeType,proto3" json:"episode_type,omitempty"`
 	Name          string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
 	Overview      string                 `protobuf:"bytes,6,opt,name=overview,proto3" json:"overview,omitempty"`
-	Runtime       int32                  `protobuf:"varint,7,opt,name=runtime,proto3" json:"runtime,omitempty"`
+	Runtime       uint32                 `protobuf:"varint,7,opt,name=runtime,proto3" json:"runtime,omitempty"`
 	Still         *Image                 `protobuf:"bytes,8,opt,name=still,proto3,oneof" json:"still,omitempty"`
 	VoteAverage   float32                `protobuf:"fixed32,9,opt,name=vote_average,json=voteAverage,proto3" json:"vote_average,omitempty"`
-	VoteCount     int32                  `protobuf:"varint,10,opt,name=vote_count,json=voteCount,proto3" json:"vote_count,omitempty"`
+	VoteCount     uint32                 `protobuf:"varint,10,opt,name=vote_count,json=voteCount,proto3" json:"vote_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -550,7 +549,7 @@ func (x *Episode) GetAirDate() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *Episode) GetEpisodeNumber() int32 {
+func (x *Episode) GetEpisodeNumber() uint32 {
 	if x != nil {
 		return x.EpisodeNumber
 	}
@@ -578,7 +577,7 @@ func (x *Episode) GetOverview() string {
 	return ""
 }
 
-func (x *Episode) GetRuntime() int32 {
+func (x *Episode) GetRuntime() uint32 {
 	if x != nil {
 		return x.Runtime
 	}
@@ -599,7 +598,7 @@ func (x *Episode) GetVoteAverage() float32 {
 	return 0
 }
 
-func (x *Episode) GetVoteCount() int32 {
+func (x *Episode) GetVoteCount() uint32 {
 	if x != nil {
 		return x.VoteCount
 	}
@@ -785,7 +784,7 @@ func (x *GetTVShowInfoResponse) GetResult() *TVShow {
 type GetSeasonEpisodesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TvShowId      uint64                 `protobuf:"varint,1,opt,name=tv_show_id,json=tvShowId,proto3" json:"tv_show_id,omitempty"`
-	SeasonNumber  int32                  `protobuf:"varint,2,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
+	SeasonNumber  uint32                 `protobuf:"varint,2,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -827,7 +826,7 @@ func (x *GetSeasonEpisodesRequest) GetTvShowId() uint64 {
 	return 0
 }
 
-func (x *GetSeasonEpisodesRequest) GetSeasonNumber() int32 {
+func (x *GetSeasonEpisodesRequest) GetSeasonNumber() uint32 {
 	if x != nil {
 		return x.SeasonNumber
 	}
@@ -976,7 +975,7 @@ const file_torrent2emby_tvshow_proto_rawDesc = "" +
 	"\x0efirst_air_date\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ffirstAirDate\x12!\n" +
 	"\fvote_average\x18\a \x01(\x02R\vvoteAverage\x12\x1d\n" +
 	"\n" +
-	"vote_count\x18\b \x01(\x05R\tvoteCount\x12\x1e\n" +
+	"vote_count\x18\b \x01(\rR\tvoteCount\x12\x1e\n" +
 	"\n" +
 	"popularity\x18\t \x01(\x02R\n" +
 	"popularityB\t\n" +
@@ -990,7 +989,7 @@ const file_torrent2emby_tvshow_proto_rawDesc = "" +
 	"\x0efirst_air_date\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ffirstAirDate\x12!\n" +
 	"\fvote_average\x18\a \x01(\x02R\vvoteAverage\x12\x1d\n" +
 	"\n" +
-	"vote_count\x18\b \x01(\x05R\tvoteCount\x12\x1e\n" +
+	"vote_count\x18\b \x01(\rR\tvoteCount\x12\x1e\n" +
 	"\n" +
 	"popularity\x18\t \x01(\x02R\n" +
 	"popularity\x124\n" +
@@ -999,8 +998,8 @@ const file_torrent2emby_tvshow_proto_rawDesc = "" +
 	"\x06genres\x18\v \x03(\tR\x06genres\x12>\n" +
 	"\rlast_air_date\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\vlastAirDate\x12I\n" +
 	"\x13next_episode_to_air\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\x10nextEpisodeToAir\x12,\n" +
-	"\x12number_of_episodes\x18\x0e \x01(\x05R\x10numberOfEpisodes\x12*\n" +
-	"\x11number_of_seasons\x18\x0f \x01(\x05R\x0fnumberOfSeasons\x12%\n" +
+	"\x12number_of_episodes\x18\x0e \x01(\rR\x10numberOfEpisodes\x12*\n" +
+	"\x11number_of_seasons\x18\x0f \x01(\rR\x0fnumberOfSeasons\x12%\n" +
 	"\x0eorigin_country\x18\x10 \x03(\tR\roriginCountry\x12\x16\n" +
 	"\x06status\x18\x11 \x01(\tR\x06status\x12\x18\n" +
 	"\atagline\x18\x12 \x01(\tR\atagline\x12\x12\n" +
@@ -1011,26 +1010,26 @@ const file_torrent2emby_tvshow_proto_rawDesc = "" +
 	"\x06Season\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x125\n" +
 	"\bair_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aairDate\x12#\n" +
-	"\repisode_count\x18\x03 \x01(\x05R\fepisodeCount\x12\x12\n" +
+	"\repisode_count\x18\x03 \x01(\rR\fepisodeCount\x12\x12\n" +
 	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1a\n" +
 	"\boverview\x18\x05 \x01(\tR\boverview\x120\n" +
 	"\x06poster\x18\x06 \x01(\v2\x13.torrent2emby.ImageH\x00R\x06poster\x88\x01\x01\x12#\n" +
-	"\rseason_number\x18\a \x01(\x05R\fseasonNumber\x12!\n" +
+	"\rseason_number\x18\a \x01(\rR\fseasonNumber\x12!\n" +
 	"\fvote_average\x18\b \x01(\x02R\vvoteAverageB\t\n" +
 	"\a_poster\"\xe0\x02\n" +
 	"\aEpisode\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x125\n" +
 	"\bair_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aairDate\x12%\n" +
-	"\x0eepisode_number\x18\x03 \x01(\x05R\repisodeNumber\x12!\n" +
+	"\x0eepisode_number\x18\x03 \x01(\rR\repisodeNumber\x12!\n" +
 	"\fepisode_type\x18\x04 \x01(\tR\vepisodeType\x12\x12\n" +
 	"\x04name\x18\x05 \x01(\tR\x04name\x12\x1a\n" +
 	"\boverview\x18\x06 \x01(\tR\boverview\x12\x18\n" +
-	"\aruntime\x18\a \x01(\x05R\aruntime\x12.\n" +
+	"\aruntime\x18\a \x01(\rR\aruntime\x12.\n" +
 	"\x05still\x18\b \x01(\v2\x13.torrent2emby.ImageH\x00R\x05still\x88\x01\x01\x12!\n" +
 	"\fvote_average\x18\t \x01(\x02R\vvoteAverage\x12\x1d\n" +
 	"\n" +
 	"vote_count\x18\n" +
-	" \x01(\x05R\tvoteCountB\b\n" +
+	" \x01(\rR\tvoteCountB\b\n" +
 	"\x06_still\"+\n" +
 	"\x13SearchTVShowRequest\x12\x14\n" +
 	"\x05query\x18\x01 \x01(\tR\x05query\"G\n" +
@@ -1044,17 +1043,17 @@ const file_torrent2emby_tvshow_proto_rawDesc = "" +
 	"\x18GetSeasonEpisodesRequest\x12\x1c\n" +
 	"\n" +
 	"tv_show_id\x18\x01 \x01(\x04R\btvShowId\x12#\n" +
-	"\rseason_number\x18\x02 \x01(\x05R\fseasonNumber\"H\n" +
+	"\rseason_number\x18\x02 \x01(\rR\fseasonNumber\"H\n" +
 	"\x19GetSeasonEpisodesResponse\x12+\n" +
 	"\x05items\x18\x01 \x03(\v2\x15.torrent2emby.EpisodeR\x05items\"\x1e\n" +
 	"\x1cGetTVShowsFromLibraryRequest\"P\n" +
 	"\x1dGetTVShowsFromLibraryResponse\x12/\n" +
-	"\x05items\x18\x01 \x03(\v2\x19.torrent2emby.TVShowShortR\x05items2\xd3\x06\n" +
+	"\x05items\x18\x01 \x03(\v2\x19.torrent2emby.TVShowShortR\x05items2\xd5\x06\n" +
 	"\x14TVShowLibraryService\x12\xa6\x01\n" +
-	"\fSearchTVShow\x12!.torrent2emby.SearchTVShowRequest\x1a\".torrent2emby.SearchTVShowResponse\"O\x92A3\x121Поиск сериалов по названию\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/tvshow/search\x12\xce\x01\n" +
-	"\rGetTVShowInfo\x12\".torrent2emby.GetTVShowInfoRequest\x1a#.torrent2emby.GetTVShowInfoResponse\"t\x92AN\x12LПолучение подробной информации о сериале\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/tvshow/get/{tv_show_id}\x12\xe2\x01\n" +
-	"\x11GetSeasonEpisodes\x12&.torrent2emby.GetSeasonEpisodesRequest\x1a'.torrent2emby.GetSeasonEpisodesResponse\"|\x92AF\x12DПолучение информации о сериях сезона\x82\xd3\xe4\x93\x02-\x12+/v1/tvshow/get/{tv_show_id}/{season_number}\x12\xdb\x01\n" +
-	"\x15GetTVShowsFromLibrary\x12*.torrent2emby.GetTVShowsFromLibraryRequest\x1a+.torrent2emby.GetTVShowsFromLibraryResponse\"i\x92AL\x12JПолучение списка сериалов из библиотеки\x82\xd3\xe4\x93\x02\x14\x12\x12/v1/tvshow/libraryB%Z#github.com/kkiling/torrent2emby/apib\x06proto3"
+	"\fSearchTVShow\x12!.torrent2emby.SearchTVShowRequest\x1a\".torrent2emby.SearchTVShowResponse\"O\x92A3\x121Поиск сериалов по названию\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/tvshow/search\x12\xdb\x01\n" +
+	"\x15GetTVShowsFromLibrary\x12*.torrent2emby.GetTVShowsFromLibraryRequest\x1a+.torrent2emby.GetTVShowsFromLibraryResponse\"i\x92AL\x12JПолучение списка сериалов из библиотеки\x82\xd3\xe4\x93\x02\x14\x12\x12/v1/tvshow/library\x12\xcf\x01\n" +
+	"\rGetTVShowInfo\x12\".torrent2emby.GetTVShowInfoRequest\x1a#.torrent2emby.GetTVShowInfoResponse\"u\x92AN\x12LПолучение подробной информации о сериале\x82\xd3\xe4\x93\x02\x1e\x12\x1c/v1/tvshow/info/{tv_show_id}\x12\xe3\x01\n" +
+	"\x11GetSeasonEpisodes\x12&.torrent2emby.GetSeasonEpisodesRequest\x1a'.torrent2emby.GetSeasonEpisodesResponse\"}\x92AF\x12DПолучение информации о сериях сезона\x82\xd3\xe4\x93\x02.\x12,/v1/tvshow/info/{tv_show_id}/{season_number}B%Z#github.com/kkiling/torrent2emby/apib\x06proto3"
 
 var (
 	file_torrent2emby_tvshow_proto_rawDescOnce sync.Once
@@ -1103,13 +1102,13 @@ var file_torrent2emby_tvshow_proto_depIdxs = []int32{
 	4,  // 14: torrent2emby.GetSeasonEpisodesResponse.items:type_name -> torrent2emby.Episode
 	1,  // 15: torrent2emby.GetTVShowsFromLibraryResponse.items:type_name -> torrent2emby.TVShowShort
 	5,  // 16: torrent2emby.TVShowLibraryService.SearchTVShow:input_type -> torrent2emby.SearchTVShowRequest
-	7,  // 17: torrent2emby.TVShowLibraryService.GetTVShowInfo:input_type -> torrent2emby.GetTVShowInfoRequest
-	9,  // 18: torrent2emby.TVShowLibraryService.GetSeasonEpisodes:input_type -> torrent2emby.GetSeasonEpisodesRequest
-	11, // 19: torrent2emby.TVShowLibraryService.GetTVShowsFromLibrary:input_type -> torrent2emby.GetTVShowsFromLibraryRequest
+	11, // 17: torrent2emby.TVShowLibraryService.GetTVShowsFromLibrary:input_type -> torrent2emby.GetTVShowsFromLibraryRequest
+	7,  // 18: torrent2emby.TVShowLibraryService.GetTVShowInfo:input_type -> torrent2emby.GetTVShowInfoRequest
+	9,  // 19: torrent2emby.TVShowLibraryService.GetSeasonEpisodes:input_type -> torrent2emby.GetSeasonEpisodesRequest
 	6,  // 20: torrent2emby.TVShowLibraryService.SearchTVShow:output_type -> torrent2emby.SearchTVShowResponse
-	8,  // 21: torrent2emby.TVShowLibraryService.GetTVShowInfo:output_type -> torrent2emby.GetTVShowInfoResponse
-	10, // 22: torrent2emby.TVShowLibraryService.GetSeasonEpisodes:output_type -> torrent2emby.GetSeasonEpisodesResponse
-	12, // 23: torrent2emby.TVShowLibraryService.GetTVShowsFromLibrary:output_type -> torrent2emby.GetTVShowsFromLibraryResponse
+	12, // 21: torrent2emby.TVShowLibraryService.GetTVShowsFromLibrary:output_type -> torrent2emby.GetTVShowsFromLibraryResponse
+	8,  // 22: torrent2emby.TVShowLibraryService.GetTVShowInfo:output_type -> torrent2emby.GetTVShowInfoResponse
+	10, // 23: torrent2emby.TVShowLibraryService.GetSeasonEpisodes:output_type -> torrent2emby.GetSeasonEpisodesResponse
 	20, // [20:24] is the sub-list for method output_type
 	16, // [16:20] is the sub-list for method input_type
 	16, // [16:16] is the sub-list for extension type_name

@@ -1,4 +1,4 @@
-package main
+package main3
 
 import (
 	"github.com/jessevdk/go-flags"

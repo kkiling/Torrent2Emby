@@ -47,6 +47,13 @@ func main() {
 		}
 	}()
 
+	go func() {
+		err = cn.GetContentDelivery().Complete(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	logger := cn.GetLogger()
 
 	srv := server.NewTorrent2EmbyServer(
@@ -60,6 +67,7 @@ func main() {
 			ShutdownTimeout:         cfg.Server.ShutdownTimeout,
 		},
 		cn.GetTvShowLibrary(),
+		cn.GetContentDelivery(),
 	)
 	go func() {
 		err = srv.Start(ctx)

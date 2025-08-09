@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"time"
-
 	"github.com/samber/lo"
 
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
@@ -289,7 +287,6 @@ func (s *Storage) GetTVShows(ctx context.Context) ([]tvshowlibrary.TVShowShort, 
 	var shows []tvshowlibrary.TVShowShort
 	for rows.Next() {
 		var show tvshowlibrary.TVShowShort
-		var firstAirDateStr string
 		var posterW342, posterOriginal sql.NullString
 
 		err := rows.Scan(
@@ -297,7 +294,7 @@ func (s *Storage) GetTVShows(ctx context.Context) ([]tvshowlibrary.TVShowShort, 
 			&show.Name,
 			&show.OriginalName,
 			&show.Overview,
-			&firstAirDateStr,
+			&show.FirstAirDate,
 			&show.VoteAverage,
 			&show.VoteCount,
 			&show.Popularity,
@@ -306,11 +303,6 @@ func (s *Storage) GetTVShows(ctx context.Context) ([]tvshowlibrary.TVShowShort, 
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan tv show: %w", err)
-		}
-
-		// Парсим дату
-		if firstAirDateStr != "" {
-			show.FirstAirDate, _ = time.Parse("2006-01-02", firstAirDateStr)
 		}
 
 		// Заполняем изображение постера если есть
@@ -331,7 +323,7 @@ func (s *Storage) GetTVShows(ctx context.Context) ([]tvshowlibrary.TVShowShort, 
 	return shows, nil
 }
 
-func (s *Storage) GetSeasonEpisodes(ctx context.Context, tvID uint64, seasonNumber int) ([]tvshowlibrary.Episode, error) {
+func (s *Storage) GetSeasonEpisodes(ctx context.Context, tvID uint64, seasonNumber uint8) ([]tvshowlibrary.Episode, error) {
 	// First get the season ID for the given TV show and season number
 	var seasonID uint64
 	err := s.base.Next(ctx).QueryRowContext(ctx, `
@@ -398,7 +390,7 @@ func (s *Storage) GetSeasonEpisodes(ctx context.Context, tvID uint64, seasonNumb
 	return episodes, nil
 }
 
-func (s *Storage) SaveOrUpdateSeasonEpisode(ctx context.Context, tvID uint64, seasonNumber int, episodes []tvshowlibrary.Episode) error {
+func (s *Storage) SaveOrUpdateSeasonEpisode(ctx context.Context, tvID uint64, seasonNumber uint8, episodes []tvshowlibrary.Episode) error {
 	return s.RunTransaction(ctx, func(tCtx context.Context) error {
 		// First get the season ID for the given TV show and season number
 		var seasonID uint64

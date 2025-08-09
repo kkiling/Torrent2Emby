@@ -2,6 +2,8 @@ package container
 
 import (
 	"fmt"
+	contentDelivery "github.com/kkiling/torrent2emby/internal/usercase/videocontent/content"
+	contentSqlite "github.com/kkiling/torrent2emby/internal/usercase/videocontent/content/storage/sqlite"
 
 	"github.com/kkiling/goplatform/log"
 	"github.com/kkiling/goplatform/storagebase/sqlitebase"
@@ -16,23 +18,23 @@ import (
 	"github.com/kkiling/torrent2emby/internal/adapter/themoviedb"
 	"github.com/kkiling/torrent2emby/internal/config"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
-	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary/storage/sqlite"
+	tvShowLibrarySqlite "github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary/storage/sqlite"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/delivery"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners/tvshowdeliverystate"
 )
 
 type Container struct {
-	logger                     log.Logger
-	tvShowLibrary              *tvshowlibrary.Service
-	tvShowDeliveryStateMachine *tvshowdeliverystate.StateMachineService
-	mkvMergePipeline           *mkvmerge.Pipeline
+	logger           log.Logger
+	tvShowLibrary    *tvshowlibrary.Service
+	contentDelivery  *contentDelivery.Service
+	mkvMergePipeline *mkvmerge.Pipeline
 }
 
 func NewContainer(cfg *config.AppConfig) (*Container, error) {
 	logger := log.NewLogger(log.DebugLevel)
 
 	// Storage
-	tvShowLibraryStorage, err := sqlite.NewStorage(sqlitebase.Config{
+	tvShowLibraryStorage, err := tvShowLibrarySqlite.NewStorage(sqlitebase.Config{
 		DSN: cfg.Sqlite.SqliteDsn,
 	}, logger)
 	if err != nil {
@@ -40,6 +42,13 @@ func NewContainer(cfg *config.AppConfig) (*Container, error) {
 	}
 
 	stateStorage, err := statemachine.NewSqliteStorage(statemachine.SqliteConfig{
+		DSN: cfg.Sqlite.SqliteDsn,
+	}, logger)
+	if err != nil {
+		return nil, fmt.Errorf("sqlite.NewStorage: %w", err)
+	}
+
+	contentStorage, err := contentSqlite.NewStorage(sqlitebase.Config{
 		DSN: cfg.Sqlite.SqliteDsn,
 	}, logger)
 	if err != nil {
@@ -112,11 +121,13 @@ func NewContainer(cfg *config.AppConfig) (*Container, error) {
 	)
 	tvShowDeliveryStateMachine := tvshowdeliverystate.NewState(deliveryService, stateStorage)
 
+	deliveryContent := contentDelivery.NewService(logger, contentStorage, tvShowLibrary, tvShowDeliveryStateMachine)
+
 	return &Container{
-		logger:                     logger,
-		tvShowLibrary:              tvShowLibrary,
-		tvShowDeliveryStateMachine: tvShowDeliveryStateMachine,
-		mkvMergePipeline:           mkvPipeline,
+		logger:           logger,
+		tvShowLibrary:    tvShowLibrary,
+		contentDelivery:  deliveryContent,
+		mkvMergePipeline: mkvPipeline,
 	}, nil
 }
 
@@ -124,8 +135,8 @@ func (c *Container) GetTvShowLibrary() *tvshowlibrary.Service {
 	return c.tvShowLibrary
 }
 
-func (c *Container) TVShowDeliveryStateMachine() *tvshowdeliverystate.StateMachineService {
-	return c.tvShowDeliveryStateMachine
+func (c *Container) GetContentDelivery() *contentDelivery.Service {
+	return c.contentDelivery
 }
 
 func (c *Container) MkvMergePipeline() *mkvmerge.Pipeline {

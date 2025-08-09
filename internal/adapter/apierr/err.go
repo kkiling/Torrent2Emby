@@ -25,7 +25,9 @@ var (
 
 func HandleStatusCodeError(log log.Logger, resp *http.Response) error {
 	log.Errorf("Response status %s: %s", resp.Request.URL.Path, resp.Status)
-	if resp.StatusCode == http.StatusUnauthorized {
+	if resp.StatusCode == http.StatusNotFound {
+		return ContentNotFound
+	} else if resp.StatusCode == http.StatusUnauthorized {
 		return NotAuthorizedErr
 	} else if resp.StatusCode == 522 || resp.StatusCode == 521 || resp.StatusCode == http.StatusForbidden {
 		return ServiceUnavailableErr

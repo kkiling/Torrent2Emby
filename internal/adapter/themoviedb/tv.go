@@ -42,8 +42,8 @@ func (api *API) GetTV(ctx context.Context, tvID uint64, language Language) (*TVS
 		LastAirDate      string   `json:"last_air_date"`
 		Name             string   `json:"name"`
 		NextEpisodeToAir string   `json:"next_episode_to_air"`
-		NumberOfEpisodes int      `json:"number_of_episodes"`
-		NumberOfSeasons  int      `json:"number_of_seasons"`
+		NumberOfEpisodes uint32   `json:"number_of_episodes"`
+		NumberOfSeasons  uint32   `json:"number_of_seasons"`
 		OriginCountry    []string `json:"origin_country"`
 		OriginalName     string   `json:"original_name"`
 		Overview         string   `json:"overview"`
@@ -51,19 +51,19 @@ func (api *API) GetTV(ctx context.Context, tvID uint64, language Language) (*TVS
 		Poster           string   `json:"poster_path"`
 		Seasons          []struct {
 			AirDate      string  `json:"air_date"`
-			EpisodeCount int     `json:"episode_count"`
+			EpisodeCount uint32  `json:"episode_count"`
 			ID           uint64  `json:"id"`
 			Name         string  `json:"name"`
 			Overview     string  `json:"overview"`
 			Poster       string  `json:"poster_path"`
-			SeasonNumber int     `json:"season_number"`
+			SeasonNumber uint8   `json:"season_number"`
 			VoteAverage  float64 `json:"vote_average"`
 		} `json:"seasons"`
 		Status      string  `json:"status"`
 		Tagline     string  `json:"tagline"`
 		Type        string  `json:"type"`
 		VoteAverage float64 `json:"vote_average"`
-		VoteCount   int     `json:"vote_count"`
+		VoteCount   uint32  `json:"vote_count"`
 	}
 
 	if err := json.Unmarshal(body, &result); err != nil {

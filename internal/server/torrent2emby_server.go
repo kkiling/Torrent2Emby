@@ -2,11 +2,11 @@ package server
 
 import (
 	"context"
+	"github.com/kkiling/torrent2emby/internal/server/handler/tvshowlibrary"
+	"github.com/kkiling/torrent2emby/internal/server/handler/videocontent"
 
 	"github.com/kkiling/goplatform/log"
 	"github.com/kkiling/goplatform/server"
-
-	"github.com/kkiling/torrent2emby/internal/handler/tvshowlibrary"
 )
 
 // Torrent2EmbyServer сервер
@@ -19,12 +19,14 @@ func NewTorrent2EmbyServer(
 	logger log.Logger,
 	cfg server.Config,
 	tvShowLibrary tvshowlibrary.TVShowLibrary,
+	videoContent videocontent.VideoContent,
 ) *Torrent2EmbyServer {
 	return &Torrent2EmbyServer{
 		CustomServer: NewCustomServer(
 			logger,
 			cfg,
 			tvshowlibrary.NewHandler(logger, tvShowLibrary),
+			videocontent.NewHandler(logger, videoContent),
 		),
 	}
 }

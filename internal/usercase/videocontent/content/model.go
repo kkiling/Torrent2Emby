@@ -1,11 +1,11 @@
 package content
 
 import (
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"time"
 
 	"github.com/google/uuid"
 
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners"
 )
 
@@ -42,7 +42,7 @@ type VideoContent struct {
 	// CreatedAt Датоа создания
 	CreatedAt time.Time
 	// ID сериала/фильма
-	ContentID videocontent.ContentID
+	ContentID common.ContentID
 	// Инфа о торренте
 	TorrentInfo *TorrentInfo
 	// Статус

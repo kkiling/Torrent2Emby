@@ -3,19 +3,19 @@ package delivery
 import (
 	"context"
 	"fmt"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 
 	"github.com/samber/lo"
 
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
 )
 
 type GenerateSearchQueryParams struct {
-	TVShowID videocontent.TVShowID
+	TVShowID common.TVShowID
 }
 
-func (s *Service) getTVShowQuery(ctx context.Context, tvShowID videocontent.TVShowID) (string, error) {
+func (s *Service) getTVShowQuery(ctx context.Context, tvShowID common.TVShowID) (string, error) {
 	// Получаем инфу о сезоне сериала
 	tvShowInfo, err := s.tvShowLibrary.GetTVShowInfo(ctx, tvshowlibrary.GetTVShowParams{
 		TVShowID: tvShowID.ID,

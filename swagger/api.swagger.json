@@ -7,6 +7,9 @@
   "tags": [
     {
       "name": "TVShowLibraryService"
+    },
+    {
+      "name": "VideoContentService"
     }
   ],
   "host": "localhost:8080",
@@ -20,7 +23,196 @@
     "application/json"
   ],
   "paths": {
-    "/v1/tvshow/get/{tv_show_id}": {
+    "/v1/content": {
+      "get": {
+        "summary": "Получение доставок для кино/тв сериала",
+        "operationId": "VideoContentService_GetVideoContent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/GetVideoContentResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "content_id.movie_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "content_id.tv_show.id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "content_id.tv_show.season_number",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "VideoContentService"
+        ]
+      },
+      "post": {
+        "summary": "Создание файловой раздачи",
+        "operationId": "VideoContentService_CreateVideoContent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/CreateVideoContentResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateVideoContentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "VideoContentService"
+        ]
+      }
+    },
+    "/v1/tvshow/delivery/chose-file-matches": {
+      "patch": {
+        "summary": "Подтверждение метча файлов",
+        "operationId": "VideoContentService_ChoseFileMatchesOptions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ChoseFileMatchesOptionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChoseFileMatchesOptionsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "VideoContentService"
+        ]
+      }
+    },
+    "/v1/tvshow/delivery/chose-torrent": {
+      "patch": {
+        "summary": "Выбор раздачи с торрента",
+        "operationId": "VideoContentService_ChoseTorrentOptions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ChoseTorrentOptionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChoseTorrentOptionsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "VideoContentService"
+        ]
+      }
+    },
+    "/v1/tvshow/delivery/data": {
+      "get": {
+        "summary": "Получение данных стейта доставки",
+        "operationId": "VideoContentService_GetTVShowDeliveryData",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/GetTVShowDeliveryDataResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "content_id.movie_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "content_id.tv_show.id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "content_id.tv_show.season_number",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "VideoContentService"
+        ]
+      }
+    },
+    "/v1/tvshow/info/{tv_show_id}": {
       "get": {
         "summary": "Получение подробной информации о сериале",
         "operationId": "TVShowLibraryService_GetTVShowInfo",
@@ -52,7 +244,7 @@
         ]
       }
     },
-    "/v1/tvshow/get/{tv_show_id}/{season_number}": {
+    "/v1/tvshow/info/{tv_show_id}/{season_number}": {
       "get": {
         "summary": "Получение информации о сериях сезона",
         "operationId": "TVShowLibraryService_GetSeasonEpisodes",
@@ -83,7 +275,7 @@
             "in": "path",
             "required": true,
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           }
         ],
         "tags": [
@@ -156,6 +348,94 @@
       },
       "additionalProperties": {}
     },
+    "ChoseFileMatchesOptionsRequest": {
+      "type": "object",
+      "properties": {
+        "content_id": {
+          "$ref": "#/definitions/ContentID"
+        },
+        "approve": {
+          "type": "boolean",
+          "title": "Пользователь подтверждает сметченные файлы"
+        }
+      }
+    },
+    "ChoseFileMatchesOptionsResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/TVShowDeliveryData"
+        },
+        "step": {
+          "$ref": "#/definitions/TVShowDeliveryStatus"
+        }
+      }
+    },
+    "ChoseTorrentOptionsRequest": {
+      "type": "object",
+      "properties": {
+        "content_id": {
+          "$ref": "#/definitions/ContentID"
+        },
+        "href": {
+          "type": "string",
+          "title": "Пользователь выбрал конкретный торрента файл"
+        },
+        "new_search_query": {
+          "type": "string",
+          "title": "Пользователь поменял поисковый запрос"
+        }
+      }
+    },
+    "ChoseTorrentOptionsResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/TVShowDeliveryData"
+        },
+        "step": {
+          "$ref": "#/definitions/TVShowDeliveryStatus"
+        }
+      }
+    },
+    "ContentID": {
+      "type": "object",
+      "properties": {
+        "movie_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "tv_show": {
+          "$ref": "#/definitions/TVShowID"
+        }
+      }
+    },
+    "CreateVideoContentRequest": {
+      "type": "object",
+      "properties": {
+        "content_id": {
+          "$ref": "#/definitions/ContentID"
+        }
+      }
+    },
+    "CreateVideoContentResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/VideoContent"
+        }
+      }
+    },
+    "DeliveryStatus": {
+      "type": "string",
+      "enum": [
+        "DeliveryStatusUnknown",
+        "DeliveryStatusFailed",
+        "DeliveryStatusInProgress",
+        "DeliveryStatusDelivered"
+      ],
+      "default": "DeliveryStatusUnknown"
+    },
     "Episode": {
       "type": "object",
       "properties": {
@@ -169,7 +449,7 @@
         },
         "episode_number": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64"
         },
         "episode_type": {
           "type": "string"
@@ -182,7 +462,7 @@
         },
         "runtime": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64"
         },
         "still": {
           "$ref": "#/definitions/Image"
@@ -193,7 +473,7 @@
         },
         "vote_count": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64"
         }
       }
     },
@@ -206,6 +486,17 @@
             "type": "object",
             "$ref": "#/definitions/Episode"
           }
+        }
+      }
+    },
+    "GetTVShowDeliveryDataResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/TVShowDeliveryData"
+        },
+        "step": {
+          "$ref": "#/definitions/TVShowDeliveryStatus"
         }
       }
     },
@@ -225,6 +516,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/TVShowShort"
+          }
+        }
+      }
+    },
+    "GetVideoContentResponse": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/VideoContent"
           }
         }
       }
@@ -268,7 +571,7 @@
         },
         "episode_count": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64"
         },
         "name": {
           "type": "string"
@@ -281,7 +584,7 @@
         },
         "season_number": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64"
         },
         "vote_average": {
           "type": "number",
@@ -337,7 +640,7 @@
         },
         "vote_count": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64"
         },
         "popularity": {
           "type": "number",
@@ -362,11 +665,11 @@
         },
         "number_of_episodes": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64"
         },
         "number_of_seasons": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64"
         },
         "origin_country": {
           "type": "array",
@@ -389,6 +692,58 @@
             "type": "object",
             "$ref": "#/definitions/Season"
           }
+        }
+      }
+    },
+    "TVShowDeliveryData": {
+      "type": "object",
+      "properties": {
+        "search_query": {
+          "type": "string"
+        },
+        "torrent_search": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/TorrentSearch"
+          }
+        }
+      }
+    },
+    "TVShowDeliveryStatus": {
+      "type": "string",
+      "enum": [
+        "TVShowDeliveryStatusUnknown",
+        "GenerateSearchQuery",
+        "SearchTorrents",
+        "WaitingUserChoseTorrent",
+        "GetMagnetLink",
+        "AddTorrentToTorrentClient",
+        "PrepareFileMatches",
+        "WaitingChoseFileMatches",
+        "WaitingTorrentDownloadComplete",
+        "CreateVideoContentCatalogs",
+        "DeterminingNeedConvertFiles",
+        "StartMergeVideoFiles",
+        "WaitingMergeVideoFiles",
+        "CopyVideoFiles",
+        "SetVideoFileGroup",
+        "SetMediaMetaData",
+        "SendDeliveryNotification"
+      ],
+      "default": "TVShowDeliveryStatusUnknown",
+      "title": "- TVShowDeliveryStatusUnknown: Неизвестный статус доставки\n - GenerateSearchQuery: Генерация запроса к трекеру\n - SearchTorrents: Поиск раздач сезона сериала/фильма\n - WaitingUserChoseTorrent: Ожидание выбора раздачи пользователем\n - GetMagnetLink: Получение магнет ссылки\n - AddTorrentToTorrentClient: Добавление раздачи для скачивания торрент клиентом\n - PrepareFileMatches: Получение информации о файлах раздачи\n - WaitingChoseFileMatches: Ожидание подтверждения пользователем соответствий выбора файлов\n - WaitingTorrentDownloadComplete: Ожидание завершения окончания скачивания раздачи\n - CreateVideoContentCatalogs: Формирование каталогов и иерархии файлов\n - DeterminingNeedConvertFiles: Определение необходимости конвертации файлов\n - StartMergeVideoFiles: Запуск конвертирования файлов\n - WaitingMergeVideoFiles: Ожидание завершения конвертации файлов\n - CopyVideoFiles: Копирование файлов из раздачи в каталог медиасервера\n - SetVideoFileGroup: Установка группы файлам\n - SetMediaMetaData: Установка методаных серий сезона сериала/фильма в медиасервере\n - SendDeliveryNotification: Отправка уведомления в telegramm о успешной доставки"
+    },
+    "TVShowID": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "season_number": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -421,11 +776,55 @@
         },
         "vote_count": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64"
         },
         "popularity": {
           "type": "number",
           "format": "float"
+        }
+      }
+    },
+    "TorrentSearch": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string"
+        },
+        "seeds": {
+          "type": "string"
+        },
+        "leeches": {
+          "type": "string"
+        },
+        "downloads": {
+          "type": "string"
+        },
+        "added_date": {
+          "type": "string"
+        }
+      }
+    },
+    "VideoContent": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "content_id": {
+          "$ref": "#/definitions/ContentID"
+        },
+        "delivery_status": {
+          "$ref": "#/definitions/DeliveryStatus"
         }
       }
     }

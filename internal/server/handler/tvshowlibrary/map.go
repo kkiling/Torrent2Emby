@@ -28,7 +28,7 @@ func mapTvShowShort(res tvshowlibrary.TVShowShort) *desc.TVShowShort {
 		Poster:       mapImage(res.Poster),
 		FirstAirDate: timestamppb.New(res.FirstAirDate),
 		VoteAverage:  float32(res.VoteAverage),
-		VoteCount:    int32(res.VoteCount),
+		VoteCount:    uint32(res.VoteCount),
 		Popularity:   float32(res.Popularity),
 	}
 }
@@ -43,11 +43,11 @@ func mapSeason(res tvshowlibrary.Season) *desc.Season {
 	return &desc.Season{
 		Id:           res.ID,
 		AirDate:      timestamppb.New(res.AirDate),
-		EpisodeCount: int32(res.EpisodeCount),
+		EpisodeCount: res.EpisodeCount,
 		Name:         res.Name,
 		Overview:     res.Overview,
 		Poster:       mapImage(res.Poster),
-		SeasonNumber: int32(res.SeasonNumber),
+		SeasonNumber: uint32(res.SeasonNumber),
 		VoteAverage:  float32(res.VoteAverage),
 	}
 }
@@ -61,14 +61,14 @@ func mapTvShow(res *tvshowlibrary.TVShow) *desc.TVShow {
 		Poster:           mapImage(res.Poster),
 		FirstAirDate:     timestamppb.New(res.FirstAirDate),
 		VoteAverage:      float32(res.VoteAverage),
-		VoteCount:        int32(res.VoteCount),
+		VoteCount:        res.VoteCount,
 		Popularity:       float32(res.Popularity),
 		Backdrop:         mapImage(res.Backdrop),
 		Genres:           res.Genres,
 		LastAirDate:      timestamppb.New(res.LastAirDate),
 		NextEpisodeToAir: timestamppb.New(res.NextEpisodeToAir),
-		NumberOfEpisodes: int32(res.NumberOfEpisodes),
-		NumberOfSeasons:  int32(res.NumberOfSeasons),
+		NumberOfEpisodes: res.NumberOfEpisodes,
+		NumberOfSeasons:  res.NumberOfSeasons,
 		OriginCountry:    res.OriginCountry,
 		Status:           res.Status,
 		Tagline:          res.Tagline,
@@ -83,14 +83,14 @@ func mapEpisode(res tvshowlibrary.Episode) *desc.Episode {
 	return &desc.Episode{
 		Id:            res.ID,
 		AirDate:       timestamppb.New(res.AirDate),
-		EpisodeNumber: int32(res.EpisodeNumber),
+		EpisodeNumber: uint32(res.EpisodeNumber),
 		EpisodeType:   res.EpisodeType,
 		Name:          res.Name,
 		Overview:      res.Overview,
-		Runtime:       int32(res.Runtime),
+		Runtime:       uint32(res.Runtime),
 		Still:         mapImage(res.Still),
 		VoteAverage:   float32(res.VoteAverage),
-		VoteCount:     int32(res.VoteCount),
+		VoteCount:     uint32(res.VoteCount),
 	}
 }
 

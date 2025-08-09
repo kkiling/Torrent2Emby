@@ -3,21 +3,21 @@ package delivery
 import (
 	"context"
 	"fmt"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"path/filepath"
 	"strings"
 
 	"github.com/samber/lo"
 
-	matchtvshow "github.com/kkiling/torrent2emby/internal/adapter/matchtvshow"
+	"github.com/kkiling/torrent2emby/internal/adapter/matchtvshow"
 	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
 )
 
 type PreparingFileMatchesParams struct {
 	Hash     string
-	TVShowID videocontent.TVShowID
+	TVShowID common.TVShowID
 }
 
 func mapFile(file matchtvshow.TorrentFile) FileInfo {

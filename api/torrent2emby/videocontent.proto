@@ -1,0 +1,183 @@
+syntax = "proto3";
+
+package torrent2emby;
+
+option go_package = "github.com/kkiling/torrent2emby/api";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service VideoContentService {
+  rpc CreateVideoContent(CreateVideoContentRequest)  returns (CreateVideoContentResponse) {
+    option (google.api.http) = {
+      post: "/v1/content";
+      body: "*";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Создание файловой раздачи";
+    };
+  };
+  rpc GetVideoContent(GetVideoContentRequest)  returns (GetVideoContentResponse) {
+    option (google.api.http) = {
+      get: "/v1/content";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получение доставок для кино/тв сериала"
+    };
+  };
+  rpc GetTVShowDeliveryData(GetTVShowDeliveryDataRequest)  returns (GetTVShowDeliveryDataResponse) {
+    option (google.api.http) = {
+      get: "/v1/tvshow/delivery/data";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получение данных стейта доставки"
+    };
+  };
+  rpc ChoseTorrentOptions(ChoseTorrentOptionsRequest)  returns (ChoseTorrentOptionsResponse) {
+    option (google.api.http) = {
+      patch: "/v1/tvshow/delivery/chose-torrent";
+      body: "*";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Выбор раздачи с торрента"
+    };
+  };
+  rpc ChoseFileMatchesOptions(ChoseFileMatchesOptionsRequest)  returns (ChoseFileMatchesOptionsResponse) {
+    option (google.api.http) = {
+      patch: "/v1/tvshow/delivery/chose-file-matches";
+      body: "*";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Подтверждение метча файлов"
+    };
+  };
+
+}
+
+message TVShowID  {
+  uint64 id = 1;
+  uint32 season_number = 2;
+}
+
+message ContentID {
+  optional uint64 movie_id = 1;
+  optional TVShowID tv_show = 2;
+}
+
+enum DeliveryStatus {
+  DeliveryStatusUnknown = 0;
+  DeliveryStatusFailed = 1;
+  DeliveryStatusInProgress = 2;
+  DeliveryStatusDelivered = 3;
+}
+
+message VideoContent {
+  string id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  ContentID content_id = 3;
+  DeliveryStatus delivery_status = 4;
+}
+
+enum TVShowDeliveryStatus {
+  // Неизвестный статус доставки
+  TVShowDeliveryStatusUnknown = 0;
+  // Генерация запроса к трекеру
+  GenerateSearchQuery = 1;
+  // Поиск раздач сезона сериала/фильма
+  SearchTorrents = 2;
+  // Ожидание выбора раздачи пользователем
+  WaitingUserChoseTorrent = 3;
+  // Получение магнет ссылки
+  GetMagnetLink = 4;
+  // Добавление раздачи для скачивания торрент клиентом
+  AddTorrentToTorrentClient = 5;
+  // Получение информации о файлах раздачи
+  PrepareFileMatches = 6;
+  // Ожидание подтверждения пользователем соответствий выбора файлов
+  WaitingChoseFileMatches = 7;
+  // Ожидание завершения окончания скачивания раздачи
+  WaitingTorrentDownloadComplete = 8;
+  // Формирование каталогов и иерархии файлов
+  CreateVideoContentCatalogs = 9;
+  // Определение необходимости конвертации файлов
+  DeterminingNeedConvertFiles = 10;
+  // Запуск конвертирования файлов
+  StartMergeVideoFiles = 11;
+  // Ожидание завершения конвертации файлов
+  WaitingMergeVideoFiles = 12;
+  // Копирование файлов из раздачи в каталог медиасервера
+  CopyVideoFiles = 13;
+  // Установка группы файлам
+  SetVideoFileGroup = 14;
+  // Установка методаных серий сезона сериала/фильма в медиасервере
+  SetMediaMetaData = 15;
+  // Отправка уведомления в telegramm о успешной доставки
+  SendDeliveryNotification = 16;
+}
+
+message TorrentSearch {
+  string title = 1;
+  string href = 2;
+  string size = 3;
+  string seeds = 4;
+  string leeches   = 5;
+  string downloads = 6;
+  string added_date = 7;
+}
+
+message TVShowDeliveryData {
+  optional string search_query = 1;
+  repeated TorrentSearch torrent_search = 2;
+}
+
+
+message CreateVideoContentRequest {
+  ContentID content_id = 1;
+}
+
+message CreateVideoContentResponse {
+  VideoContent result = 1;
+}
+
+message GetVideoContentRequest {
+  ContentID content_id = 1;
+}
+
+message GetVideoContentResponse {
+  repeated VideoContent items = 1;
+}
+
+message GetTVShowDeliveryDataRequest {
+  ContentID content_id = 1;
+}
+
+message GetTVShowDeliveryDataResponse {
+  TVShowDeliveryData data = 1;
+  TVShowDeliveryStatus step = 2;
+}
+
+message ChoseTorrentOptionsRequest {
+  ContentID content_id = 1;
+  // Пользователь выбрал конкретный торрента файл
+  optional string href = 2;
+  // Пользователь поменял поисковый запрос
+  optional string new_search_query = 3;
+}
+
+message ChoseTorrentOptionsResponse {
+  TVShowDeliveryData data = 1;
+  TVShowDeliveryStatus step = 2;
+}
+
+message ChoseFileMatchesOptionsRequest {
+  ContentID content_id = 1;
+  // Пользователь подтверждает сметченные файлы
+  bool approve = 2;
+}
+
+message ChoseFileMatchesOptionsResponse {
+  TVShowDeliveryData data = 1;
+  TVShowDeliveryStatus step = 2;
+}

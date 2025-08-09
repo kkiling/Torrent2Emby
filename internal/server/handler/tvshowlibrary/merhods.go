@@ -2,8 +2,8 @@ package tvshowlibrary
 
 import (
 	"context"
+	"github.com/kkiling/torrent2emby/internal/server/handler"
 
-	"github.com/kkiling/torrent2emby/internal/handler"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 	desc "github.com/kkiling/torrent2emby/pkg/gen/torrent2emby"
 )
@@ -37,7 +37,7 @@ func (h *Handler) GetTVShowInfo(ctx context.Context, request *desc.GetTVShowInfo
 func (h *Handler) GetSeasonEpisodes(ctx context.Context, request *desc.GetSeasonEpisodesRequest) (*desc.GetSeasonEpisodesResponse, error) {
 	result, err := h.tvShowLibrary.GetSeasonEpisodes(ctx, tvshowlibrary.GetSeasonEpisodesParams{
 		TVShowID:     request.TvShowId,
-		SeasonNumber: int(request.SeasonNumber),
+		SeasonNumber: uint8(request.SeasonNumber),
 	})
 
 	if err != nil {

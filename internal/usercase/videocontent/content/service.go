@@ -11,7 +11,7 @@ import (
 	"github.com/kkiling/statemachine"
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners/tvshowdeliverystate"
 	"github.com/samber/lo"
@@ -55,6 +55,10 @@ func NewService(
 
 // CreateVideoContent создание файловой раздачи
 func (s *Service) CreateVideoContent(ctx context.Context, params CreateVideoContentParams) (*VideoContent, error) {
+	if err := params.ContentID.Validate(); err != nil {
+		return nil, err
+	}
+	// Временно ограничиваем одну раздачу на один фильм/сериал
 	found, err := s.GetVideoContent(ctx, params.ContentID)
 	if err != nil {
 		return nil, fmt.Errorf("getVideoContent: %w", err)
@@ -67,8 +71,7 @@ func (s *Service) CreateVideoContent(ctx context.Context, params CreateVideoCont
 		return nil, fmt.Errorf("movieID is not support: %w", ucerr.InvalidArgument)
 	}
 
-	// Добавить проверку на наличие уже раздачи и выкидывать ее
-	// Получаем инфу о сезоне сериала
+	// Получаем инфу о сериале
 	tvShowInfo, err := s.tvShowLibrary.GetTVShowInfo(ctx, tvshowlibrary.GetTVShowParams{
 		TVShowID: params.ContentID.TVShow.ID,
 	})
@@ -76,9 +79,16 @@ func (s *Service) CreateVideoContent(ctx context.Context, params CreateVideoCont
 		return nil, fmt.Errorf("tvShowLibrary.GetTVShowInfo: %w", err)
 	}
 	if tvShowInfo == nil {
-		return nil, fmt.Errorf("tvShowInfo not found: %w", ucerr.NotFound)
+		return nil, fmt.Errorf("tvShow: %w", ucerr.NotFound)
+	}
+	// Проверяем что сезон тоже существует
+	if !lo.ContainsBy(tvShowInfo.Result.Seasons, func(item tvshowlibrary.Season) bool {
+		return item.SeasonNumber == params.ContentID.TVShow.SeasonNumber
+	}) {
+		return nil, fmt.Errorf("season: %w", ucerr.NotFound)
 	}
 
+	// Создаем стейт доставки сериала до медиа сервера
 	// TODO: !!! !!! !!! подумать как обернуть в одну транзакцию
 	state, err := s.tvShowDeliveryState.Create(ctx, tvshowdeliverystate.CreateOptions{
 		TVShowID: *params.ContentID.TVShow,
@@ -107,8 +117,12 @@ func (s *Service) CreateVideoContent(ctx context.Context, params CreateVideoCont
 	return &videoContent, nil
 }
 
-func (s *Service) GetVideoContent(ctx context.Context, contentID videocontent.ContentID) ([]VideoContent, error) {
-	result, err := s.storage.GetVideoContent(ctx, contentID)
+func (s *Service) GetVideoContent(ctx context.Context, contentID common.ContentID) ([]VideoContent, error) {
+	if err := contentID.Validate(); err != nil {
+		return nil, err
+	}
+
+	result, err := s.storage.GetVideoContents(ctx, contentID)
 	switch {
 	case err == nil:
 	case errors.Is(err, storagebase.ErrNotFound): // Выпуск не найден
@@ -119,8 +133,8 @@ func (s *Service) GetVideoContent(ctx context.Context, contentID videocontent.Co
 	return result, nil
 }
 
-func (s *Service) getStateID(ctx context.Context, contentID videocontent.ContentID, runersType runners.Type) (uuid.UUID, error) {
-	contents, err := s.storage.GetVideoContent(ctx, contentID)
+func (s *Service) getStateID(ctx context.Context, contentID common.ContentID, runersType runners.Type) (uuid.UUID, error) {
+	contents, err := s.storage.GetVideoContents(ctx, contentID)
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("storage.GetVideoContent: %w", err)
 	}
@@ -140,7 +154,11 @@ func (s *Service) getStateID(ctx context.Context, contentID videocontent.Content
 	return state.StateID, nil
 }
 
-func (s *Service) GetTVShowDeliveryData(ctx context.Context, contentID videocontent.ContentID) (*tvshowdeliverystate.TVShowDeliveryData, error) {
+func (s *Service) GetTVShowDeliveryData(ctx context.Context, contentID common.ContentID) (*tvshowdeliverystate.State, error) {
+	if err := contentID.Validate(); err != nil {
+		return nil, err
+	}
+
 	stateID, err := s.getStateID(ctx, contentID, runners.TVShowDelivery)
 	if err != nil {
 		return nil, fmt.Errorf("getStateID: %w", err)
@@ -151,13 +169,16 @@ func (s *Service) GetTVShowDeliveryData(ctx context.Context, contentID videocont
 		return nil, fmt.Errorf("s.GetStateByID: %w", err)
 	}
 
-	return &result.Data, nil
+	return result, nil
 }
 
 func (s *Service) ChoseTorrentOptions(ctx context.Context,
-	contentID videocontent.ContentID,
+	contentID common.ContentID,
 	opts tvshowdeliverystate.ChoseTorrentOptions,
-) (*tvshowdeliverystate.TVShowDeliveryData, error) {
+) (*tvshowdeliverystate.State, error) {
+	if err := contentID.Validate(); err != nil {
+		return nil, err
+	}
 	stateID, err := s.getStateID(ctx, contentID, runners.TVShowDelivery)
 	if err != nil {
 		return nil, fmt.Errorf("getStateID: %w", err)
@@ -169,13 +190,17 @@ func (s *Service) ChoseTorrentOptions(ctx context.Context,
 	if executeErr != nil {
 		return nil, executeErr
 	}
-	return &newState.Data, nil
+	return newState, nil
 }
 
 func (s *Service) ChoseFileMatchesOptions(ctx context.Context,
-	contentID videocontent.ContentID,
+	contentID common.ContentID,
 	opts tvshowdeliverystate.ChoseFileMatchesOptions,
-) (*tvshowdeliverystate.TVShowDeliveryData, error) {
+) (*tvshowdeliverystate.State, error) {
+	if err := contentID.Validate(); err != nil {
+		return nil, err
+	}
+
 	stateID, err := s.getStateID(ctx, contentID, runners.TVShowDelivery)
 	if err != nil {
 		return nil, fmt.Errorf("getStateID: %w", err)
@@ -187,7 +212,7 @@ func (s *Service) ChoseFileMatchesOptions(ctx context.Context,
 	if executeErr != nil {
 		return nil, executeErr
 	}
-	return &newState.Data, nil
+	return newState, nil
 }
 
 func (s *Service) completeTVShowDelivery(ctx context.Context, content VideoContent) error {
@@ -220,7 +245,7 @@ func (s *Service) completeTVShowDelivery(ctx context.Context, content VideoConte
 		if newState.Status == statemachine.CompletedStatus {
 			needUpdate = true
 			updateVideoContent.DeliveryStatus = DeliveryStatusDelivered
-		} else if newState.Status != statemachine.FailedStatus {
+		} else if newState.Status == statemachine.FailedStatus {
 			needUpdate = true
 			updateVideoContent.DeliveryStatus = DeliveryStatusFailed
 		} else if content.TorrentInfo == nil && newState.Data.SelectTorrentHref != nil && newState.Data.MagnetInfo != nil {
@@ -254,7 +279,7 @@ func (s *Service) completeTVShowDelivery(ctx context.Context, content VideoConte
 }
 
 func (s *Service) completeTVShowDeliveries(ctx context.Context) error {
-	contents, err := s.storage.GetVideoContents(ctx, DeliveryStatusInProgress, 10)
+	contents, err := s.storage.GetVideoContentsByStatus(ctx, DeliveryStatusInProgress, 10)
 	if err != nil {
 		return fmt.Errorf("storage.GetVideoContents: %w", err)
 	}

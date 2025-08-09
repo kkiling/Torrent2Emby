@@ -17,7 +17,7 @@ type TVShowShort struct {
 	Poster       *Image
 	FirstAirDate time.Time
 	VoteAverage  float64
-	VoteCount    int
+	VoteCount    uint32
 	Popularity   float64
 }
 
@@ -28,8 +28,8 @@ type TVShow struct {
 	Genres           []string
 	LastAirDate      time.Time
 	NextEpisodeToAir time.Time
-	NumberOfEpisodes int
-	NumberOfSeasons  int
+	NumberOfEpisodes uint32
+	NumberOfSeasons  uint32
 	OriginCountry    []string
 	Status           string
 	Tagline          string
@@ -41,11 +41,11 @@ type TVShow struct {
 type Season struct {
 	ID           uint64
 	AirDate      time.Time
-	EpisodeCount int
+	EpisodeCount uint32
 	Name         string
 	Overview     string
 	Poster       *Image
-	SeasonNumber int
+	SeasonNumber uint8
 	VoteAverage  float64
 }
 

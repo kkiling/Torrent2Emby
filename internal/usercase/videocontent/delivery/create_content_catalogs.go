@@ -3,6 +3,7 @@ package delivery
 import (
 	"context"
 	"fmt"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,14 +13,13 @@ import (
 
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
 )
 
 type CreateContentCatalogsParams struct {
-	TVShowID videocontent.TVShowID
+	TVShowID common.TVShowID
 }
 
-func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID videocontent.TVShowID) (*CatalogsInfo, error) {
+func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID common.TVShowID) (*CatalogsInfo, error) {
 	// Получаем инфу о сезоне сериала
 	tvShowInfo, err := s.tvShowLibrary.GetTVShowInfo(ctx, tvshowlibrary.GetTVShowParams{
 		TVShowID: tvShowID.ID,

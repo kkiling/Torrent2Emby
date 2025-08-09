@@ -2,8 +2,8 @@ package tvshowdeliverystate
 
 import (
 	"fmt"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/delivery"
 )
 
@@ -58,8 +58,6 @@ const (
 	но для упрощения пока будем пока разрешать только 1
 */
 type TVShowDeliveryData struct {
-	TVShowID videocontent.TVShowID
-	// Данные выпуска
 	SearchQuery           *string
 	TorrentSearch         *delivery.TorrentSearchResult
 	SelectTorrentHref     *string
@@ -72,7 +70,7 @@ type TVShowDeliveryData struct {
 }
 
 type CreateOptions struct {
-	TVShowID videocontent.TVShowID
+	TVShowID common.TVShowID
 }
 
 func (c CreateOptions) GetIdempotencyKey() string {

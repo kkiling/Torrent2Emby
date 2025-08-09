@@ -22,7 +22,7 @@ type GetTVShowResult struct {
 
 type GetSeasonEpisodesParams struct {
 	TVShowID     uint64
-	SeasonNumber int
+	SeasonNumber uint8
 }
 
 type GetSeasonEpisodesResult struct {

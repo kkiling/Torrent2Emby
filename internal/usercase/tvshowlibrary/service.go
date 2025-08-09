@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
+	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 
 	"github.com/kkiling/goplatform/storagebase"
 
@@ -65,7 +67,9 @@ func (s *Service) GetTVShowInfo(ctx context.Context, params GetTVShowParams) (*G
 
 	response, err := s.theMovieDb.GetTV(ctx, params.TVShowID, language)
 	if err != nil {
-		// TODO: обработать not found
+		if errors.Is(err, apierr.ContentNotFound) {
+			return nil, ucerr.NotFound
+		}
 		return nil, fmt.Errorf("theMovieDb.GetTV: %w", err)
 	}
 
@@ -73,7 +77,6 @@ func (s *Service) GetTVShowInfo(ctx context.Context, params GetTVShowParams) (*G
 
 	// Получение информации о сериале, автоматически добавляет его в библиотеку
 	if err = s.storage.SaveOrUpdateTVShow(ctx, tvShow); err != nil {
-
 		return nil, fmt.Errorf("s.storage.SaveTVShow: %w", err)
 	}
 
@@ -84,6 +87,11 @@ func (s *Service) GetTVShowInfo(ctx context.Context, params GetTVShowParams) (*G
 
 // GetSeasonEpisodes получение информации о сериях сезона
 func (s *Service) GetSeasonEpisodes(ctx context.Context, params GetSeasonEpisodesParams) (*GetSeasonEpisodesResult, error) {
+	// Сначала проверяем существует ли сам сериал
+	if _, err := s.GetTVShowInfo(ctx, GetTVShowParams{TVShowID: params.TVShowID}); err != nil {
+		return nil, fmt.Errorf("s.GetTVShowInfo: %w", err)
+	}
+
 	// сначала тянем информацию о эпизодах из библиотеки
 	if episodes, err := s.storage.GetSeasonEpisodes(ctx, params.TVShowID, params.SeasonNumber); err != nil {
 		switch {
@@ -100,7 +108,9 @@ func (s *Service) GetSeasonEpisodes(ctx context.Context, params GetSeasonEpisode
 
 	response, err := s.theMovieDb.GetSeasonEpisodes(ctx, params.TVShowID, params.SeasonNumber, language)
 	if err != nil {
-		// TODO: обработать not found
+		if errors.Is(err, apierr.ContentNotFound) {
+			return nil, ucerr.NotFound
+		}
 		return nil, fmt.Errorf("theMovieDb.GetSeasonEpisodes: %w", err)
 	}
 

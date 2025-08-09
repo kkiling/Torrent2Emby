@@ -11,7 +11,7 @@ import (
 	"github.com/kkiling/torrent2emby/internal/adapter/apierr"
 )
 
-func (api *API) GetSeasonEpisodes(ctx context.Context, tvID uint64, seasonNumber int, language Language) ([]Episode, error) {
+func (api *API) GetSeasonEpisodes(ctx context.Context, tvID uint64, seasonNumber uint8, language Language) ([]Episode, error) {
 	queryParams := url.Values{}
 	queryParams.Add("api_key", api.apiKey)
 	queryParams.Add("language", string(language))

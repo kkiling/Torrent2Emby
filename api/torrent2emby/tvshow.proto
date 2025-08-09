@@ -18,9 +18,17 @@ service TVShowLibraryService {
       summary: "Поиск сериалов по названию";
     };
   };
+  rpc GetTVShowsFromLibrary(GetTVShowsFromLibraryRequest)  returns (GetTVShowsFromLibraryResponse) {
+    option (google.api.http) = {
+      get: "/v1/tvshow/library";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получение списка сериалов из библиотеки"
+    };
+  }
   rpc GetTVShowInfo(GetTVShowInfoRequest)  returns (GetTVShowInfoResponse) {
     option (google.api.http) = {
-      get: "/v1/tvshow/get/{tv_show_id}";
+      get: "/v1/tvshow/info/{tv_show_id}";
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Получение подробной информации о сериале"
@@ -28,18 +36,10 @@ service TVShowLibraryService {
   };
   rpc GetSeasonEpisodes(GetSeasonEpisodesRequest)  returns (GetSeasonEpisodesResponse) {
     option (google.api.http) = {
-      get: "/v1/tvshow/get/{tv_show_id}/{season_number}";
+      get: "/v1/tvshow/info/{tv_show_id}/{season_number}";
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Получение информации о сериях сезона"
-    };
-  };
-  rpc GetTVShowsFromLibrary(GetTVShowsFromLibraryRequest)  returns (GetTVShowsFromLibraryResponse) {
-    option (google.api.http) = {
-      get: "/v1/tvshow/library";
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Получение списка сериалов из библиотеки"
     };
   };
 }
@@ -58,7 +58,7 @@ message TVShowShort {
   optional Image poster = 5;
   google.protobuf.Timestamp first_air_date = 6;
   float vote_average = 7;
-  int32 vote_count = 8;
+  uint32 vote_count = 8;
   float popularity = 9;
 }
 
@@ -70,14 +70,14 @@ message TVShow {
   optional Image poster = 5;
   google.protobuf.Timestamp first_air_date = 6;
   float vote_average = 7;
-  int32 vote_count = 8;
+  uint32 vote_count = 8;
   float popularity = 9;
   optional Image backdrop = 10;
   repeated string genres = 11;
   google.protobuf.Timestamp last_air_date = 12;
   google.protobuf.Timestamp next_episode_to_air = 13;
-  int32 number_of_episodes = 14;
-  int32 number_of_seasons = 15;
+  uint32 number_of_episodes = 14;
+  uint32 number_of_seasons = 15;
   repeated string origin_country = 16;
   string status = 17;
   string tagline = 18;
@@ -88,25 +88,25 @@ message TVShow {
 message Season {
   uint64 id = 1;
   google.protobuf.Timestamp air_date = 2;
-  int32 episode_count = 3;
+  uint32 episode_count = 3;
   string name = 4;
   string overview = 5;
   optional Image poster = 6;
-  int32 season_number = 7;
+  uint32 season_number = 7;
   float vote_average = 8;
 }
 
 message Episode {
   uint64 id = 1;
   google.protobuf.Timestamp air_date = 2;
-  int32 episode_number = 3;
+  uint32 episode_number = 3;
   string episode_type = 4;
   string name = 5;
   string overview = 6;
-  int32 runtime = 7;
+  uint32 runtime = 7;
   optional Image still = 8;
   float vote_average = 9;
-  int32 vote_count = 10;
+  uint32 vote_count = 10;
 }
 
 message SearchTVShowRequest {
@@ -127,7 +127,7 @@ message GetTVShowInfoResponse {
 
 message GetSeasonEpisodesRequest {
   uint64 tv_show_id = 1;
-  int32 season_number = 2;
+  uint32 season_number = 2;
 }
 
 message GetSeasonEpisodesResponse {

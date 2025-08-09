@@ -12,7 +12,7 @@ import (
 	desc "github.com/kkiling/torrent2emby/pkg/gen/torrent2emby"
 )
 
-// TVShowLibrary юзеркейс авторизации
+// TVShowLibrary юзеркейс работы с библиотекой сериалов
 type TVShowLibrary interface {
 	SearchTVShow(ctx context.Context, params tvshowlibrary.TVShowSearchParams) (*tvshowlibrary.TVShowSearchResult, error)
 	GetTVShowInfo(ctx context.Context, params tvshowlibrary.GetTVShowParams) (*tvshowlibrary.GetTVShowResult, error)
