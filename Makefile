@@ -46,3 +46,7 @@ generate:
 	cp -R api/torrent2emby/ vendor.protogen/
 	buf dep update
 	buf generate
+
+.PHONY: run
+run:
+	go run ./cmd/main.go

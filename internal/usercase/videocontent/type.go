@@ -25,6 +25,9 @@ type CreateVideoContentParams = content.CreateVideoContentParams
 type TVShowDeliveryState = tvshowdeliverystate.State
 type TVShowDeliveryData = tvshowdeliverystate.TVShowDeliveryData
 type TorrentSearch = delivery.TorrentSearch
+type ContentMatches = delivery.ContentMatches
+type Track = delivery.Track
+type FileInfo = delivery.FileInfo
 type ChoseTorrentOptions = tvshowdeliverystate.ChoseTorrentOptions
 type ChoseFileMatchesOptions = tvshowdeliverystate.ChoseFileMatchesOptions
 

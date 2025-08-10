@@ -16,6 +16,7 @@ type MediaInfo struct {
 }
 
 type MediaInfoTrack struct {
+	Number            int
 	DefaultDuration   int
 	DefaultTrack      bool
 	DisplayDimensions string
@@ -45,6 +46,7 @@ func (s *Merge) GetMediaInfo(filePath string) (*MediaInfo, error) {
 			Codec      string `json:"codec"`
 			Id         int    `json:"id"`
 			Properties struct {
+				Number            int    `json:"number"`
 				DefaultDuration   int    `json:"default_duration"`
 				DefaultTrack      bool   `json:"default_track"`
 				DisplayDimensions string `json:"display_dimensions"`
@@ -68,6 +70,7 @@ func (s *Merge) GetMediaInfo(filePath string) (*MediaInfo, error) {
 
 	for _, track := range result.Tracks {
 		trackInfo := MediaInfoTrack{
+			Number:            track.Properties.Number,
 			DefaultDuration:   track.Properties.DefaultDuration,
 			DefaultTrack:      track.Properties.DefaultTrack,
 			DisplayDimensions: track.Properties.DisplayDimensions,

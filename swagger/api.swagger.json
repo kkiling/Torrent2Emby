@@ -410,6 +410,31 @@
         }
       }
     },
+    "ContentMatches": {
+      "type": "object",
+      "properties": {
+        "episode": {
+          "$ref": "#/definitions/EpisodeInfo"
+        },
+        "video": {
+          "$ref": "#/definitions/VideoFile"
+        },
+        "audio_files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Track"
+          }
+        },
+        "subtitles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Track"
+          }
+        }
+      }
+    },
     "CreateVideoContentRequest": {
       "type": "object",
       "properties": {
@@ -474,6 +499,40 @@
         "vote_count": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "EpisodeInfo": {
+      "type": "object",
+      "properties": {
+        "season_number": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "episode_name": {
+          "type": "string"
+        },
+        "episode_number": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "FileInfo": {
+      "type": "object",
+      "properties": {
+        "relative_path": {
+          "type": "string"
+        },
+        "full_path": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "format": "int64"
+        },
+        "extension": {
+          "type": "string"
         }
       }
     },
@@ -707,6 +766,13 @@
             "type": "object",
             "$ref": "#/definitions/TorrentSearch"
           }
+        },
+        "content_matches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ContentMatches"
+          }
         }
       }
     },
@@ -810,6 +876,20 @@
         }
       }
     },
+    "Track": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "$ref": "#/definitions/FileInfo"
+        },
+        "name": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        }
+      }
+    },
     "VideoContent": {
       "type": "object",
       "properties": {
@@ -825,6 +905,14 @@
         },
         "delivery_status": {
           "$ref": "#/definitions/DeliveryStatus"
+        }
+      }
+    },
+    "VideoFile": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "$ref": "#/definitions/FileInfo"
         }
       }
     }

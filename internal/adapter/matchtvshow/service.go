@@ -2,6 +2,7 @@ package matchtvshow
 
 import (
 	"fmt"
+	"github.com/samber/lo"
 	"path/filepath"
 	"strings"
 
@@ -99,6 +100,17 @@ func processVideoFiles(torrentFiles []TorrentFile) ([]TorrentFile, error) {
 	return result, nil
 }
 
+func (s *Service) tryGetLanguage(path string) string {
+	array := strings.Split(strings.ToLower(path), " ")
+	if lo.Contains(array, "rus") || lo.Contains(array, "ru") {
+		return "ru"
+	}
+	if lo.Contains(array, "en") || lo.Contains(array, "eng") {
+		return "en"
+	}
+	return ""
+}
+
 func (s *Service) processMetaFiles(torrentFiles []TorrentFile, extensions []string) (map[string][]PrepareTrack, error) {
 	prepareVideoFiles, err := processFiles(torrentFiles, extensions)
 	if err != nil {
@@ -115,25 +127,26 @@ func (s *Service) processMetaFiles(torrentFiles []TorrentFile, extensions []stri
 		}
 
 		// Пробуем достать информацию из файла
-		info, err := s.mediaInfo.GetMediaInfo(file.FullPath)
+		// TODO: а это не получится сделать, так как файл только скачивается...
+		/*info, err := s.mediaInfo.GetMediaInfo(file.FullPath)
 		if err != nil {
 			return nil, fmt.Errorf("mediaInfo.GetMediaInfo: %w", err)
-		}
+		}*/
 
 		// Берем название из каталога
 		name := splitRelativePath[len(splitRelativePath)-2]
-		language := ""
-		if len(info.AudioTracks) == 1 && info.AudioTracks[0].TrackName != "" {
+		language := s.tryGetLanguage(splitRelativePath[0])
+		/*if len(info.AudioTracks) == 1 && info.AudioTracks[0].TrackName != "" {
 			// Пробуем достать из инфы аудиодорожки
 			name = info.AudioTracks[0].TrackName
 			language = info.AudioTracks[0].Language
-		}
+		}*/
 
-		if len(info.Subtitles) == 1 && info.Subtitles[0].TrackName != "" {
+		/*if len(info.Subtitles) == 1 && info.Subtitles[0].TrackName != "" {
 			// Пробуем достать из инфы субтитров
 			name = info.Subtitles[0].TrackName
 			language = info.AudioTracks[0].Language
-		}
+		}*/
 
 		result[name] = append(result[name], PrepareTrack{
 			Name:     name,

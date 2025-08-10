@@ -91,6 +91,14 @@ func (s *Service) createDirectories(base, catalog string) error {
 	return nil
 }
 
+func isEmpty(dirPath string) (bool, error) {
+	entries, err := os.ReadDir(dirPath)
+	if err != nil {
+		return false, err
+	}
+	return len(entries) == 0, nil
+}
+
 // CreateContentCatalogs формирование каталога куда будет сохранен контент
 func (s *Service) CreateContentCatalogs(ctx context.Context, params CreateContentCatalogsParams) (*CatalogsInfo, error) {
 	catalog, err := s.createTVShowCatalog(ctx, params.TVShowID)
@@ -104,6 +112,12 @@ func (s *Service) CreateContentCatalogs(ctx context.Context, params CreateConten
 
 	if createErr := s.createDirectories(s.config.BasePath, catalog.TvShowSeasonPath); createErr != nil {
 		return nil, fmt.Errorf("createDirectories: %w", createErr)
+	}
+
+	if ok, err := isEmpty(catalog.TvShowSeasonPath); err != nil {
+		return nil, fmt.Errorf("isEmpty: %w", err)
+	} else if !ok {
+		return nil, fmt.Errorf("catalog is not empty: %w", ucerr.AlreadyExists)
 	}
 
 	return catalog, nil

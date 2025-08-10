@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -84,6 +86,34 @@ func (s *Pipeline) startTimer(ctx context.Context) error {
 	}
 }
 
+func (s *Pipeline) getProgress(content string) *float64 {
+	// Регулярное выражение для поиска прогресса в формате "Progress: XX%"
+	re := regexp.MustCompile(`Progress:\s*(\d+)%`)
+
+	// Ищем совпадение в content
+	matches := re.FindStringSubmatch(content)
+	if len(matches) < 2 {
+		return nil // не найдено совпадений
+	}
+
+	// Преобразуем найденное число в int
+	progressInt, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return nil // не удалось преобразовать в число
+	}
+
+	// Проверяем, что прогресс в допустимом диапазоне (0-100)
+	if progressInt < 0 {
+		progressInt = 0
+	} else if progressInt > 100 {
+		progressInt = 100
+	}
+
+	// Конвертируем в float64 и делим на 100 для получения значения 0-1
+	progress := float64(progressInt) / 100.0
+	return &progress
+}
+
 func (s *Pipeline) runMerge(ctx context.Context, id uuid.UUID, params MergeParams) error {
 	mergeCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -103,6 +133,7 @@ func (s *Pipeline) runMerge(ctx context.Context, id uuid.UUID, params MergeParam
 				CreatedAt: time.Now(),
 				Type:      msg.Type,
 				Content:   msg.Content,
+				Progress:  s.getProgress(msg.Content),
 			})
 			if logErr != nil {
 				s.logger.Errorf("AddMergeLogs: %v", logErr)

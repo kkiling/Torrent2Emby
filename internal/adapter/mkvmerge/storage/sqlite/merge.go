@@ -56,6 +56,31 @@ func (s *Storage) Update(ctx context.Context, id uuid.UUID, update *mkvmerge.Upd
 	return nil
 }
 
+func (s *Storage) getMergeProgress(ctx context.Context, mergeID uuid.UUID) (float64, error) {
+	row := s.base.Next(ctx).QueryRowContext(ctx, `
+        select progress from mkv_merge_logs where merge_id=? and progress is not null order by created_at desc limit 1
+    `, mergeID)
+
+	var progress sql.NullFloat64
+
+	err := row.Scan(
+		&progress,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0.0, nil
+		}
+		return 0.0, s.base.HandleError(err)
+	}
+
+	if progress.Valid {
+		return progress.Float64, nil
+	}
+
+	return 0.0, nil
+}
+
 func (s *Storage) getMergeResult(row *sql.Row) (*mkvmerge.MergeResult, error) {
 	var result mkvmerge.MergeResult
 	var paramsJSON string
@@ -79,7 +104,7 @@ func (s *Storage) getMergeResult(row *sql.Row) (*mkvmerge.MergeResult, error) {
 	}
 
 	// Десериализуем параметры
-	if err := json.Unmarshal([]byte(paramsJSON), &result.Params); err != nil {
+	if err = json.Unmarshal([]byte(paramsJSON), &result.Params); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal params: %w", err)
 	}
 
@@ -89,6 +114,12 @@ func (s *Storage) getMergeResult(row *sql.Row) (*mkvmerge.MergeResult, error) {
 	}
 	if completedAt.Valid {
 		result.CompletedAt = &completedAt.Time
+	}
+
+	if progress, err2 := s.getMergeProgress(context.Background(), result.ID); err2 != nil {
+		return nil, fmt.Errorf("getMergeProgress: %w", err2)
+	} else {
+		result.Progress = progress
 	}
 
 	return &result, nil
@@ -124,9 +155,9 @@ func (s *Storage) GetOldestUncompleted(ctx context.Context) (*mkvmerge.MergeResu
 
 func (s *Storage) AddMergeLogs(ctx context.Context, id uuid.UUID, log mkvmerge.MergeLogs) error {
 	_, err := s.base.Next(ctx).ExecContext(ctx, `
-        INSERT INTO mkv_merge_logs (merge_id, type, content, created_at)
-        VALUES (?, ?, ?, ?)
-    `, id, log.Type, log.Content, log.CreatedAt)
+        INSERT INTO mkv_merge_logs (merge_id, type, content, created_at, progress)
+        VALUES (?, ?, ?, ?, ?)
+    `, id, log.Type, log.Content, log.CreatedAt, log.Progress)
 
 	if err != nil {
 		return s.base.HandleError(err)

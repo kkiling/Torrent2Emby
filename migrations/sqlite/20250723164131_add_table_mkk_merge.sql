@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS mkv_merge_logs (
     created_at TIMESTAMP NOT NULL,
     type INTEGER NOT NULL,
     content TEXT NOT NULL,
+    progress REAL,
     FOREIGN KEY (merge_id) REFERENCES mkv_merge(id) ON DELETE CASCADE
 );
 -- +goose StatementEnd

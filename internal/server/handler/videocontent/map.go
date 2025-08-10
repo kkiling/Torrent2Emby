@@ -110,6 +110,24 @@ func mapDeliveryStep(step videocontent.StepDelivery) desc.TVShowDeliveryStatus {
 	}
 }
 
+func mapFile(file videocontent.FileInfo) *desc.FileInfo {
+	return &desc.FileInfo{
+		RelativePath: file.RelativePath,
+		FullPath:     file.FullPath,
+		Size:         file.Size,
+		Extension:    file.Extension,
+	}
+}
+
+func mapTracks(tracks []videocontent.Track) []*desc.Track {
+	return lo.Map(tracks, func(item videocontent.Track, _ int) *desc.Track {
+		return &desc.Track{
+			File:     mapFile(item.File),
+			Name:     item.Name,
+			Language: item.Language,
+		}
+	})
+}
 func mapTVShowDeliveryState(data *videocontent.TVShowDeliveryData) *desc.TVShowDeliveryData {
 	return &desc.TVShowDeliveryData{
 		SearchQuery: data.SearchQuery,
@@ -122,6 +140,20 @@ func mapTVShowDeliveryState(data *videocontent.TVShowDeliveryData) *desc.TVShowD
 				Leeches:   item.Leeches,
 				Downloads: item.Downloads,
 				AddedDate: item.AddedDate,
+			}
+		}),
+		ContentMatches: lo.Map(data.ContentMatches, func(item videocontent.ContentMatches, _ int) *desc.ContentMatches {
+			return &desc.ContentMatches{
+				Episode: &desc.EpisodeInfo{
+					SeasonNumber:  uint32(item.Episode.SeasonNumber),
+					EpisodeName:   item.Episode.EpisodeName,
+					EpisodeNumber: uint32(item.Episode.EpisodeNumber),
+				},
+				Video: &desc.VideoFile{
+					File: mapFile(item.Video.File),
+				},
+				AudioFiles: mapTracks(item.AudioFiles),
+				Subtitles:  mapTracks(item.Subtitles),
 			}
 		}),
 	}

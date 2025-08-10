@@ -24,26 +24,40 @@ func NewMerge(logger log.Logger) *Merge {
 }
 
 func (s *Merge) Merge(ctx context.Context, params MergeParams, outputChan chan<- OutputMessage) error {
+	info, err := s.GetMediaInfo(params.VideoInputFile)
+	if err != nil {
+		return fmt.Errorf("get media info: %w", err)
+	}
+
 	// Проверка существования основного видеофайла
-	if _, err := os.Stat(params.VideoInputFile); os.IsNotExist(err) {
+	if _, err = os.Stat(params.VideoInputFile); os.IsNotExist(err) {
 		return fmt.Errorf("input video file does not exist: %s", params.VideoInputFile)
 	}
 
 	// Проверка аудиодорожек
 	for _, track := range params.AudioTracks {
-		if _, err := os.Stat(track.Path); os.IsNotExist(err) {
+		if _, err = os.Stat(track.Path); os.IsNotExist(err) {
 			return fmt.Errorf("audio track file does not exist: %s", track.Path)
 		}
 	}
 
 	// Проверка субтитров
 	for _, track := range params.SubtitleTracks {
-		if _, err := os.Stat(track.Path); os.IsNotExist(err) {
+		if _, err = os.Stat(track.Path); os.IsNotExist(err) {
 			return fmt.Errorf("subtitle file does not exist: %s", track.Path)
 		}
 	}
 
-	args := []string{"-o", params.VideoOutputFile, params.VideoInputFile}
+	args := []string{"-o", params.VideoOutputFile}
+
+	// Снимаем default со всех старых аудио в исходном файле
+	for _, audio := range info.AudioTracks {
+		// audio.Number — это номер трека в контейнере (1-based), mkvmerge ждёт 0-based
+		trackID := audio.Number - 1
+		args = append(args, "--default-track", fmt.Sprintf("%d:no", trackID))
+	}
+
+	args = append(args, params.VideoInputFile)
 
 	// Добавляем аудиодорожки
 	for _, track := range params.AudioTracks {
@@ -70,7 +84,7 @@ func (s *Merge) Merge(ctx context.Context, params MergeParams, outputChan chan<-
 	}
 
 	// Для отладки
-	debugMsg := "Executing command: mkvmerge " + strings.Join(args, " ")
+	debugMsg := "mkvmerge " + strings.Join(args, " ")
 	outputChan <- OutputMessage{Type: InfoMessageType, Content: debugMsg}
 
 	// Создаем команду
@@ -86,8 +100,8 @@ func (s *Merge) Merge(ctx context.Context, params MergeParams, outputChan chan<-
 	}
 
 	// Запускаем команду
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("error starting command: %v", err)
+	if errStart := cmd.Start(); errStart != nil {
+		return fmt.Errorf("error starting command: %v", errStart)
 	}
 
 	// Читаем вывод в реальном времени и отправляем в канал
@@ -104,8 +118,8 @@ func (s *Merge) Merge(ctx context.Context, params MergeParams, outputChan chan<-
 	}()
 
 	// Ждем завершения
-	if err = cmd.Wait(); err != nil {
-		return fmt.Errorf("mkvmerge failed: %v", err)
+	if errWait := cmd.Wait(); errWait != nil {
+		return fmt.Errorf("mkvmerge failed: %w", errWait)
 	}
 	wg.Wait()
 

@@ -53,7 +53,6 @@ service VideoContentService {
       summary: "Подтверждение метча файлов"
     };
   };
-
 }
 
 message TVShowID  {
@@ -127,11 +126,41 @@ message TorrentSearch {
   string added_date = 7;
 }
 
+message FileInfo {
+  string relative_path = 1;
+  string full_path = 2;
+  int64  size = 3;
+  string extension = 4;
+}
+
+message EpisodeInfo {
+  uint32 season_number = 1;
+  string episode_name = 2;
+  uint32 episode_number = 3;
+}
+
+message VideoFile {
+  FileInfo file = 1;
+}
+
+message Track {
+  FileInfo file = 1;
+  string name = 2;
+  string language = 3;
+}
+
+message ContentMatches {
+  EpisodeInfo episode = 1;
+  VideoFile video = 2;
+  repeated Track audio_files = 3;
+  repeated Track subtitles = 4;
+}
+
 message TVShowDeliveryData {
   optional string search_query = 1;
   repeated TorrentSearch torrent_search = 2;
+  repeated ContentMatches content_matches = 3;
 }
-
 
 message CreateVideoContentRequest {
   ContentID content_id = 1;
