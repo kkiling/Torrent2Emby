@@ -3,6 +3,7 @@ package delivery
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 
 	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
@@ -24,6 +25,8 @@ func (s *Service) WaitingTorrentDownloadComplete(_ context.Context, params Waiti
 		return nil, fmt.Errorf("torrentInfo not found: %w", ucerr.NotFound)
 	}
 
+	contentPath := filepath.Join(s.config.BasePath, torrentInfo.ContentPath)
+
 	switch torrentInfo.State {
 	case qbittorrent.TorrentStatePausedDL, qbittorrent.TorrentStateStoppedDL:
 		if err = s.torrentClient.ResumeTorrent(params.Hash); err != nil {
@@ -33,13 +36,17 @@ func (s *Service) WaitingTorrentDownloadComplete(_ context.Context, params Waiti
 		qbittorrent.TorrentStatePausedUP,
 		qbittorrent.TorrentStateStalledUP:
 		return &TorrentDownloadStatus{
-			Progress:   torrentInfo.Progress,
-			IsComplete: true,
+			ContentPath: contentPath,
+			State:       mapTorrentState(torrentInfo.State),
+			Progress:    torrentInfo.Progress,
+			IsComplete:  true,
 		}, nil
 	}
 
 	return &TorrentDownloadStatus{
-		Progress:   torrentInfo.Progress,
-		IsComplete: false,
+		ContentPath: contentPath,
+		State:       mapTorrentState(torrentInfo.State),
+		Progress:    torrentInfo.Progress,
+		IsComplete:  false,
 	}, nil
 }

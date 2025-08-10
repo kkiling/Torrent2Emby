@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 )
 

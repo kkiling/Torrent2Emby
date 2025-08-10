@@ -3,7 +3,6 @@ package delivery
 import (
 	"context"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"path/filepath"
 	"strings"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 )
 
 type PreparingFileMatchesParams struct {

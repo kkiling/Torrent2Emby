@@ -1,11 +1,11 @@
 package content
 
 import (
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"time"
 
 	"github.com/google/uuid"
 
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners"
 )
 
@@ -28,11 +28,11 @@ const (
 
 type TorrentInfo struct {
 	// href ссылки на торрент сайт раздачи
-	Href string
+	Href *string
 	// Magnet ссылка текущую раздачу
-	Magnet string
+	Magnet *string
 	// Хеш торрента
-	Hash string
+	Hash *string
 }
 
 // VideoContent информация о файлах
@@ -43,8 +43,6 @@ type VideoContent struct {
 	CreatedAt time.Time
 	// ID сериала/фильма
 	ContentID common.ContentID
-	// Инфа о торренте
-	TorrentInfo *TorrentInfo
 	// Статус
 	DeliveryStatus DeliveryStatus
 	// Стейты привязанные к текущему контенту
@@ -58,8 +56,6 @@ type State struct {
 }
 
 type UpdateVideoContent struct {
-	// Инфа о торренте
-	TorrentInfo *TorrentInfo
 	// Статус
 	DeliveryStatus DeliveryStatus
 }

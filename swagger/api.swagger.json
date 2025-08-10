@@ -363,11 +363,8 @@
     "ChoseFileMatchesOptionsResponse": {
       "type": "object",
       "properties": {
-        "data": {
-          "$ref": "#/definitions/TVShowDeliveryData"
-        },
-        "step": {
-          "$ref": "#/definitions/TVShowDeliveryStatus"
+        "result": {
+          "$ref": "#/definitions/TVShowDeliveryState"
         }
       }
     },
@@ -390,11 +387,8 @@
     "ChoseTorrentOptionsResponse": {
       "type": "object",
       "properties": {
-        "data": {
-          "$ref": "#/definitions/TVShowDeliveryData"
-        },
-        "step": {
-          "$ref": "#/definitions/TVShowDeliveryStatus"
+        "result": {
+          "$ref": "#/definitions/TVShowDeliveryState"
         }
       }
     },
@@ -551,11 +545,8 @@
     "GetTVShowDeliveryDataResponse": {
       "type": "object",
       "properties": {
-        "data": {
-          "$ref": "#/definitions/TVShowDeliveryData"
-        },
-        "step": {
-          "$ref": "#/definitions/TVShowDeliveryStatus"
+        "result": {
+          "$ref": "#/definitions/TVShowDeliveryState"
         }
       }
     },
@@ -602,6 +593,18 @@
         },
         "original": {
           "type": "string"
+        }
+      }
+    },
+    "MergeVideoStatus": {
+      "type": "object",
+      "properties": {
+        "progress": {
+          "type": "number",
+          "format": "float"
+        },
+        "is_complete": {
+          "type": "boolean"
         }
       }
     },
@@ -773,6 +776,25 @@
             "type": "object",
             "$ref": "#/definitions/ContentMatches"
           }
+        },
+        "torrent_download_status": {
+          "$ref": "#/definitions/TorrentDownloadStatus",
+          "title": "статус скачивания раздачи"
+        },
+        "merge_video_status": {
+          "$ref": "#/definitions/MergeVideoStatus",
+          "title": "статус сшивания файлов"
+        }
+      }
+    },
+    "TVShowDeliveryState": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/TVShowDeliveryData"
+        },
+        "step": {
+          "$ref": "#/definitions/TVShowDeliveryStatus"
         }
       }
     },
@@ -794,11 +816,12 @@
         "WaitingMergeVideoFiles",
         "CopyVideoFiles",
         "SetVideoFileGroup",
+        "GetCatalogsSize",
         "SetMediaMetaData",
         "SendDeliveryNotification"
       ],
       "default": "TVShowDeliveryStatusUnknown",
-      "title": "- TVShowDeliveryStatusUnknown: Неизвестный статус доставки\n - GenerateSearchQuery: Генерация запроса к трекеру\n - SearchTorrents: Поиск раздач сезона сериала/фильма\n - WaitingUserChoseTorrent: Ожидание выбора раздачи пользователем\n - GetMagnetLink: Получение магнет ссылки\n - AddTorrentToTorrentClient: Добавление раздачи для скачивания торрент клиентом\n - PrepareFileMatches: Получение информации о файлах раздачи\n - WaitingChoseFileMatches: Ожидание подтверждения пользователем соответствий выбора файлов\n - WaitingTorrentDownloadComplete: Ожидание завершения окончания скачивания раздачи\n - CreateVideoContentCatalogs: Формирование каталогов и иерархии файлов\n - DeterminingNeedConvertFiles: Определение необходимости конвертации файлов\n - StartMergeVideoFiles: Запуск конвертирования файлов\n - WaitingMergeVideoFiles: Ожидание завершения конвертации файлов\n - CopyVideoFiles: Копирование файлов из раздачи в каталог медиасервера\n - SetVideoFileGroup: Установка группы файлам\n - SetMediaMetaData: Установка методаных серий сезона сериала/фильма в медиасервере\n - SendDeliveryNotification: Отправка уведомления в telegramm о успешной доставки"
+      "title": "- TVShowDeliveryStatusUnknown: Неизвестный статус доставки\n - GenerateSearchQuery: Генерация запроса к трекеру\n - SearchTorrents: Поиск раздач сезона сериала/фильма\n - WaitingUserChoseTorrent: Ожидание выбора раздачи пользователем\n - GetMagnetLink: Получение магнет ссылки\n - AddTorrentToTorrentClient: Добавление раздачи для скачивания торрент клиентом\n - PrepareFileMatches: Получение информации о файлах раздачи\n - WaitingChoseFileMatches: Ожидание подтверждения пользователем соответствий выбора файлов\n - WaitingTorrentDownloadComplete: Ожидание завершения окончания скачивания раздачи\n - CreateVideoContentCatalogs: Формирование каталогов и иерархии файлов\n - DeterminingNeedConvertFiles: Определение необходимости конвертации файлов\n - StartMergeVideoFiles: Запуск конвертирования файлов\n - WaitingMergeVideoFiles: Ожидание завершения конвертации файлов\n - CopyVideoFiles: Копирование файлов из раздачи в каталог медиасервера\n - SetVideoFileGroup: Установка группы файлам\n - GetCatalogsSize: GetCatalogsSize получение размеров каталогов сериала\n - SetMediaMetaData: Установка методаных серий сезона сериала/фильма в медиасервере\n - SendDeliveryNotification: Отправка уведомления в telegramm о успешной доставки"
     },
     "TVShowID": {
       "type": "object",
@@ -850,6 +873,21 @@
         }
       }
     },
+    "TorrentDownloadStatus": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/TorrentState"
+        },
+        "progress": {
+          "type": "number",
+          "format": "float"
+        },
+        "is_complete": {
+          "type": "boolean"
+        }
+      }
+    },
     "TorrentSearch": {
       "type": "object",
       "properties": {
@@ -875,6 +913,18 @@
           "type": "string"
         }
       }
+    },
+    "TorrentState": {
+      "type": "string",
+      "enum": [
+        "TORRENT_STATE_UNKNOWN",
+        "TORRENT_STATE_ERROR",
+        "TORRENT_STATE_UPLOADING",
+        "TORRENT_STATE_DOWNLOADING",
+        "TORRENT_STATE_STOPPED",
+        "TORRENT_STATE_QUEUED"
+      ],
+      "default": "TORRENT_STATE_UNKNOWN"
     },
     "Track": {
       "type": "object",

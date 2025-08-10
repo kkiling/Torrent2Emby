@@ -2,15 +2,17 @@ package content
 
 import (
 	"context"
+	"time"
+
 	"github.com/google/uuid"
+
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners/tvshowdeliverystate"
-	"time"
 )
 
 type Storage interface {
-	SaveVideoContent(ctx context.Context, videoContent *VideoContent) error
+	CreateVideoContent(ctx context.Context, videoContent *VideoContent) error
 	GetVideoContents(ctx context.Context, contentID common.ContentID) ([]VideoContent, error)
 	UpdateVideoContent(ctx context.Context, id uuid.UUID, videoContent *UpdateVideoContent) error
 	GetVideoContentsByStatus(ctx context.Context, status DeliveryStatus, limit int) ([]VideoContent, error)

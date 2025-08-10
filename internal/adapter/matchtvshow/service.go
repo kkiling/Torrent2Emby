@@ -2,9 +2,10 @@ package matchtvshow
 
 import (
 	"fmt"
-	"github.com/samber/lo"
 	"path/filepath"
 	"strings"
+
+	"github.com/samber/lo"
 
 	"github.com/kkiling/torrent2emby/internal/adapter/mkvmerge"
 )

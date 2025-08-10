@@ -4,19 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/go-co-op/gocron"
 	"github.com/google/uuid"
 	"github.com/kkiling/goplatform/log"
 	"github.com/kkiling/goplatform/storagebase"
 	"github.com/kkiling/statemachine"
+	"github.com/samber/lo"
+
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners/tvshowdeliverystate"
-	"github.com/samber/lo"
-
-	"time"
 )
 
 type Service struct {
@@ -110,7 +111,7 @@ func (s *Service) CreateVideoContent(ctx context.Context, params CreateVideoCont
 		},
 	}
 
-	if err = s.storage.SaveVideoContent(ctx, &videoContent); err != nil {
+	if err = s.storage.CreateVideoContent(ctx, &videoContent); err != nil {
 		return nil, fmt.Errorf("storage.SaveVideoContent: %w", err)
 	}
 
@@ -248,13 +249,6 @@ func (s *Service) completeTVShowDelivery(ctx context.Context, content VideoConte
 		} else if newState.Status == statemachine.FailedStatus {
 			needUpdate = true
 			updateVideoContent.DeliveryStatus = DeliveryStatusFailed
-		} else if content.TorrentInfo == nil && newState.Data.SelectTorrentHref != nil && newState.Data.MagnetInfo != nil {
-			needUpdate = true
-			updateVideoContent.TorrentInfo = &TorrentInfo{
-				Href:   *newState.Data.SelectTorrentHref,
-				Magnet: newState.Data.MagnetInfo.Magnet,
-				Hash:   newState.Data.MagnetInfo.Hash,
-			}
 		}
 
 		if needUpdate {
@@ -265,7 +259,6 @@ func (s *Service) completeTVShowDelivery(ctx context.Context, content VideoConte
 				return fmt.Errorf("storage.UpdateVideoContent: %w", err)
 			}
 		}
-
 	}
 
 	//Трекаем обновление статуса в процессе доставки in_progress до доставлено delivered на основе стейта

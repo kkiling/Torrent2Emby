@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/kkiling/goplatform/log"
 	"github.com/kkiling/goplatform/storagebase/sqlitebase"
+
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/content"
-	"time"
 )
 
 type Storage struct {
@@ -33,7 +35,7 @@ func NewTestStorage(base *sqlitebase.Storage) *Storage {
 	}
 }
 
-func (s *Storage) SaveVideoContent(ctx context.Context, videoContent *content.VideoContent) error {
+func (s *Storage) CreateVideoContent(ctx context.Context, videoContent *content.VideoContent) error {
 	statesJSON, err := json.Marshal(videoContent.State)
 	if err != nil {
 		return fmt.Errorf("error marshal states: %w", err)
@@ -50,13 +52,6 @@ func (s *Storage) SaveVideoContent(ctx context.Context, videoContent *content.Vi
 		seasonNumber = &videoContent.ContentID.TVShow.SeasonNumber
 	}
 
-	var torrentHref, torrentMagnet, torrentHash *string
-	if videoContent.TorrentInfo != nil {
-		torrentHref = &videoContent.TorrentInfo.Href
-		torrentMagnet = &videoContent.TorrentInfo.Magnet
-		torrentHash = &videoContent.TorrentInfo.Hash
-	}
-
 	query := `
         INSERT OR REPLACE INTO video_content (
             id,
@@ -64,12 +59,9 @@ func (s *Storage) SaveVideoContent(ctx context.Context, videoContent *content.Vi
             movie_id,
             tvshow_id,
             season_number,
-            torrent_href,
-            torrent_magnet,
-            torrent_hash,
             delivery_status,
             states_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
     `
 
 	_, err = s.base.Next(ctx).ExecContext(ctx, query,
@@ -78,9 +70,6 @@ func (s *Storage) SaveVideoContent(ctx context.Context, videoContent *content.Vi
 		movieID,
 		tvshowID,
 		seasonNumber,
-		torrentHref,
-		torrentMagnet,
-		torrentHash,
 		videoContent.DeliveryStatus,
 		string(statesJSON),
 	)
@@ -91,7 +80,7 @@ func (s *Storage) SaveVideoContent(ctx context.Context, videoContent *content.Vi
 	return nil
 }
 
-func (s *Storage) getVideoContents(ctx context.Context, rows *sql.Rows) ([]content.VideoContent, error) {
+func (s *Storage) getVideoContents(rows *sql.Rows) ([]content.VideoContent, error) {
 	var results []content.VideoContent
 	for rows.Next() {
 		var (
@@ -99,9 +88,6 @@ func (s *Storage) getVideoContents(ctx context.Context, rows *sql.Rows) ([]conte
 			movieID           sql.NullInt64
 			tvshowID          sql.NullInt64
 			seasonNumber      sql.NullInt16
-			torrentHref       sql.NullString
-			torrentMagnet     sql.NullString
-			torrentHash       sql.NullString
 			deliveryStatusStr string
 			statesJSON        sql.NullString
 		)
@@ -112,9 +98,6 @@ func (s *Storage) getVideoContents(ctx context.Context, rows *sql.Rows) ([]conte
 			&movieID,
 			&tvshowID,
 			&seasonNumber,
-			&torrentHref,
-			&torrentMagnet,
-			&torrentHash,
 			&deliveryStatusStr,
 			&statesJSON,
 		)
@@ -137,15 +120,6 @@ func (s *Storage) getVideoContents(ctx context.Context, rows *sql.Rows) ([]conte
 			cid.TVShow = &common.TVShowID{ID: tid, SeasonNumber: sn}
 		}
 		vc.ContentID = cid
-
-		// rebuild TorrentInfo
-		if torrentHref.Valid || torrentMagnet.Valid || torrentHash.Valid {
-			vc.TorrentInfo = &content.TorrentInfo{
-				Href:   torrentHref.String,
-				Magnet: torrentMagnet.String,
-				Hash:   torrentHash.String,
-			}
-		}
 
 		// DeliveryStatus
 		vc.DeliveryStatus = content.DeliveryStatus(deliveryStatusStr)
@@ -181,9 +155,6 @@ func (s *Storage) GetVideoContents(ctx context.Context, contentID common.Content
                 movie_id,
                 tvshow_id,
                 season_number,
-                torrent_href,
-                torrent_magnet,
-                torrent_hash,
                 delivery_status,
                 states_json
             FROM video_content
@@ -197,9 +168,6 @@ func (s *Storage) GetVideoContents(ctx context.Context, contentID common.Content
                 movie_id,
                 tvshow_id,
                 season_number,
-                torrent_href,
-                torrent_magnet,
-                torrent_hash,
                 delivery_status,
                 states_json
             FROM video_content
@@ -214,32 +182,16 @@ func (s *Storage) GetVideoContents(ctx context.Context, contentID common.Content
 	}
 	defer rows.Close()
 
-	return s.getVideoContents(ctx, rows)
+	return s.getVideoContents(rows)
 }
 
 func (s *Storage) UpdateVideoContent(ctx context.Context, id uuid.UUID, videoContent *content.UpdateVideoContent) error {
-	// Подготовим JSON для TorrentInfo, если он есть
-	var torrentHref, torrentMagnet, torrentHash sql.NullString
-	if videoContent.TorrentInfo != nil {
-		torrentHref = sql.NullString{String: videoContent.TorrentInfo.Href, Valid: videoContent.TorrentInfo.Href != ""}
-		torrentMagnet = sql.NullString{String: videoContent.TorrentInfo.Magnet, Valid: videoContent.TorrentInfo.Magnet != ""}
-		torrentHash = sql.NullString{String: videoContent.TorrentInfo.Hash, Valid: videoContent.TorrentInfo.Hash != ""}
-	} else {
-		// Если TorrentInfo nil, то обновим на NULL
-		torrentHref = sql.NullString{Valid: false}
-		torrentMagnet = sql.NullString{Valid: false}
-		torrentHash = sql.NullString{Valid: false}
-	}
-
 	query := `
         UPDATE video_content
-        SET torrent_href = ?, torrent_magnet = ?, torrent_hash = ?, delivery_status = ?
+        SET delivery_status = ?
         WHERE id = ?
     `
 	_, err := s.base.Next(ctx).ExecContext(ctx, query,
-		torrentHref,
-		torrentMagnet,
-		torrentHash,
 		videoContent.DeliveryStatus,
 		id,
 	)
@@ -258,9 +210,6 @@ func (s *Storage) GetVideoContentsByStatus(ctx context.Context, status content.D
 			movie_id,
 			tvshow_id,
 			season_number,
-			torrent_href,
-			torrent_magnet,
-			torrent_hash,
 			delivery_status,
 			states_json
 		FROM video_content
@@ -275,7 +224,7 @@ func (s *Storage) GetVideoContentsByStatus(ctx context.Context, status content.D
 	}
 	defer rows.Close()
 
-	return s.getVideoContents(ctx, rows)
+	return s.getVideoContents(rows)
 }
 
 func (s *Storage) RunTransaction(ctx context.Context, txFunc func(ctxTx context.Context) error) error {

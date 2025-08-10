@@ -10,6 +10,18 @@ import (
 type TVShowID = common.TVShowID
 type ContentID = common.ContentID
 type VideoContent = content.VideoContent
+
+type TorrentState = delivery.TorrentState
+
+const (
+	TorrentStateError       = delivery.TorrentStateError
+	TorrentStateUploading   = delivery.TorrentStateUploading
+	TorrentStateDownloading = delivery.TorrentStateDownloading
+	TorrentStateStopped     = delivery.TorrentStateStopped
+	TorrentStateQueued      = delivery.TorrentStateQueued
+	TorrentStateUnknown     = delivery.TorrentStateUnknown
+)
+
 type DeliveryStatus = content.DeliveryStatus
 
 const (
@@ -48,6 +60,7 @@ const (
 	WaitingMergeVideoFiles         = tvshowdeliverystate.WaitingMergeVideoFiles
 	CopyVideoFiles                 = tvshowdeliverystate.CopyVideoFiles
 	SetVideoFileGroup              = tvshowdeliverystate.SetVideoFileGroup
+	GetCatalogsSize                = tvshowdeliverystate.GetCatalogsSize
 	SetMediaMetaData               = tvshowdeliverystate.SetMediaMetaData
 	SendDeliveryNotification       = tvshowdeliverystate.SendDeliveryNotification
 )

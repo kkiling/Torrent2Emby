@@ -2,9 +2,9 @@ package main2
 
 import (
 	"fmt"
+
 	"github.com/jessevdk/go-flags"
 	"github.com/kkiling/goplatform/config"
-
 	"github.com/kkiling/goplatform/log"
 
 	"github.com/kkiling/torrent2emby/internal/adapter/apierr"

@@ -56,29 +56,13 @@ func (s *Storage) Update(ctx context.Context, id uuid.UUID, update *mkvmerge.Upd
 	return nil
 }
 
-func (s *Storage) getMergeProgress(ctx context.Context, mergeID uuid.UUID) (float64, error) {
-	row := s.base.Next(ctx).QueryRowContext(ctx, `
-        select progress from mkv_merge_logs where merge_id=? and progress is not null order by created_at desc limit 1
-    `, mergeID)
-
-	var progress sql.NullFloat64
-
-	err := row.Scan(
-		&progress,
-	)
-
+func (s *Storage) UpdateProgress(ctx context.Context, id uuid.UUID, progress float64) error {
+	query := "UPDATE mkv_merge SET progress = ? WHERE id = ?"
+	_, err := s.base.Next(ctx).ExecContext(ctx, query, progress, id)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return 0.0, nil
-		}
-		return 0.0, s.base.HandleError(err)
+		return s.base.HandleError(err)
 	}
-
-	if progress.Valid {
-		return progress.Float64, nil
-	}
-
-	return 0.0, nil
+	return nil
 }
 
 func (s *Storage) getMergeResult(row *sql.Row) (*mkvmerge.MergeResult, error) {
@@ -86,6 +70,7 @@ func (s *Storage) getMergeResult(row *sql.Row) (*mkvmerge.MergeResult, error) {
 	var paramsJSON string
 	var errorStr sql.NullString
 	var completedAt sql.NullTime
+	var progress sql.NullFloat64
 
 	err := row.Scan(
 		&result.ID,
@@ -94,6 +79,7 @@ func (s *Storage) getMergeResult(row *sql.Row) (*mkvmerge.MergeResult, error) {
 		&errorStr,
 		&result.CreatedAt,
 		&completedAt,
+		&progress,
 	)
 
 	if err != nil {
@@ -115,11 +101,8 @@ func (s *Storage) getMergeResult(row *sql.Row) (*mkvmerge.MergeResult, error) {
 	if completedAt.Valid {
 		result.CompletedAt = &completedAt.Time
 	}
-
-	if progress, err2 := s.getMergeProgress(context.Background(), result.ID); err2 != nil {
-		return nil, fmt.Errorf("getMergeProgress: %w", err2)
-	} else {
-		result.Progress = progress
+	if progress.Valid {
+		result.Progress = &progress.Float64
 	}
 
 	return &result, nil
@@ -127,7 +110,7 @@ func (s *Storage) getMergeResult(row *sql.Row) (*mkvmerge.MergeResult, error) {
 
 func (s *Storage) GetByID(ctx context.Context, id uuid.UUID) (*mkvmerge.MergeResult, error) {
 	row := s.base.Next(ctx).QueryRowContext(ctx, `
-        SELECT id, params, status, error, created_at, completed_at
+        SELECT id, params, status, error, created_at, completed_at, progress
         FROM mkv_merge WHERE id = ?
     `, id)
 	return s.getMergeResult(row)
@@ -135,7 +118,7 @@ func (s *Storage) GetByID(ctx context.Context, id uuid.UUID) (*mkvmerge.MergeRes
 
 func (s *Storage) GetByIdempotencyKey(ctx context.Context, idempotencyKey string) (*mkvmerge.MergeResult, error) {
 	row := s.base.Next(ctx).QueryRowContext(ctx, `
-        SELECT id, params, status, error, created_at, completed_at
+        SELECT id, params, status, error, created_at, completed_at, progress
         FROM mkv_merge WHERE idempotency_key = ?
     `, idempotencyKey)
 	return s.getMergeResult(row)
@@ -143,21 +126,20 @@ func (s *Storage) GetByIdempotencyKey(ctx context.Context, idempotencyKey string
 
 func (s *Storage) GetOldestUncompleted(ctx context.Context) (*mkvmerge.MergeResult, error) {
 	row := s.base.Next(ctx).QueryRowContext(ctx, `
-        SELECT id, params, status, error, created_at, completed_at
+        SELECT id, params, status, error, created_at, completed_at, progress
         FROM mkv_merge
         WHERE completed_at is null
         ORDER BY created_at
         LIMIT 1
     `)
-
 	return s.getMergeResult(row)
 }
 
 func (s *Storage) AddMergeLogs(ctx context.Context, id uuid.UUID, log mkvmerge.MergeLogs) error {
 	_, err := s.base.Next(ctx).ExecContext(ctx, `
-        INSERT INTO mkv_merge_logs (merge_id, type, content, created_at, progress)
-        VALUES (?, ?, ?, ?, ?)
-    `, id, log.Type, log.Content, log.CreatedAt, log.Progress)
+        INSERT INTO mkv_merge_logs (merge_id, type, content, created_at)
+        VALUES (?, ?, ?, ?)
+    `, id, log.Type, log.Content, log.CreatedAt)
 
 	if err != nil {
 		return s.base.HandleError(err)

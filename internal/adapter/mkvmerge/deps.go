@@ -13,6 +13,7 @@ type MkvMerge interface {
 type Storage interface {
 	Create(ctx context.Context, create *CreateMergeResult) error
 	Update(ctx context.Context, id uuid.UUID, update *UpdateMergeResult) error
+	UpdateProgress(ctx context.Context, id uuid.UUID, progress float64) error
 	DeleteLogs(ctx context.Context, mergeID uuid.UUID) error
 	GetByIdempotencyKey(ctx context.Context, idempotencyKey string) (*MergeResult, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*MergeResult, error)

@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS mkv_merge (
     status INTEGER NOT NULL,
     error TEXT,
     created_at TIMESTAMP NOT NULL,
-    completed_at TIMESTAMP
+    completed_at TIMESTAMP,
+    progress REAL
 );
 
 CREATE UNIQUE INDEX idx_mkv_merge_idempotency_key ON mkv_merge(idempotency_key);
@@ -20,7 +21,6 @@ CREATE TABLE IF NOT EXISTS mkv_merge_logs (
     created_at TIMESTAMP NOT NULL,
     type INTEGER NOT NULL,
     content TEXT NOT NULL,
-    progress REAL,
     FOREIGN KEY (merge_id) REFERENCES mkv_merge(id) ON DELETE CASCADE
 );
 -- +goose StatementEnd

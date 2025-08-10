@@ -2,8 +2,8 @@ package tvshowdeliverystate
 
 import (
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/delivery"
 )
 
@@ -42,7 +42,8 @@ const (
 
 	// CopyVideoFiles Копирование файлов из раздачи в каталог медиасервера (точнее создание симлинков)
 	CopyVideoFiles StepDelivery = "copy_video_files"
-
+	// GetCatalogsSize получение размеров каталогов сериала
+	GetCatalogsSize = "get_catalogs_size"
 	// SetVideoFileGroup установка группы файлам
 	SetVideoFileGroup StepDelivery = "set_video_file_group"
 
@@ -58,15 +59,22 @@ const (
 	но для упрощения пока будем пока разрешать только 1
 */
 type TVShowDeliveryData struct {
-	SearchQuery           *string
-	TorrentSearch         *delivery.TorrentSearchResult
-	SelectTorrentHref     *string
-	MagnetInfo            *delivery.MagnetInfo
-	ContentMatches        []delivery.ContentMatches
+	// SearchQuery сформированный запрос на основе нзвания сериала
+	SearchQuery *string
+	// TorrentSearch Результат поиска торрентов
+	TorrentSearch *delivery.TorrentSearchResult
+	// TorrentInfo магнет ссылка на торрент раздачу
+	TorrentInfo *delivery.TorrentInfo
+	// ContentMatches Информация о метче файлов (метч видофайлов с аудиодоржками и субтитрами)
+	ContentMatches []delivery.ContentMatches
+	// TorrentDownloadStatus статус скачивания раздачи
 	TorrentDownloadStatus *delivery.TorrentDownloadStatus
-	CatalogsInfo          *delivery.CatalogsInfo
-	MergeVideoFiles       []delivery.MergeVideoFile
-	MergeVideoStatus      *delivery.MergeVideoStatus
+	// TVShowCatalogInfo информация о каталогах сериала
+	TVShowCatalogInfo *delivery.TVShowCatalog
+	// MergeVideoFiles информация
+	MergeVideoFiles []delivery.MergeVideoFile
+	// MergeVideoStatus статус сшивания файлов (если нужен)
+	MergeVideoStatus *delivery.MergeVideoStatus
 }
 
 type CreateOptions struct {

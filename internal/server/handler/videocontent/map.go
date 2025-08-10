@@ -1,10 +1,11 @@
 package videocontent
 
 import (
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
-	desc "github.com/kkiling/torrent2emby/pkg/gen/torrent2emby"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
+	desc "github.com/kkiling/torrent2emby/pkg/gen/torrent2emby"
 )
 
 func mapContentIDReq(id *desc.ContentID) videocontent.ContentID {
@@ -101,12 +102,31 @@ func mapDeliveryStep(step videocontent.StepDelivery) desc.TVShowDeliveryStatus {
 		return desc.TVShowDeliveryStatus_CopyVideoFiles
 	case videocontent.SetVideoFileGroup:
 		return desc.TVShowDeliveryStatus_SetVideoFileGroup
+	case videocontent.GetCatalogsSize:
+		return desc.TVShowDeliveryStatus_GetCatalogsSize
 	case videocontent.SetMediaMetaData:
 		return desc.TVShowDeliveryStatus_SetMediaMetaData
 	case videocontent.SendDeliveryNotification:
 		return desc.TVShowDeliveryStatus_SendDeliveryNotification
 	default:
 		return desc.TVShowDeliveryStatus_TVShowDeliveryStatusUnknown
+	}
+}
+
+func maTorrentState(state videocontent.TorrentState) desc.TorrentDownloadStatus_TorrentState {
+	switch state {
+	case videocontent.TorrentStateError:
+		return desc.TorrentDownloadStatus_TORRENT_STATE_ERROR
+	case videocontent.TorrentStateUploading:
+		return desc.TorrentDownloadStatus_TORRENT_STATE_UPLOADING
+	case videocontent.TorrentStateDownloading:
+		return desc.TorrentDownloadStatus_TORRENT_STATE_DOWNLOADING
+	case videocontent.TorrentStateStopped:
+		return desc.TorrentDownloadStatus_TORRENT_STATE_STOPPED
+	case videocontent.TorrentStateQueued:
+		return desc.TorrentDownloadStatus_TORRENT_STATE_QUEUED
+	default:
+		return desc.TorrentDownloadStatus_TORRENT_STATE_UNKNOWN
 	}
 }
 
@@ -128,10 +148,14 @@ func mapTracks(tracks []videocontent.Track) []*desc.Track {
 		}
 	})
 }
-func mapTVShowDeliveryState(data *videocontent.TVShowDeliveryData) *desc.TVShowDeliveryData {
-	return &desc.TVShowDeliveryData{
+func mapTVShowDeliveryData(step videocontent.StepDelivery, data *videocontent.TVShowDeliveryData) *desc.TVShowDeliveryData {
+
+	result := &desc.TVShowDeliveryData{
 		SearchQuery: data.SearchQuery,
-		TorrentSearch: lo.Map(data.TorrentSearch.Result, func(item videocontent.TorrentSearch, _ int) *desc.TorrentSearch {
+	}
+
+	if step == videocontent.WaitingUserChoseTorrent {
+		result.TorrentSearch = lo.Map(data.TorrentSearch.Result, func(item videocontent.TorrentSearch, _ int) *desc.TorrentSearch {
 			return &desc.TorrentSearch{
 				Title:     item.Title,
 				Href:      item.Href,
@@ -141,8 +165,10 @@ func mapTVShowDeliveryState(data *videocontent.TVShowDeliveryData) *desc.TVShowD
 				Downloads: item.Downloads,
 				AddedDate: item.AddedDate,
 			}
-		}),
-		ContentMatches: lo.Map(data.ContentMatches, func(item videocontent.ContentMatches, _ int) *desc.ContentMatches {
+		})
+	}
+	if step == videocontent.WaitingChoseFileMatches {
+		result.ContentMatches = lo.Map(data.ContentMatches, func(item videocontent.ContentMatches, _ int) *desc.ContentMatches {
 			return &desc.ContentMatches{
 				Episode: &desc.EpisodeInfo{
 					SeasonNumber:  uint32(item.Episode.SeasonNumber),
@@ -155,6 +181,33 @@ func mapTVShowDeliveryState(data *videocontent.TVShowDeliveryData) *desc.TVShowD
 				AudioFiles: mapTracks(item.AudioFiles),
 				Subtitles:  mapTracks(item.Subtitles),
 			}
-		}),
+		})
+	}
+
+	if step == videocontent.WaitingTorrentDownloadComplete {
+		st := data.TorrentDownloadStatus
+		result.TorrentDownloadStatus = &desc.TorrentDownloadStatus{
+			State:      maTorrentState(st.State),
+			Progress:   float32(st.Progress),
+			IsComplete: st.IsComplete,
+		}
+	}
+
+	if step == videocontent.WaitingMergeVideoFiles {
+		st := data.MergeVideoStatus
+
+		result.MergeVideoStatus = &desc.MergeVideoStatus{
+			Progress:   float32(st.Progress),
+			IsComplete: st.IsComplete,
+		}
+	}
+
+	return result
+}
+
+func mapTVShowDeliveryState(state *videocontent.TVShowDeliveryState) *desc.TVShowDeliveryState {
+	return &desc.TVShowDeliveryState{
+		Data: mapTVShowDeliveryData(state.Step, &state.Data),
+		Step: mapDeliveryStep(state.Step),
 	}
 }

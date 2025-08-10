@@ -3,9 +3,9 @@ package delivery
 import (
 	"context"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 
 	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 )
 
 type AddTorrentParams struct {

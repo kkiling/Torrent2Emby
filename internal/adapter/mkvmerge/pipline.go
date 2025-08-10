@@ -127,13 +127,19 @@ func (s *Pipeline) runMerge(ctx context.Context, id uuid.UUID, params MergeParam
 				s.logger.Errorf("mvk merge logs: %s", msg.Content)
 			} else {
 				s.logger.Debugf("mvk merge logs: %s", msg.Content)
+				progress := s.getProgress(msg.Content)
+				if progress != nil {
+					errUpdate := s.storage.UpdateProgress(ctx, id, *progress)
+					if errUpdate != nil {
+						s.logger.Errorf("mvk UpdateProgress: %s", errUpdate.Error())
+					}
+				}
 			}
 
 			logErr := s.storage.AddMergeLogs(ctx, id, MergeLogs{
 				CreatedAt: time.Now(),
 				Type:      msg.Type,
 				Content:   msg.Content,
-				Progress:  s.getProgress(msg.Content),
 			})
 			if logErr != nil {
 				s.logger.Errorf("AddMergeLogs: %v", logErr)

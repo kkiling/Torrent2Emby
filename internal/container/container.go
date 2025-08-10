@@ -2,8 +2,6 @@ package container
 
 import (
 	"fmt"
-	contentDelivery "github.com/kkiling/torrent2emby/internal/usercase/videocontent/content"
-	contentSqlite "github.com/kkiling/torrent2emby/internal/usercase/videocontent/content/storage/sqlite"
 
 	"github.com/kkiling/goplatform/log"
 	"github.com/kkiling/goplatform/storagebase/sqlitebase"
@@ -19,6 +17,8 @@ import (
 	"github.com/kkiling/torrent2emby/internal/config"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
 	tvShowLibrarySqlite "github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary/storage/sqlite"
+	contentDelivery "github.com/kkiling/torrent2emby/internal/usercase/videocontent/content"
+	contentSqlite "github.com/kkiling/torrent2emby/internal/usercase/videocontent/content/storage/sqlite"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/delivery"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/runners/tvshowdeliverystate"
 )

@@ -36,6 +36,11 @@ func (api *Api) AddTorrent(opts TorrentAddOptions) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusForbidden {
+			if errRemove := api.removeCookies(); errRemove != nil {
+				api.logger.Errorf("failed to remove cookies: %v", errRemove)
+			}
+		}
 		return apierr.HandleStatusCodeError(api.logger, resp)
 	}
 

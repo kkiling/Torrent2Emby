@@ -3,10 +3,11 @@ package handler
 import (
 	"errors"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/usercase/err"
 
 	"github.com/kkiling/goplatform/server"
+	"github.com/kkiling/statemachine"
 
+	"github.com/kkiling/torrent2emby/internal/usercase/err"
 	desc "github.com/kkiling/torrent2emby/pkg/gen/torrent2emby"
 )
 
@@ -21,6 +22,15 @@ func HandleError(err error, description any) error {
 		return server.ErrInvalidArgument(newErr)
 	case errors.Is(err, ucerr.AlreadyExists):
 		return server.ErrAlreadyExists(newErr)
+	case errors.Is(err, statemachine.ErrOptionsIsUndefined):
+		return server.ErrInvalidArgument(newErr)
+	case errors.Is(err, statemachine.ErrInTerminalStatus):
+		return server.ErrAlreadyExists(newErr)
+	case errors.Is(err, statemachine.ErrAlreadyExists):
+		return server.ErrAlreadyExists(newErr)
+	case errors.Is(err, statemachine.ErrNotFound):
+		return server.ErrNotFound(newErr)
+
 	}
 
 	info := desc.ErrorInfo{

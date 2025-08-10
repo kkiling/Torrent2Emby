@@ -1,5 +1,11 @@
 package delivery
 
+import (
+	"path/filepath"
+
+	"github.com/kkiling/torrent2emby/internal/adapter/qbittorrent"
+)
+
 type TorrentSearch struct {
 	Title     string
 	Href      string
@@ -14,7 +20,8 @@ type TorrentSearchResult struct {
 	Result []TorrentSearch
 }
 
-type MagnetInfo struct {
+type TorrentInfo struct {
+	Href   string
 	Magnet string
 	Hash   string
 }
@@ -61,14 +68,87 @@ type ContentMatches struct {
 
 // ---
 
-type TorrentDownloadStatus struct {
-	Progress   float64
-	IsComplete bool
+type TorrentState string
+
+const (
+	TorrentStateError       TorrentState = "error"       // Ошибка
+	TorrentStateUploading   TorrentState = "uploading"   // Раздача (сидирование)
+	TorrentStateDownloading TorrentState = "downloading" // Загрузка
+	TorrentStateStopped     TorrentState = "stopped"     // Приостановлен (все виды паузы)
+	TorrentStateQueued      TorrentState = "queued"      // В очереди
+	TorrentStateUnknown     TorrentState = "unknown"     // Неизвестный статус
+)
+
+func mapTorrentState(qbState qbittorrent.TorrentState) TorrentState {
+	switch qbState {
+	// Ошибки
+	case qbittorrent.TorrentStateError,
+		qbittorrent.TorrentStateMissingFiles:
+		return TorrentStateError
+
+	// Раздача (сидирование)
+	case qbittorrent.TorrentStateUploading,
+		qbittorrent.TorrentStatePausedUP,
+		qbittorrent.TorrentStateStalledUP,
+		qbittorrent.TorrentStateCheckingUP,
+		qbittorrent.TorrentStateQueuedUP,
+		qbittorrent.TorrentStateForcedUP:
+		return TorrentStateUploading
+
+	// Загрузка
+	case qbittorrent.TorrentStateDownloading,
+		qbittorrent.TorrentStateMetaDL,
+		qbittorrent.TorrentStateAllocating,
+		qbittorrent.TorrentStateForcedDL,
+		qbittorrent.TorrentStateMoving:
+		return TorrentStateDownloading
+
+	// Приостановлен
+	case qbittorrent.TorrentStatePausedDL,
+		qbittorrent.TorrentStateStoppedDL:
+		return TorrentStateStopped
+
+	// В очереди
+	case qbittorrent.TorrentStateQueuedDL,
+		qbittorrent.TorrentStateCheckingDL,
+		qbittorrent.TorrentStateStalledDL,
+		qbittorrent.TorrentStateCheckingResumeData:
+		return TorrentStateQueued
+
+	default:
+		return TorrentStateUnknown
+	}
 }
 
-type CatalogsInfo struct {
+type TorrentDownloadStatus struct {
+	ContentPath string
+	State       TorrentState
+	Progress    float64
+	IsComplete  bool
+}
+
+type TVShowCatalogPath struct {
 	// Путь до каталога сериала
-	TvShowPath string
-	// Путь до каталога сезона
-	TvShowSeasonPath string
+	TVShowPath string
+	// Путь до каталога сезона (относительно каталога сериала)
+	SeasonPath string
+}
+
+func (m TVShowCatalogPath) FullSeasonPath() string {
+	return filepath.Join(m.TVShowPath, m.SeasonPath)
+}
+
+type TVShowCatalog struct {
+	// Путь до раздачи сезона сериала
+	TorrentPath string
+	// Размер файлов раздачи сезона сериала (байты)
+	TorrentSize uint64
+	// Путь до сезона сериала на медиасервере
+	MediaServerPath TVShowCatalogPath
+	// Размер файлов раздачи сезона сериала (байты)
+	MediaServerSize uint64
+	// Файлы скопированы с раздачи или созданы ссылочная связь
+	// True - файлы скопированы
+	// False - файлы созданы через линки
+	IsCopyFilesInMediaServer bool
 }

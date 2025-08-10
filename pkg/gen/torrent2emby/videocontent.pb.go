@@ -7,15 +7,16 @@
 package api
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (
@@ -110,10 +111,12 @@ const (
 	TVShowDeliveryStatus_CopyVideoFiles TVShowDeliveryStatus = 13
 	// Установка группы файлам
 	TVShowDeliveryStatus_SetVideoFileGroup TVShowDeliveryStatus = 14
+	// GetCatalogsSize получение размеров каталогов сериала
+	TVShowDeliveryStatus_GetCatalogsSize TVShowDeliveryStatus = 15
 	// Установка методаных серий сезона сериала/фильма в медиасервере
-	TVShowDeliveryStatus_SetMediaMetaData TVShowDeliveryStatus = 15
+	TVShowDeliveryStatus_SetMediaMetaData TVShowDeliveryStatus = 16
 	// Отправка уведомления в telegramm о успешной доставки
-	TVShowDeliveryStatus_SendDeliveryNotification TVShowDeliveryStatus = 16
+	TVShowDeliveryStatus_SendDeliveryNotification TVShowDeliveryStatus = 17
 )
 
 // Enum value maps for TVShowDeliveryStatus.
@@ -134,8 +137,9 @@ var (
 		12: "WaitingMergeVideoFiles",
 		13: "CopyVideoFiles",
 		14: "SetVideoFileGroup",
-		15: "SetMediaMetaData",
-		16: "SendDeliveryNotification",
+		15: "GetCatalogsSize",
+		16: "SetMediaMetaData",
+		17: "SendDeliveryNotification",
 	}
 	TVShowDeliveryStatus_value = map[string]int32{
 		"TVShowDeliveryStatusUnknown":    0,
@@ -153,8 +157,9 @@ var (
 		"WaitingMergeVideoFiles":         12,
 		"CopyVideoFiles":                 13,
 		"SetVideoFileGroup":              14,
-		"SetMediaMetaData":               15,
-		"SendDeliveryNotification":       16,
+		"GetCatalogsSize":                15,
+		"SetMediaMetaData":               16,
+		"SendDeliveryNotification":       17,
 	}
 )
 
@@ -183,6 +188,64 @@ func (x TVShowDeliveryStatus) Number() protoreflect.EnumNumber {
 // Deprecated: Use TVShowDeliveryStatus.Descriptor instead.
 func (TVShowDeliveryStatus) EnumDescriptor() ([]byte, []int) {
 	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{1}
+}
+
+type TorrentDownloadStatus_TorrentState int32
+
+const (
+	TorrentDownloadStatus_TORRENT_STATE_UNKNOWN     TorrentDownloadStatus_TorrentState = 0
+	TorrentDownloadStatus_TORRENT_STATE_ERROR       TorrentDownloadStatus_TorrentState = 1
+	TorrentDownloadStatus_TORRENT_STATE_UPLOADING   TorrentDownloadStatus_TorrentState = 2
+	TorrentDownloadStatus_TORRENT_STATE_DOWNLOADING TorrentDownloadStatus_TorrentState = 3
+	TorrentDownloadStatus_TORRENT_STATE_STOPPED     TorrentDownloadStatus_TorrentState = 4
+	TorrentDownloadStatus_TORRENT_STATE_QUEUED      TorrentDownloadStatus_TorrentState = 5
+)
+
+// Enum value maps for TorrentDownloadStatus_TorrentState.
+var (
+	TorrentDownloadStatus_TorrentState_name = map[int32]string{
+		0: "TORRENT_STATE_UNKNOWN",
+		1: "TORRENT_STATE_ERROR",
+		2: "TORRENT_STATE_UPLOADING",
+		3: "TORRENT_STATE_DOWNLOADING",
+		4: "TORRENT_STATE_STOPPED",
+		5: "TORRENT_STATE_QUEUED",
+	}
+	TorrentDownloadStatus_TorrentState_value = map[string]int32{
+		"TORRENT_STATE_UNKNOWN":     0,
+		"TORRENT_STATE_ERROR":       1,
+		"TORRENT_STATE_UPLOADING":   2,
+		"TORRENT_STATE_DOWNLOADING": 3,
+		"TORRENT_STATE_STOPPED":     4,
+		"TORRENT_STATE_QUEUED":      5,
+	}
+)
+
+func (x TorrentDownloadStatus_TorrentState) Enum() *TorrentDownloadStatus_TorrentState {
+	p := new(TorrentDownloadStatus_TorrentState)
+	*p = x
+	return p
+}
+
+func (x TorrentDownloadStatus_TorrentState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TorrentDownloadStatus_TorrentState) Descriptor() protoreflect.EnumDescriptor {
+	return file_torrent2emby_videocontent_proto_enumTypes[2].Descriptor()
+}
+
+func (TorrentDownloadStatus_TorrentState) Type() protoreflect.EnumType {
+	return &file_torrent2emby_videocontent_proto_enumTypes[2]
+}
+
+func (x TorrentDownloadStatus_TorrentState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TorrentDownloadStatus_TorrentState.Descriptor instead.
+func (TorrentDownloadStatus_TorrentState) EnumDescriptor() ([]byte, []int) {
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{9, 0}
 }
 
 type TVShowID struct {
@@ -749,18 +812,134 @@ func (x *ContentMatches) GetSubtitles() []*Track {
 	return nil
 }
 
+type TorrentDownloadStatus struct {
+	state         protoimpl.MessageState             `protogen:"open.v1"`
+	State         TorrentDownloadStatus_TorrentState `protobuf:"varint,1,opt,name=state,proto3,enum=torrent2emby.TorrentDownloadStatus_TorrentState" json:"state,omitempty"`
+	Progress      float32                            `protobuf:"fixed32,2,opt,name=progress,proto3" json:"progress,omitempty"`
+	IsComplete    bool                               `protobuf:"varint,3,opt,name=is_complete,json=isComplete,proto3" json:"is_complete,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TorrentDownloadStatus) Reset() {
+	*x = TorrentDownloadStatus{}
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TorrentDownloadStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TorrentDownloadStatus) ProtoMessage() {}
+
+func (x *TorrentDownloadStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TorrentDownloadStatus.ProtoReflect.Descriptor instead.
+func (*TorrentDownloadStatus) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *TorrentDownloadStatus) GetState() TorrentDownloadStatus_TorrentState {
+	if x != nil {
+		return x.State
+	}
+	return TorrentDownloadStatus_TORRENT_STATE_UNKNOWN
+}
+
+func (x *TorrentDownloadStatus) GetProgress() float32 {
+	if x != nil {
+		return x.Progress
+	}
+	return 0
+}
+
+func (x *TorrentDownloadStatus) GetIsComplete() bool {
+	if x != nil {
+		return x.IsComplete
+	}
+	return false
+}
+
+type MergeVideoStatus struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Progress      float32                `protobuf:"fixed32,1,opt,name=progress,proto3" json:"progress,omitempty"`
+	IsComplete    bool                   `protobuf:"varint,2,opt,name=is_complete,json=isComplete,proto3" json:"is_complete,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MergeVideoStatus) Reset() {
+	*x = MergeVideoStatus{}
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MergeVideoStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MergeVideoStatus) ProtoMessage() {}
+
+func (x *MergeVideoStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MergeVideoStatus.ProtoReflect.Descriptor instead.
+func (*MergeVideoStatus) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *MergeVideoStatus) GetProgress() float32 {
+	if x != nil {
+		return x.Progress
+	}
+	return 0
+}
+
+func (x *MergeVideoStatus) GetIsComplete() bool {
+	if x != nil {
+		return x.IsComplete
+	}
+	return false
+}
+
 type TVShowDeliveryData struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	SearchQuery    *string                `protobuf:"bytes,1,opt,name=search_query,json=searchQuery,proto3,oneof" json:"search_query,omitempty"`
 	TorrentSearch  []*TorrentSearch       `protobuf:"bytes,2,rep,name=torrent_search,json=torrentSearch,proto3" json:"torrent_search,omitempty"`
 	ContentMatches []*ContentMatches      `protobuf:"bytes,3,rep,name=content_matches,json=contentMatches,proto3" json:"content_matches,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// статус скачивания раздачи
+	TorrentDownloadStatus *TorrentDownloadStatus `protobuf:"bytes,4,opt,name=torrent_download_status,json=torrentDownloadStatus,proto3,oneof" json:"torrent_download_status,omitempty"`
+	// статус сшивания файлов
+	MergeVideoStatus *MergeVideoStatus `protobuf:"bytes,5,opt,name=merge_video_status,json=mergeVideoStatus,proto3,oneof" json:"merge_video_status,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *TVShowDeliveryData) Reset() {
 	*x = TVShowDeliveryData{}
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[9]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -772,7 +951,7 @@ func (x *TVShowDeliveryData) String() string {
 func (*TVShowDeliveryData) ProtoMessage() {}
 
 func (x *TVShowDeliveryData) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[9]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -785,7 +964,7 @@ func (x *TVShowDeliveryData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TVShowDeliveryData.ProtoReflect.Descriptor instead.
 func (*TVShowDeliveryData) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{9}
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *TVShowDeliveryData) GetSearchQuery() string {
@@ -809,6 +988,72 @@ func (x *TVShowDeliveryData) GetContentMatches() []*ContentMatches {
 	return nil
 }
 
+func (x *TVShowDeliveryData) GetTorrentDownloadStatus() *TorrentDownloadStatus {
+	if x != nil {
+		return x.TorrentDownloadStatus
+	}
+	return nil
+}
+
+func (x *TVShowDeliveryData) GetMergeVideoStatus() *MergeVideoStatus {
+	if x != nil {
+		return x.MergeVideoStatus
+	}
+	return nil
+}
+
+type TVShowDeliveryState struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          *TVShowDeliveryData    `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	Step          TVShowDeliveryStatus   `protobuf:"varint,2,opt,name=step,proto3,enum=torrent2emby.TVShowDeliveryStatus" json:"step,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TVShowDeliveryState) Reset() {
+	*x = TVShowDeliveryState{}
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TVShowDeliveryState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TVShowDeliveryState) ProtoMessage() {}
+
+func (x *TVShowDeliveryState) ProtoReflect() protoreflect.Message {
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TVShowDeliveryState.ProtoReflect.Descriptor instead.
+func (*TVShowDeliveryState) Descriptor() ([]byte, []int) {
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *TVShowDeliveryState) GetData() *TVShowDeliveryData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *TVShowDeliveryState) GetStep() TVShowDeliveryStatus {
+	if x != nil {
+		return x.Step
+	}
+	return TVShowDeliveryStatus_TVShowDeliveryStatusUnknown
+}
+
 type CreateVideoContentRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ContentId     *ContentID             `protobuf:"bytes,1,opt,name=content_id,json=contentId,proto3" json:"content_id,omitempty"`
@@ -818,7 +1063,7 @@ type CreateVideoContentRequest struct {
 
 func (x *CreateVideoContentRequest) Reset() {
 	*x = CreateVideoContentRequest{}
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[10]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -830,7 +1075,7 @@ func (x *CreateVideoContentRequest) String() string {
 func (*CreateVideoContentRequest) ProtoMessage() {}
 
 func (x *CreateVideoContentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[10]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -843,7 +1088,7 @@ func (x *CreateVideoContentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateVideoContentRequest.ProtoReflect.Descriptor instead.
 func (*CreateVideoContentRequest) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{10}
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CreateVideoContentRequest) GetContentId() *ContentID {
@@ -862,7 +1107,7 @@ type CreateVideoContentResponse struct {
 
 func (x *CreateVideoContentResponse) Reset() {
 	*x = CreateVideoContentResponse{}
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[11]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -874,7 +1119,7 @@ func (x *CreateVideoContentResponse) String() string {
 func (*CreateVideoContentResponse) ProtoMessage() {}
 
 func (x *CreateVideoContentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[11]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -887,7 +1132,7 @@ func (x *CreateVideoContentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateVideoContentResponse.ProtoReflect.Descriptor instead.
 func (*CreateVideoContentResponse) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{11}
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreateVideoContentResponse) GetResult() *VideoContent {
@@ -906,7 +1151,7 @@ type GetVideoContentRequest struct {
 
 func (x *GetVideoContentRequest) Reset() {
 	*x = GetVideoContentRequest{}
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[12]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -918,7 +1163,7 @@ func (x *GetVideoContentRequest) String() string {
 func (*GetVideoContentRequest) ProtoMessage() {}
 
 func (x *GetVideoContentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[12]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -931,7 +1176,7 @@ func (x *GetVideoContentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetVideoContentRequest.ProtoReflect.Descriptor instead.
 func (*GetVideoContentRequest) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{12}
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetVideoContentRequest) GetContentId() *ContentID {
@@ -950,7 +1195,7 @@ type GetVideoContentResponse struct {
 
 func (x *GetVideoContentResponse) Reset() {
 	*x = GetVideoContentResponse{}
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[13]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -962,7 +1207,7 @@ func (x *GetVideoContentResponse) String() string {
 func (*GetVideoContentResponse) ProtoMessage() {}
 
 func (x *GetVideoContentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[13]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -975,7 +1220,7 @@ func (x *GetVideoContentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetVideoContentResponse.ProtoReflect.Descriptor instead.
 func (*GetVideoContentResponse) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{13}
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetVideoContentResponse) GetItems() []*VideoContent {
@@ -994,7 +1239,7 @@ type GetTVShowDeliveryDataRequest struct {
 
 func (x *GetTVShowDeliveryDataRequest) Reset() {
 	*x = GetTVShowDeliveryDataRequest{}
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[14]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1006,7 +1251,7 @@ func (x *GetTVShowDeliveryDataRequest) String() string {
 func (*GetTVShowDeliveryDataRequest) ProtoMessage() {}
 
 func (x *GetTVShowDeliveryDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[14]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1019,7 +1264,7 @@ func (x *GetTVShowDeliveryDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTVShowDeliveryDataRequest.ProtoReflect.Descriptor instead.
 func (*GetTVShowDeliveryDataRequest) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{14}
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetTVShowDeliveryDataRequest) GetContentId() *ContentID {
@@ -1031,15 +1276,14 @@ func (x *GetTVShowDeliveryDataRequest) GetContentId() *ContentID {
 
 type GetTVShowDeliveryDataResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          *TVShowDeliveryData    `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
-	Step          TVShowDeliveryStatus   `protobuf:"varint,2,opt,name=step,proto3,enum=torrent2emby.TVShowDeliveryStatus" json:"step,omitempty"`
+	Result        *TVShowDeliveryState   `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetTVShowDeliveryDataResponse) Reset() {
 	*x = GetTVShowDeliveryDataResponse{}
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[15]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1051,7 +1295,7 @@ func (x *GetTVShowDeliveryDataResponse) String() string {
 func (*GetTVShowDeliveryDataResponse) ProtoMessage() {}
 
 func (x *GetTVShowDeliveryDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[15]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1064,21 +1308,14 @@ func (x *GetTVShowDeliveryDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTVShowDeliveryDataResponse.ProtoReflect.Descriptor instead.
 func (*GetTVShowDeliveryDataResponse) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{15}
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{18}
 }
 
-func (x *GetTVShowDeliveryDataResponse) GetData() *TVShowDeliveryData {
+func (x *GetTVShowDeliveryDataResponse) GetResult() *TVShowDeliveryState {
 	if x != nil {
-		return x.Data
+		return x.Result
 	}
 	return nil
-}
-
-func (x *GetTVShowDeliveryDataResponse) GetStep() TVShowDeliveryStatus {
-	if x != nil {
-		return x.Step
-	}
-	return TVShowDeliveryStatus_TVShowDeliveryStatusUnknown
 }
 
 type ChoseTorrentOptionsRequest struct {
@@ -1094,7 +1331,7 @@ type ChoseTorrentOptionsRequest struct {
 
 func (x *ChoseTorrentOptionsRequest) Reset() {
 	*x = ChoseTorrentOptionsRequest{}
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[16]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1106,7 +1343,7 @@ func (x *ChoseTorrentOptionsRequest) String() string {
 func (*ChoseTorrentOptionsRequest) ProtoMessage() {}
 
 func (x *ChoseTorrentOptionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[16]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1119,7 +1356,7 @@ func (x *ChoseTorrentOptionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChoseTorrentOptionsRequest.ProtoReflect.Descriptor instead.
 func (*ChoseTorrentOptionsRequest) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{16}
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ChoseTorrentOptionsRequest) GetContentId() *ContentID {
@@ -1145,15 +1382,14 @@ func (x *ChoseTorrentOptionsRequest) GetNewSearchQuery() string {
 
 type ChoseTorrentOptionsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          *TVShowDeliveryData    `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
-	Step          TVShowDeliveryStatus   `protobuf:"varint,2,opt,name=step,proto3,enum=torrent2emby.TVShowDeliveryStatus" json:"step,omitempty"`
+	Result        *TVShowDeliveryState   `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ChoseTorrentOptionsResponse) Reset() {
 	*x = ChoseTorrentOptionsResponse{}
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[17]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1165,7 +1401,7 @@ func (x *ChoseTorrentOptionsResponse) String() string {
 func (*ChoseTorrentOptionsResponse) ProtoMessage() {}
 
 func (x *ChoseTorrentOptionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[17]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1178,21 +1414,14 @@ func (x *ChoseTorrentOptionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChoseTorrentOptionsResponse.ProtoReflect.Descriptor instead.
 func (*ChoseTorrentOptionsResponse) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{17}
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{20}
 }
 
-func (x *ChoseTorrentOptionsResponse) GetData() *TVShowDeliveryData {
+func (x *ChoseTorrentOptionsResponse) GetResult() *TVShowDeliveryState {
 	if x != nil {
-		return x.Data
+		return x.Result
 	}
 	return nil
-}
-
-func (x *ChoseTorrentOptionsResponse) GetStep() TVShowDeliveryStatus {
-	if x != nil {
-		return x.Step
-	}
-	return TVShowDeliveryStatus_TVShowDeliveryStatusUnknown
 }
 
 type ChoseFileMatchesOptionsRequest struct {
@@ -1206,7 +1435,7 @@ type ChoseFileMatchesOptionsRequest struct {
 
 func (x *ChoseFileMatchesOptionsRequest) Reset() {
 	*x = ChoseFileMatchesOptionsRequest{}
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[18]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1218,7 +1447,7 @@ func (x *ChoseFileMatchesOptionsRequest) String() string {
 func (*ChoseFileMatchesOptionsRequest) ProtoMessage() {}
 
 func (x *ChoseFileMatchesOptionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[18]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1231,7 +1460,7 @@ func (x *ChoseFileMatchesOptionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChoseFileMatchesOptionsRequest.ProtoReflect.Descriptor instead.
 func (*ChoseFileMatchesOptionsRequest) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{18}
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ChoseFileMatchesOptionsRequest) GetContentId() *ContentID {
@@ -1250,15 +1479,14 @@ func (x *ChoseFileMatchesOptionsRequest) GetApprove() bool {
 
 type ChoseFileMatchesOptionsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          *TVShowDeliveryData    `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
-	Step          TVShowDeliveryStatus   `protobuf:"varint,2,opt,name=step,proto3,enum=torrent2emby.TVShowDeliveryStatus" json:"step,omitempty"`
+	Result        *TVShowDeliveryState   `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ChoseFileMatchesOptionsResponse) Reset() {
 	*x = ChoseFileMatchesOptionsResponse{}
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[19]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1270,7 +1498,7 @@ func (x *ChoseFileMatchesOptionsResponse) String() string {
 func (*ChoseFileMatchesOptionsResponse) ProtoMessage() {}
 
 func (x *ChoseFileMatchesOptionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_torrent2emby_videocontent_proto_msgTypes[19]
+	mi := &file_torrent2emby_videocontent_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1283,21 +1511,14 @@ func (x *ChoseFileMatchesOptionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChoseFileMatchesOptionsResponse.ProtoReflect.Descriptor instead.
 func (*ChoseFileMatchesOptionsResponse) Descriptor() ([]byte, []int) {
-	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{19}
+	return file_torrent2emby_videocontent_proto_rawDescGZIP(), []int{22}
 }
 
-func (x *ChoseFileMatchesOptionsResponse) GetData() *TVShowDeliveryData {
+func (x *ChoseFileMatchesOptionsResponse) GetResult() *TVShowDeliveryState {
 	if x != nil {
-		return x.Data
+		return x.Result
 	}
 	return nil
-}
-
-func (x *ChoseFileMatchesOptionsResponse) GetStep() TVShowDeliveryStatus {
-	if x != nil {
-		return x.Step
-	}
-	return TVShowDeliveryStatus_TVShowDeliveryStatusUnknown
 }
 
 var File_torrent2emby_videocontent_proto protoreflect.FileDescriptor
@@ -1350,12 +1571,35 @@ const file_torrent2emby_videocontent_proto_rawDesc = "" +
 	"\x05video\x18\x02 \x01(\v2\x17.torrent2emby.VideoFileR\x05video\x124\n" +
 	"\vaudio_files\x18\x03 \x03(\v2\x13.torrent2emby.TrackR\n" +
 	"audioFiles\x121\n" +
-	"\tsubtitles\x18\x04 \x03(\v2\x13.torrent2emby.TrackR\tsubtitles\"\xd8\x01\n" +
+	"\tsubtitles\x18\x04 \x03(\v2\x13.torrent2emby.TrackR\tsubtitles\"\xd2\x02\n" +
+	"\x15TorrentDownloadStatus\x12F\n" +
+	"\x05state\x18\x01 \x01(\x0e20.torrent2emby.TorrentDownloadStatus.TorrentStateR\x05state\x12\x1a\n" +
+	"\bprogress\x18\x02 \x01(\x02R\bprogress\x12\x1f\n" +
+	"\vis_complete\x18\x03 \x01(\bR\n" +
+	"isComplete\"\xb3\x01\n" +
+	"\fTorrentState\x12\x19\n" +
+	"\x15TORRENT_STATE_UNKNOWN\x10\x00\x12\x17\n" +
+	"\x13TORRENT_STATE_ERROR\x10\x01\x12\x1b\n" +
+	"\x17TORRENT_STATE_UPLOADING\x10\x02\x12\x1d\n" +
+	"\x19TORRENT_STATE_DOWNLOADING\x10\x03\x12\x19\n" +
+	"\x15TORRENT_STATE_STOPPED\x10\x04\x12\x18\n" +
+	"\x14TORRENT_STATE_QUEUED\x10\x05\"O\n" +
+	"\x10MergeVideoStatus\x12\x1a\n" +
+	"\bprogress\x18\x01 \x01(\x02R\bprogress\x12\x1f\n" +
+	"\vis_complete\x18\x02 \x01(\bR\n" +
+	"isComplete\"\xc0\x03\n" +
 	"\x12TVShowDeliveryData\x12&\n" +
 	"\fsearch_query\x18\x01 \x01(\tH\x00R\vsearchQuery\x88\x01\x01\x12B\n" +
 	"\x0etorrent_search\x18\x02 \x03(\v2\x1b.torrent2emby.TorrentSearchR\rtorrentSearch\x12E\n" +
-	"\x0fcontent_matches\x18\x03 \x03(\v2\x1c.torrent2emby.ContentMatchesR\x0econtentMatchesB\x0f\n" +
-	"\r_search_query\"S\n" +
+	"\x0fcontent_matches\x18\x03 \x03(\v2\x1c.torrent2emby.ContentMatchesR\x0econtentMatches\x12`\n" +
+	"\x17torrent_download_status\x18\x04 \x01(\v2#.torrent2emby.TorrentDownloadStatusH\x01R\x15torrentDownloadStatus\x88\x01\x01\x12Q\n" +
+	"\x12merge_video_status\x18\x05 \x01(\v2\x1e.torrent2emby.MergeVideoStatusH\x02R\x10mergeVideoStatus\x88\x01\x01B\x0f\n" +
+	"\r_search_queryB\x1a\n" +
+	"\x18_torrent_download_statusB\x15\n" +
+	"\x13_merge_video_status\"\x83\x01\n" +
+	"\x13TVShowDeliveryState\x124\n" +
+	"\x04data\x18\x01 \x01(\v2 .torrent2emby.TVShowDeliveryDataR\x04data\x126\n" +
+	"\x04step\x18\x02 \x01(\x0e2\".torrent2emby.TVShowDeliveryStatusR\x04step\"S\n" +
 	"\x19CreateVideoContentRequest\x126\n" +
 	"\n" +
 	"content_id\x18\x01 \x01(\v2\x17.torrent2emby.ContentIDR\tcontentId\"P\n" +
@@ -1368,32 +1612,29 @@ const file_torrent2emby_videocontent_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x1a.torrent2emby.VideoContentR\x05items\"V\n" +
 	"\x1cGetTVShowDeliveryDataRequest\x126\n" +
 	"\n" +
-	"content_id\x18\x01 \x01(\v2\x17.torrent2emby.ContentIDR\tcontentId\"\x8d\x01\n" +
-	"\x1dGetTVShowDeliveryDataResponse\x124\n" +
-	"\x04data\x18\x01 \x01(\v2 .torrent2emby.TVShowDeliveryDataR\x04data\x126\n" +
-	"\x04step\x18\x02 \x01(\x0e2\".torrent2emby.TVShowDeliveryStatusR\x04step\"\xba\x01\n" +
+	"content_id\x18\x01 \x01(\v2\x17.torrent2emby.ContentIDR\tcontentId\"Z\n" +
+	"\x1dGetTVShowDeliveryDataResponse\x129\n" +
+	"\x06result\x18\x01 \x01(\v2!.torrent2emby.TVShowDeliveryStateR\x06result\"\xba\x01\n" +
 	"\x1aChoseTorrentOptionsRequest\x126\n" +
 	"\n" +
 	"content_id\x18\x01 \x01(\v2\x17.torrent2emby.ContentIDR\tcontentId\x12\x17\n" +
 	"\x04href\x18\x02 \x01(\tH\x00R\x04href\x88\x01\x01\x12-\n" +
 	"\x10new_search_query\x18\x03 \x01(\tH\x01R\x0enewSearchQuery\x88\x01\x01B\a\n" +
 	"\x05_hrefB\x13\n" +
-	"\x11_new_search_query\"\x8b\x01\n" +
-	"\x1bChoseTorrentOptionsResponse\x124\n" +
-	"\x04data\x18\x01 \x01(\v2 .torrent2emby.TVShowDeliveryDataR\x04data\x126\n" +
-	"\x04step\x18\x02 \x01(\x0e2\".torrent2emby.TVShowDeliveryStatusR\x04step\"r\n" +
+	"\x11_new_search_query\"X\n" +
+	"\x1bChoseTorrentOptionsResponse\x129\n" +
+	"\x06result\x18\x01 \x01(\v2!.torrent2emby.TVShowDeliveryStateR\x06result\"r\n" +
 	"\x1eChoseFileMatchesOptionsRequest\x126\n" +
 	"\n" +
 	"content_id\x18\x01 \x01(\v2\x17.torrent2emby.ContentIDR\tcontentId\x12\x18\n" +
-	"\aapprove\x18\x02 \x01(\bR\aapprove\"\x8f\x01\n" +
-	"\x1fChoseFileMatchesOptionsResponse\x124\n" +
-	"\x04data\x18\x01 \x01(\v2 .torrent2emby.TVShowDeliveryDataR\x04data\x126\n" +
-	"\x04step\x18\x02 \x01(\x0e2\".torrent2emby.TVShowDeliveryStatusR\x04step*\x80\x01\n" +
+	"\aapprove\x18\x02 \x01(\bR\aapprove\"\\\n" +
+	"\x1fChoseFileMatchesOptionsResponse\x129\n" +
+	"\x06result\x18\x01 \x01(\v2!.torrent2emby.TVShowDeliveryStateR\x06result*\x80\x01\n" +
 	"\x0eDeliveryStatus\x12\x19\n" +
 	"\x15DeliveryStatusUnknown\x10\x00\x12\x18\n" +
 	"\x14DeliveryStatusFailed\x10\x01\x12\x1c\n" +
 	"\x18DeliveryStatusInProgress\x10\x02\x12\x1b\n" +
-	"\x17DeliveryStatusDelivered\x10\x03*\xe2\x03\n" +
+	"\x17DeliveryStatusDelivered\x10\x03*\xf7\x03\n" +
 	"\x14TVShowDeliveryStatus\x12\x1f\n" +
 	"\x1bTVShowDeliveryStatusUnknown\x10\x00\x12\x17\n" +
 	"\x13GenerateSearchQuery\x10\x01\x12\x12\n" +
@@ -1410,9 +1651,10 @@ const file_torrent2emby_videocontent_proto_rawDesc = "" +
 	"\x14StartMergeVideoFiles\x10\v\x12\x1a\n" +
 	"\x16WaitingMergeVideoFiles\x10\f\x12\x12\n" +
 	"\x0eCopyVideoFiles\x10\r\x12\x15\n" +
-	"\x11SetVideoFileGroup\x10\x0e\x12\x14\n" +
-	"\x10SetMediaMetaData\x10\x0f\x12\x1c\n" +
-	"\x18SendDeliveryNotification\x10\x102\x95\b\n" +
+	"\x11SetVideoFileGroup\x10\x0e\x12\x13\n" +
+	"\x0fGetCatalogsSize\x10\x0f\x12\x14\n" +
+	"\x10SetMediaMetaData\x10\x10\x12\x1c\n" +
+	"\x18SendDeliveryNotification\x10\x112\x95\b\n" +
 	"\x13VideoContentService\x12\xb4\x01\n" +
 	"\x12CreateVideoContent\x12'.torrent2emby.CreateVideoContentRequest\x1a(.torrent2emby.CreateVideoContentResponse\"K\x92A2\x120Создание файловой раздачи\x82\xd3\xe4\x93\x02\x10:\x01*\"\v/v1/content\x12\xbf\x01\n" +
 	"\x0fGetVideoContent\x12$.torrent2emby.GetVideoContentRequest\x1a%.torrent2emby.GetVideoContentResponse\"_\x92AI\x12GПолучение доставок для кино/тв сериала\x82\xd3\xe4\x93\x02\r\x12\v/v1/content\x12\xd4\x01\n" +
@@ -1432,74 +1674,80 @@ func file_torrent2emby_videocontent_proto_rawDescGZIP() []byte {
 	return file_torrent2emby_videocontent_proto_rawDescData
 }
 
-var file_torrent2emby_videocontent_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_torrent2emby_videocontent_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_torrent2emby_videocontent_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_torrent2emby_videocontent_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_torrent2emby_videocontent_proto_goTypes = []any{
 	(DeliveryStatus)(0),                     // 0: torrent2emby.DeliveryStatus
 	(TVShowDeliveryStatus)(0),               // 1: torrent2emby.TVShowDeliveryStatus
-	(*TVShowID)(nil),                        // 2: torrent2emby.TVShowID
-	(*ContentID)(nil),                       // 3: torrent2emby.ContentID
-	(*VideoContent)(nil),                    // 4: torrent2emby.VideoContent
-	(*TorrentSearch)(nil),                   // 5: torrent2emby.TorrentSearch
-	(*FileInfo)(nil),                        // 6: torrent2emby.FileInfo
-	(*EpisodeInfo)(nil),                     // 7: torrent2emby.EpisodeInfo
-	(*VideoFile)(nil),                       // 8: torrent2emby.VideoFile
-	(*Track)(nil),                           // 9: torrent2emby.Track
-	(*ContentMatches)(nil),                  // 10: torrent2emby.ContentMatches
-	(*TVShowDeliveryData)(nil),              // 11: torrent2emby.TVShowDeliveryData
-	(*CreateVideoContentRequest)(nil),       // 12: torrent2emby.CreateVideoContentRequest
-	(*CreateVideoContentResponse)(nil),      // 13: torrent2emby.CreateVideoContentResponse
-	(*GetVideoContentRequest)(nil),          // 14: torrent2emby.GetVideoContentRequest
-	(*GetVideoContentResponse)(nil),         // 15: torrent2emby.GetVideoContentResponse
-	(*GetTVShowDeliveryDataRequest)(nil),    // 16: torrent2emby.GetTVShowDeliveryDataRequest
-	(*GetTVShowDeliveryDataResponse)(nil),   // 17: torrent2emby.GetTVShowDeliveryDataResponse
-	(*ChoseTorrentOptionsRequest)(nil),      // 18: torrent2emby.ChoseTorrentOptionsRequest
-	(*ChoseTorrentOptionsResponse)(nil),     // 19: torrent2emby.ChoseTorrentOptionsResponse
-	(*ChoseFileMatchesOptionsRequest)(nil),  // 20: torrent2emby.ChoseFileMatchesOptionsRequest
-	(*ChoseFileMatchesOptionsResponse)(nil), // 21: torrent2emby.ChoseFileMatchesOptionsResponse
-	(*timestamppb.Timestamp)(nil),           // 22: google.protobuf.Timestamp
+	(TorrentDownloadStatus_TorrentState)(0), // 2: torrent2emby.TorrentDownloadStatus.TorrentState
+	(*TVShowID)(nil),                        // 3: torrent2emby.TVShowID
+	(*ContentID)(nil),                       // 4: torrent2emby.ContentID
+	(*VideoContent)(nil),                    // 5: torrent2emby.VideoContent
+	(*TorrentSearch)(nil),                   // 6: torrent2emby.TorrentSearch
+	(*FileInfo)(nil),                        // 7: torrent2emby.FileInfo
+	(*EpisodeInfo)(nil),                     // 8: torrent2emby.EpisodeInfo
+	(*VideoFile)(nil),                       // 9: torrent2emby.VideoFile
+	(*Track)(nil),                           // 10: torrent2emby.Track
+	(*ContentMatches)(nil),                  // 11: torrent2emby.ContentMatches
+	(*TorrentDownloadStatus)(nil),           // 12: torrent2emby.TorrentDownloadStatus
+	(*MergeVideoStatus)(nil),                // 13: torrent2emby.MergeVideoStatus
+	(*TVShowDeliveryData)(nil),              // 14: torrent2emby.TVShowDeliveryData
+	(*TVShowDeliveryState)(nil),             // 15: torrent2emby.TVShowDeliveryState
+	(*CreateVideoContentRequest)(nil),       // 16: torrent2emby.CreateVideoContentRequest
+	(*CreateVideoContentResponse)(nil),      // 17: torrent2emby.CreateVideoContentResponse
+	(*GetVideoContentRequest)(nil),          // 18: torrent2emby.GetVideoContentRequest
+	(*GetVideoContentResponse)(nil),         // 19: torrent2emby.GetVideoContentResponse
+	(*GetTVShowDeliveryDataRequest)(nil),    // 20: torrent2emby.GetTVShowDeliveryDataRequest
+	(*GetTVShowDeliveryDataResponse)(nil),   // 21: torrent2emby.GetTVShowDeliveryDataResponse
+	(*ChoseTorrentOptionsRequest)(nil),      // 22: torrent2emby.ChoseTorrentOptionsRequest
+	(*ChoseTorrentOptionsResponse)(nil),     // 23: torrent2emby.ChoseTorrentOptionsResponse
+	(*ChoseFileMatchesOptionsRequest)(nil),  // 24: torrent2emby.ChoseFileMatchesOptionsRequest
+	(*ChoseFileMatchesOptionsResponse)(nil), // 25: torrent2emby.ChoseFileMatchesOptionsResponse
+	(*timestamppb.Timestamp)(nil),           // 26: google.protobuf.Timestamp
 }
 var file_torrent2emby_videocontent_proto_depIdxs = []int32{
-	2,  // 0: torrent2emby.ContentID.tv_show:type_name -> torrent2emby.TVShowID
-	22, // 1: torrent2emby.VideoContent.created_at:type_name -> google.protobuf.Timestamp
-	3,  // 2: torrent2emby.VideoContent.content_id:type_name -> torrent2emby.ContentID
+	3,  // 0: torrent2emby.ContentID.tv_show:type_name -> torrent2emby.TVShowID
+	26, // 1: torrent2emby.VideoContent.created_at:type_name -> google.protobuf.Timestamp
+	4,  // 2: torrent2emby.VideoContent.content_id:type_name -> torrent2emby.ContentID
 	0,  // 3: torrent2emby.VideoContent.delivery_status:type_name -> torrent2emby.DeliveryStatus
-	6,  // 4: torrent2emby.VideoFile.file:type_name -> torrent2emby.FileInfo
-	6,  // 5: torrent2emby.Track.file:type_name -> torrent2emby.FileInfo
-	7,  // 6: torrent2emby.ContentMatches.episode:type_name -> torrent2emby.EpisodeInfo
-	8,  // 7: torrent2emby.ContentMatches.video:type_name -> torrent2emby.VideoFile
-	9,  // 8: torrent2emby.ContentMatches.audio_files:type_name -> torrent2emby.Track
-	9,  // 9: torrent2emby.ContentMatches.subtitles:type_name -> torrent2emby.Track
-	5,  // 10: torrent2emby.TVShowDeliveryData.torrent_search:type_name -> torrent2emby.TorrentSearch
-	10, // 11: torrent2emby.TVShowDeliveryData.content_matches:type_name -> torrent2emby.ContentMatches
-	3,  // 12: torrent2emby.CreateVideoContentRequest.content_id:type_name -> torrent2emby.ContentID
-	4,  // 13: torrent2emby.CreateVideoContentResponse.result:type_name -> torrent2emby.VideoContent
-	3,  // 14: torrent2emby.GetVideoContentRequest.content_id:type_name -> torrent2emby.ContentID
-	4,  // 15: torrent2emby.GetVideoContentResponse.items:type_name -> torrent2emby.VideoContent
-	3,  // 16: torrent2emby.GetTVShowDeliveryDataRequest.content_id:type_name -> torrent2emby.ContentID
-	11, // 17: torrent2emby.GetTVShowDeliveryDataResponse.data:type_name -> torrent2emby.TVShowDeliveryData
-	1,  // 18: torrent2emby.GetTVShowDeliveryDataResponse.step:type_name -> torrent2emby.TVShowDeliveryStatus
-	3,  // 19: torrent2emby.ChoseTorrentOptionsRequest.content_id:type_name -> torrent2emby.ContentID
-	11, // 20: torrent2emby.ChoseTorrentOptionsResponse.data:type_name -> torrent2emby.TVShowDeliveryData
-	1,  // 21: torrent2emby.ChoseTorrentOptionsResponse.step:type_name -> torrent2emby.TVShowDeliveryStatus
-	3,  // 22: torrent2emby.ChoseFileMatchesOptionsRequest.content_id:type_name -> torrent2emby.ContentID
-	11, // 23: torrent2emby.ChoseFileMatchesOptionsResponse.data:type_name -> torrent2emby.TVShowDeliveryData
-	1,  // 24: torrent2emby.ChoseFileMatchesOptionsResponse.step:type_name -> torrent2emby.TVShowDeliveryStatus
-	12, // 25: torrent2emby.VideoContentService.CreateVideoContent:input_type -> torrent2emby.CreateVideoContentRequest
-	14, // 26: torrent2emby.VideoContentService.GetVideoContent:input_type -> torrent2emby.GetVideoContentRequest
-	16, // 27: torrent2emby.VideoContentService.GetTVShowDeliveryData:input_type -> torrent2emby.GetTVShowDeliveryDataRequest
-	18, // 28: torrent2emby.VideoContentService.ChoseTorrentOptions:input_type -> torrent2emby.ChoseTorrentOptionsRequest
-	20, // 29: torrent2emby.VideoContentService.ChoseFileMatchesOptions:input_type -> torrent2emby.ChoseFileMatchesOptionsRequest
-	13, // 30: torrent2emby.VideoContentService.CreateVideoContent:output_type -> torrent2emby.CreateVideoContentResponse
-	15, // 31: torrent2emby.VideoContentService.GetVideoContent:output_type -> torrent2emby.GetVideoContentResponse
-	17, // 32: torrent2emby.VideoContentService.GetTVShowDeliveryData:output_type -> torrent2emby.GetTVShowDeliveryDataResponse
-	19, // 33: torrent2emby.VideoContentService.ChoseTorrentOptions:output_type -> torrent2emby.ChoseTorrentOptionsResponse
-	21, // 34: torrent2emby.VideoContentService.ChoseFileMatchesOptions:output_type -> torrent2emby.ChoseFileMatchesOptionsResponse
-	30, // [30:35] is the sub-list for method output_type
-	25, // [25:30] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	7,  // 4: torrent2emby.VideoFile.file:type_name -> torrent2emby.FileInfo
+	7,  // 5: torrent2emby.Track.file:type_name -> torrent2emby.FileInfo
+	8,  // 6: torrent2emby.ContentMatches.episode:type_name -> torrent2emby.EpisodeInfo
+	9,  // 7: torrent2emby.ContentMatches.video:type_name -> torrent2emby.VideoFile
+	10, // 8: torrent2emby.ContentMatches.audio_files:type_name -> torrent2emby.Track
+	10, // 9: torrent2emby.ContentMatches.subtitles:type_name -> torrent2emby.Track
+	2,  // 10: torrent2emby.TorrentDownloadStatus.state:type_name -> torrent2emby.TorrentDownloadStatus.TorrentState
+	6,  // 11: torrent2emby.TVShowDeliveryData.torrent_search:type_name -> torrent2emby.TorrentSearch
+	11, // 12: torrent2emby.TVShowDeliveryData.content_matches:type_name -> torrent2emby.ContentMatches
+	12, // 13: torrent2emby.TVShowDeliveryData.torrent_download_status:type_name -> torrent2emby.TorrentDownloadStatus
+	13, // 14: torrent2emby.TVShowDeliveryData.merge_video_status:type_name -> torrent2emby.MergeVideoStatus
+	14, // 15: torrent2emby.TVShowDeliveryState.data:type_name -> torrent2emby.TVShowDeliveryData
+	1,  // 16: torrent2emby.TVShowDeliveryState.step:type_name -> torrent2emby.TVShowDeliveryStatus
+	4,  // 17: torrent2emby.CreateVideoContentRequest.content_id:type_name -> torrent2emby.ContentID
+	5,  // 18: torrent2emby.CreateVideoContentResponse.result:type_name -> torrent2emby.VideoContent
+	4,  // 19: torrent2emby.GetVideoContentRequest.content_id:type_name -> torrent2emby.ContentID
+	5,  // 20: torrent2emby.GetVideoContentResponse.items:type_name -> torrent2emby.VideoContent
+	4,  // 21: torrent2emby.GetTVShowDeliveryDataRequest.content_id:type_name -> torrent2emby.ContentID
+	15, // 22: torrent2emby.GetTVShowDeliveryDataResponse.result:type_name -> torrent2emby.TVShowDeliveryState
+	4,  // 23: torrent2emby.ChoseTorrentOptionsRequest.content_id:type_name -> torrent2emby.ContentID
+	15, // 24: torrent2emby.ChoseTorrentOptionsResponse.result:type_name -> torrent2emby.TVShowDeliveryState
+	4,  // 25: torrent2emby.ChoseFileMatchesOptionsRequest.content_id:type_name -> torrent2emby.ContentID
+	15, // 26: torrent2emby.ChoseFileMatchesOptionsResponse.result:type_name -> torrent2emby.TVShowDeliveryState
+	16, // 27: torrent2emby.VideoContentService.CreateVideoContent:input_type -> torrent2emby.CreateVideoContentRequest
+	18, // 28: torrent2emby.VideoContentService.GetVideoContent:input_type -> torrent2emby.GetVideoContentRequest
+	20, // 29: torrent2emby.VideoContentService.GetTVShowDeliveryData:input_type -> torrent2emby.GetTVShowDeliveryDataRequest
+	22, // 30: torrent2emby.VideoContentService.ChoseTorrentOptions:input_type -> torrent2emby.ChoseTorrentOptionsRequest
+	24, // 31: torrent2emby.VideoContentService.ChoseFileMatchesOptions:input_type -> torrent2emby.ChoseFileMatchesOptionsRequest
+	17, // 32: torrent2emby.VideoContentService.CreateVideoContent:output_type -> torrent2emby.CreateVideoContentResponse
+	19, // 33: torrent2emby.VideoContentService.GetVideoContent:output_type -> torrent2emby.GetVideoContentResponse
+	21, // 34: torrent2emby.VideoContentService.GetTVShowDeliveryData:output_type -> torrent2emby.GetTVShowDeliveryDataResponse
+	23, // 35: torrent2emby.VideoContentService.ChoseTorrentOptions:output_type -> torrent2emby.ChoseTorrentOptionsResponse
+	25, // 36: torrent2emby.VideoContentService.ChoseFileMatchesOptions:output_type -> torrent2emby.ChoseFileMatchesOptionsResponse
+	32, // [32:37] is the sub-list for method output_type
+	27, // [27:32] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_torrent2emby_videocontent_proto_init() }
@@ -1508,15 +1756,15 @@ func file_torrent2emby_videocontent_proto_init() {
 		return
 	}
 	file_torrent2emby_videocontent_proto_msgTypes[1].OneofWrappers = []any{}
-	file_torrent2emby_videocontent_proto_msgTypes[9].OneofWrappers = []any{}
-	file_torrent2emby_videocontent_proto_msgTypes[16].OneofWrappers = []any{}
+	file_torrent2emby_videocontent_proto_msgTypes[11].OneofWrappers = []any{}
+	file_torrent2emby_videocontent_proto_msgTypes[19].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_torrent2emby_videocontent_proto_rawDesc), len(file_torrent2emby_videocontent_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   20,
+			NumEnums:      3,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

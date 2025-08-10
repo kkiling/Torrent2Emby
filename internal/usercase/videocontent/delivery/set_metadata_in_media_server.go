@@ -3,10 +3,10 @@ package delivery
 import (
 	"context"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"path/filepath"
 
 	"github.com/kkiling/torrent2emby/internal/adapter/emby"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 )
 
 type SetMediaMetaDataParams struct {

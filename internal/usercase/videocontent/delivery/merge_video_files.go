@@ -77,29 +77,30 @@ func (s *Service) StartMergeVideo(ctx context.Context, params MergeVideoParams) 
 
 func (s *Service) GetMergeVideoStatus(ctx context.Context, mergeIDs []uuid.UUID) (*MergeVideoStatus, error) {
 	var status MergeVideoStatus
+
 	delta := 1.0 / float64(len(mergeIDs))
 	status.Progress = 0.0
-	completedCounter := 0
+	status.IsComplete = true
+
 	for _, id := range mergeIDs {
 		result, err := s.mkvMerge.GetMergeResult(ctx, id)
 		if err != nil {
 			return nil, fmt.Errorf("mkvMerge.GetMergeResult: %w", err)
 		}
-		if result.Status == mkvmerge.ErrorStatus && result.Error != nil {
-			status.Errors = append(status.Errors, *result.Error)
-			completedCounter++
-			status.Progress = float64(completedCounter) * delta
+
+		if result.Status == mkvmerge.ErrorStatus || result.Status == mkvmerge.CompleteStatus {
+			if result.Error != nil {
+				status.Errors = append(status.Errors, *result.Error)
+			}
+			status.Progress += delta
 			continue
-		} else if result.Status == mkvmerge.CompleteStatus {
-			completedCounter++
-			status.Progress = float64(completedCounter) * delta
-			continue
-		} else {
-			status.Progress += delta * result.Progress
+		}
+
+		status.IsComplete = false
+		if result.Progress != nil {
+			status.Progress += delta * *result.Progress
 		}
 	}
-
-	status.IsComplete = completedCounter == len(mergeIDs)
 
 	return &status, nil
 }

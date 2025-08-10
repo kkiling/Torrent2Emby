@@ -110,10 +110,12 @@ enum TVShowDeliveryStatus {
   CopyVideoFiles = 13;
   // Установка группы файлам
   SetVideoFileGroup = 14;
+  // GetCatalogsSize получение размеров каталогов сериала
+  GetCatalogsSize = 15;
   // Установка методаных серий сезона сериала/фильма в медиасервере
-  SetMediaMetaData = 15;
+  SetMediaMetaData = 16;
   // Отправка уведомления в telegramm о успешной доставки
-  SendDeliveryNotification = 16;
+  SendDeliveryNotification = 17;
 }
 
 message TorrentSearch {
@@ -156,10 +158,38 @@ message ContentMatches {
   repeated Track subtitles = 4;
 }
 
+message TorrentDownloadStatus {
+  enum TorrentState {
+    TORRENT_STATE_UNKNOWN = 0;
+    TORRENT_STATE_ERROR = 1;
+    TORRENT_STATE_UPLOADING = 2;
+    TORRENT_STATE_DOWNLOADING = 3;
+    TORRENT_STATE_STOPPED = 4;
+    TORRENT_STATE_QUEUED = 5;
+  }
+  TorrentState state = 1;
+  float progress = 2;
+  bool is_complete = 3;
+}
+
+message MergeVideoStatus {
+  float progress = 1;
+  bool is_complete = 2;
+}
+
 message TVShowDeliveryData {
   optional string search_query = 1;
   repeated TorrentSearch torrent_search = 2;
   repeated ContentMatches content_matches = 3;
+  // статус скачивания раздачи
+  optional TorrentDownloadStatus torrent_download_status = 4;
+  // статус сшивания файлов
+  optional MergeVideoStatus merge_video_status = 5;
+}
+
+message TVShowDeliveryState {
+  TVShowDeliveryData data = 1;
+  TVShowDeliveryStatus step = 2;
 }
 
 message CreateVideoContentRequest {
@@ -183,8 +213,7 @@ message GetTVShowDeliveryDataRequest {
 }
 
 message GetTVShowDeliveryDataResponse {
-  TVShowDeliveryData data = 1;
-  TVShowDeliveryStatus step = 2;
+  TVShowDeliveryState result = 1;
 }
 
 message ChoseTorrentOptionsRequest {
@@ -196,8 +225,7 @@ message ChoseTorrentOptionsRequest {
 }
 
 message ChoseTorrentOptionsResponse {
-  TVShowDeliveryData data = 1;
-  TVShowDeliveryStatus step = 2;
+  TVShowDeliveryState result = 1;
 }
 
 message ChoseFileMatchesOptionsRequest {
@@ -207,6 +235,5 @@ message ChoseFileMatchesOptionsRequest {
 }
 
 message ChoseFileMatchesOptionsResponse {
-  TVShowDeliveryData data = 1;
-  TVShowDeliveryStatus step = 2;
+  TVShowDeliveryState result = 1;
 }

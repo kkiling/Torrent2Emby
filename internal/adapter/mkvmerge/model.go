@@ -19,7 +19,6 @@ type MergeLogs struct {
 	CreatedAt time.Time
 	Type      MessageType
 	Content   string
-	Progress  *float64
 }
 
 type MergeResult struct {
@@ -29,7 +28,7 @@ type MergeResult struct {
 	Error       *string
 	CreatedAt   time.Time
 	CompletedAt *time.Time
-	Progress    float64
+	Progress    *float64
 }
 
 type CreateMergeResult struct {

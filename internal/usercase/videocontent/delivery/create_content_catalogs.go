@@ -3,7 +3,6 @@ package delivery
 import (
 	"context"
 	"fmt"
-	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,13 +12,14 @@ import (
 
 	ucerr "github.com/kkiling/torrent2emby/internal/usercase/err"
 	"github.com/kkiling/torrent2emby/internal/usercase/tvshowlibrary"
+	"github.com/kkiling/torrent2emby/internal/usercase/videocontent/common"
 )
 
 type CreateContentCatalogsParams struct {
 	TVShowID common.TVShowID
 }
 
-func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID common.TVShowID) (*CatalogsInfo, error) {
+func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID common.TVShowID) (*TVShowCatalogPath, error) {
 	// Получаем инфу о сезоне сериала
 	tvShowInfo, err := s.tvShowLibrary.GetTVShowInfo(ctx, tvshowlibrary.GetTVShowParams{
 		TVShowID: tvShowID.ID,
@@ -48,15 +48,16 @@ func (s *Service) createTVShowCatalog(ctx context.Context, tvShowID common.TVSho
 	seasonName := fmt.Sprintf("S%02d %s", tvShowID.SeasonNumber, season.Name)
 
 	tvShowsPath := filepath.Join(s.config.BasePath, s.config.TVShowMediaSaveTvShowsPath, tvShowName)
-	return &CatalogsInfo{
-		TvShowPath:       tvShowsPath,
-		TvShowSeasonPath: filepath.Join(tvShowsPath, seasonName),
+	return &TVShowCatalogPath{
+		TVShowPath: tvShowsPath,
+		SeasonPath: seasonName,
 	}, nil
 }
 
-func (s *Service) createDirectories(base, catalog string) error {
+func (s *Service) createDirectories(seasonPath string) error {
+
 	// Проверяем, что catalog действительно является подкаталогом base
-	relPath, err := filepath.Rel(base, catalog)
+	relPath, err := filepath.Rel(s.config.BasePath, seasonPath)
 	if err != nil {
 		return fmt.Errorf("catalog is not a subdirectory of base: %v", err)
 	}
@@ -65,7 +66,7 @@ func (s *Service) createDirectories(base, catalog string) error {
 	parts := strings.Split(relPath, string(filepath.Separator))
 
 	// Постепенно создаём каталоги
-	currentPath := base
+	currentPath := s.config.BasePath
 	for _, part := range parts {
 		currentPath = filepath.Join(currentPath, part)
 		// Проверяем существование каталога
@@ -100,25 +101,28 @@ func isEmpty(dirPath string) (bool, error) {
 }
 
 // CreateContentCatalogs формирование каталога куда будет сохранен контент
-func (s *Service) CreateContentCatalogs(ctx context.Context, params CreateContentCatalogsParams) (*CatalogsInfo, error) {
-	catalog, err := s.createTVShowCatalog(ctx, params.TVShowID)
+func (s *Service) CreateContentCatalogs(ctx context.Context, params CreateContentCatalogsParams) (*TVShowCatalogPath, error) {
+	tvShowPath, err := s.createTVShowCatalog(ctx, params.TVShowID)
 	if err != nil {
 		return nil, fmt.Errorf("tvShowLibrary.GetTVShowInfo: %w", err)
 	}
 
-	if catalog == nil {
+	if tvShowPath == nil {
 		return nil, fmt.Errorf("catalog is nil")
 	}
 
-	if createErr := s.createDirectories(s.config.BasePath, catalog.TvShowSeasonPath); createErr != nil {
+	seasonPath := tvShowPath.FullSeasonPath()
+
+	if createErr := s.createDirectories(seasonPath); createErr != nil {
 		return nil, fmt.Errorf("createDirectories: %w", createErr)
 	}
 
-	if ok, err := isEmpty(catalog.TvShowSeasonPath); err != nil {
+	// Если каталог сезона не пустой, то выдаем ошибку, что бы пользователь сам устранил ошибку
+	if ok, err := isEmpty(seasonPath); err != nil {
 		return nil, fmt.Errorf("isEmpty: %w", err)
 	} else if !ok {
 		return nil, fmt.Errorf("catalog is not empty: %w", ucerr.AlreadyExists)
 	}
 
-	return catalog, nil
+	return tvShowPath, nil
 }

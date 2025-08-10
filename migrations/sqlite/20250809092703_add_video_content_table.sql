@@ -9,11 +9,8 @@ CREATE TABLE IF NOT EXISTS video_content (
     movie_id INTEGER,
     -- ContentID: вариант "сериал"
     tvshow_id INTEGER,
+    -- Номер сезона сериала
     season_number INTEGER,
-    -- Информация о торренте
-    torrent_href   TEXT,
-    torrent_magnet TEXT,
-    torrent_hash   TEXT,
     -- Статус доставки
     delivery_status TEXT NOT NULL,
     -- Массив состояний State в JSON:

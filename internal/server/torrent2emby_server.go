@@ -2,11 +2,12 @@ package server
 
 import (
 	"context"
-	"github.com/kkiling/torrent2emby/internal/server/handler/tvshowlibrary"
-	"github.com/kkiling/torrent2emby/internal/server/handler/videocontent"
 
 	"github.com/kkiling/goplatform/log"
 	"github.com/kkiling/goplatform/server"
+
+	"github.com/kkiling/torrent2emby/internal/server/handler/tvshowlibrary"
+	"github.com/kkiling/torrent2emby/internal/server/handler/videocontent"
 )
 
 // Torrent2EmbyServer сервер

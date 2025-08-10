@@ -53,19 +53,3 @@ func HandleRequestError(log log.Logger, err error) error {
 
 	return err
 }
-
-func PrintError(logger log.Logger, err error) {
-	switch {
-	case errors.Is(err, NotAuthorizedErr):
-		logger.Fatal("Клиент не авторизован")
-	case errors.Is(err, AuthenticationFailedErr):
-		logger.Fatal("Ошибка при попытке залогиниться")
-	case errors.Is(err, ServiceUnavailableErr): // предполагаемое название ошибки
-		logger.Fatal("Сервис не доступен")
-	case errors.Is(err, ContentNotFound): // предполагаемое название ошибки
-		logger.Fatal("Контент не найден")
-
-	default:
-		logger.Fatal(err)
-	}
-}

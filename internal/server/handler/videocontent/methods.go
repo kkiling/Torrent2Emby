@@ -2,10 +2,12 @@ package videocontent
 
 import (
 	"context"
+
+	"github.com/samber/lo"
+
 	"github.com/kkiling/torrent2emby/internal/server/handler"
 	"github.com/kkiling/torrent2emby/internal/usercase/videocontent"
 	desc "github.com/kkiling/torrent2emby/pkg/gen/torrent2emby"
-	"github.com/samber/lo"
 )
 
 func (h *Handler) CreateVideoContent(ctx context.Context, request *desc.CreateVideoContentRequest) (*desc.CreateVideoContentResponse, error) {
@@ -48,8 +50,7 @@ func (h *Handler) GetTVShowDeliveryData(ctx context.Context, request *desc.GetTV
 	}
 
 	return &desc.GetTVShowDeliveryDataResponse{
-		Data: mapTVShowDeliveryState(&state.Data),
-		Step: mapDeliveryStep(state.Step),
+		Result: mapTVShowDeliveryState(state),
 	}, nil
 }
 
@@ -65,8 +66,7 @@ func (h *Handler) ChoseTorrentOptions(ctx context.Context, request *desc.ChoseTo
 	}
 
 	return &desc.ChoseTorrentOptionsResponse{
-		Data: mapTVShowDeliveryState(&state.Data),
-		Step: mapDeliveryStep(state.Step),
+		Result: mapTVShowDeliveryState(state),
 	}, nil
 }
 
@@ -81,7 +81,6 @@ func (h *Handler) ChoseFileMatchesOptions(ctx context.Context, request *desc.Cho
 	}
 
 	return &desc.ChoseFileMatchesOptionsResponse{
-		Data: mapTVShowDeliveryState(&state.Data),
-		Step: mapDeliveryStep(state.Step),
+		Result: mapTVShowDeliveryState(state),
 	}, nil
 }
